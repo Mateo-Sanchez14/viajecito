@@ -13,6 +13,8 @@ RSVP_VALUES = ("in", "maybe", "out", "pending")
 DEFAULT_TRIP_TYPE = "generic"
 DEFAULT_CURRENCY = "USD"
 MAX_FX_RATES = 10
+FX_MIN_EXPONENT, FX_MAX_EXPONENT = -9, 12  # bounds of ``Decimal.adjusted()``
+FX_MAX_DECIMALS = 8
 _CURRENCY_CODE = re.compile(r"^[A-Z]{3}$")
 
 
@@ -66,7 +68,8 @@ def normalize_currency(raw: str) -> str:
 
 
 def validate_fx_rates(raw: Mapping[str, Any]) -> dict[str, str]:
-    """``{"<ISO 4217 code>": <decimal > 0>}`` with at most 10 keys, as decimal strings."""
+    """``{"<ISO 4217 code>": <decimal > 0>}``: at most 10 keys, magnitude 1e-9..1e13, rounded to 8
+    decimals, returned as plain decimal strings (a hostile exponent never becomes a huge string)."""
     if len(raw) > MAX_FX_RATES:
         raise InvalidTripInputError(f"at most {MAX_FX_RATES} fx rates are allowed")
     clean: dict[str, str] = {}
@@ -81,6 +84,12 @@ def validate_fx_rates(raw: Mapping[str, Any]) -> dict[str, str]:
             raise InvalidTripInputError(f"fx rate for {code} is not a number") from exc
         if not rate.is_finite() or rate <= 0:
             raise InvalidTripInputError(f"fx rate for {code} must be a positive number")
+        if not FX_MIN_EXPONENT <= rate.adjusted() <= FX_MAX_EXPONENT:
+            raise InvalidTripInputError(f"fx rate for {code} is out of range")
+        if rate.as_tuple().exponent < -FX_MAX_DECIMALS:
+            rate = rate.quantize(Decimal(1).scaleb(-FX_MAX_DECIMALS))
+            if rate <= 0:
+                raise InvalidTripInputError(f"fx rate for {code} is too small")
         clean[code] = format(rate, "f")
     return clean
 

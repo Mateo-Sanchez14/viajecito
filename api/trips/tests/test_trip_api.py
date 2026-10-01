@@ -324,7 +324,16 @@ def test_fx_rates_default_to_empty_and_are_patchable(as_person, trip, beto):
 
 @pytest.mark.parametrize(
     "rates",
-    [{"ars": "1"}, {"AR": "1"}, {"ARS": "0"}, {"ARS": "-1"}, {"ARS": "x"}, None]
+    [
+        {"ars": "1"},
+        {"AR": "1"},
+        {"ARS": "0"},
+        {"ARS": "-1"},
+        {"ARS": "x"},
+        {"ARS": "1e999999"},
+        {"ARS": "1e-999999"},
+        None,
+    ]
     + [{f"A{c}{d}": "1" for c in "ABCDEF" for d in "ABC"}],
 )
 def test_invalid_fx_rates_are_400(as_person, trip, ana, rates):

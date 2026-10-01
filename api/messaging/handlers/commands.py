@@ -7,7 +7,8 @@ stays here: while the chat is throttled the handler records it and never calls t
 
 import re
 import unicodedata
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
+from contextlib import contextmanager
 from dataclasses import dataclass
 
 from messaging.copy import es_ar
@@ -89,6 +90,19 @@ def register_core_subcommands() -> None:
 register_core_subcommands()
 
 
+@contextmanager
+def isolated() -> Iterator[None]:
+    """Tests only: swap in a registry with just the core subcommands, then restore the old one."""
+    global _SUBCOMMANDS, _ALIASES
+    previous = (_SUBCOMMANDS, _ALIASES)
+    _SUBCOMMANDS, _ALIASES = {}, {}
+    register_core_subcommands()
+    try:
+        yield
+    finally:
+        _SUBCOMMANDS, _ALIASES = previous
+
+
 def parse(text: str) -> tuple[str, str] | None:
     """``(folded subcommand, original-casing args)`` or ``None`` when ``text`` is not a command.
 
@@ -117,5 +131,6 @@ def handle(ctx: HandlerContext) -> Handled | None:
     if not ctx.reply_allowed():  # flood protection: say nothing, but record that we heard it
         return Handled("commands", {"command": command, "reply": "throttled", "throttled": True})
     if subcommand is None:
-        return Handled("commands", {"command": command, "reply": ctx.reply(es_ar.UNKNOWN_COMMAND)})
+        hint = f"{es_ar.UNKNOWN_COMMAND}\n{help_text()}"  # the hint leads the full help
+        return Handled("commands", {"command": command, "reply": ctx.reply(hint)})
     return subcommand.handler(ctx, args)

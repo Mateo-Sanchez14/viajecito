@@ -100,5 +100,5 @@ def test_active_member_ids_lists_only_active_members(crew, person):
     join(crew, person)
     join(crew, other)
     join(crew, gone, status="removed")
-    assert sorted(active_member_ids(str(crew.pk))) == sorted([str(person.pk), str(other.pk)])
+    assert active_member_ids(str(crew.pk)) == [str(person.pk), str(other.pk)]  # oldest first
     assert active_member_ids(str(uuid.uuid4())) == []

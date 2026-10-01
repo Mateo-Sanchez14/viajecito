@@ -1,5 +1,6 @@
 """Ports of the identity app. Adapters live in ``identity/adapters``."""
 
+from collections.abc import Callable
 from datetime import datetime
 from typing import Protocol
 
@@ -67,3 +68,18 @@ class IdentityDirectory(Protocol):
     def person_id_by_lid(self, lid: str) -> str | None: ...
 
     def people_by_ids(self, person_ids: list[str]) -> list[PersonData]: ...
+
+
+_default_directory: Callable[[], IdentityDirectory] | None = None
+
+
+def set_default_directory(factory: Callable[[], IdentityDirectory]) -> None:
+    """Composition root hook: ``IdentityConfig.ready()`` installs the Django directory here."""
+    global _default_directory
+    _default_directory = factory
+
+
+def default_directory() -> IdentityDirectory:
+    if _default_directory is None:
+        raise RuntimeError("no default identity directory configured (is identity installed?)")
+    return _default_directory()

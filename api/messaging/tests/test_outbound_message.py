@@ -76,3 +76,7 @@ def test_gateway_error_type_is_what_the_use_case_catches(ledger):
         send_message(ledger=ledger, gateway=Boom(), to_jid=JID, body="x", kind="card").status
         == "failed"
     )
+
+
+def test_subject_id_is_wide_enough_for_comma_separated_ids():
+    assert OutboundMessage._meta.get_field("subject_id").max_length == 255

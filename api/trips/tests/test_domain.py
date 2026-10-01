@@ -72,6 +72,10 @@ def test_fx_rates_are_normalized_to_decimal_strings(raw, expected):
         {"ARS": "abc"},
         {"ARS": "NaN"},
         {"ARS": "Infinity"},
+        {"ARS": "1e999999"},
+        {"ARS": "1e-999999"},
+        {"ARS": "1e13"},
+        {"ARS": "0.000000001"},  # rounds to zero at 8 decimals
         {"ARS": None},
         {f"A{c}{d}": "1" for c in "ABCDEF" for d in "ABC"},  # 18 keys
     ],
@@ -79,3 +83,11 @@ def test_fx_rates_are_normalized_to_decimal_strings(raw, expected):
 def test_invalid_fx_rates_are_rejected(raw):
     with pytest.raises(domain.InvalidTripInputError):
         domain.validate_fx_rates(raw)
+
+
+def test_fx_rates_are_bounded_and_quantized():
+    assert domain.validate_fx_rates({"ARS": "1e12"}) == {"ARS": "1000000000000"}
+    assert domain.validate_fx_rates({"ARS": "0.000000019"}) == {"ARS": "0.00000002"}
+    assert domain.validate_fx_rates({"ARS": "1150.123456789"}) == {"ARS": "1150.12345679"}
+    longest = domain.validate_fx_rates({"ARS": "9.99999999999e12"})["ARS"]
+    assert len(longest) <= 30

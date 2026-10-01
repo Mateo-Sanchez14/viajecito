@@ -2,12 +2,16 @@ from datetime import timedelta
 
 from django.utils import timezone
 
+from messaging.adapters.gowa_factory import build_gowa_client
+from messaging.adapters.ledger import DjangoOutboundLedger
 from messaging.adapters.sender import GowaMessageSender
 from messaging.handlers.types import SentCard
 from messaging.models import OutboundMessage
+from messaging.ports import GatewayError
 
 MIN_GAP = timedelta(seconds=3)  # at most one reply per chat every 3 s ...
 WINDOW = timedelta(minutes=10)
+MAX_ATTEMPTS = 3  # total sends of one card (the first plus retries)
 MAX_PER_WINDOW = 20  # ... and 20 replies plus cards per 10 minutes
 
 BUDGET_KINDS = (OutboundMessage.Kind.REPLY, OutboundMessage.Kind.CARD)
@@ -56,6 +60,11 @@ class GroupReplier:
     ) -> SentCard:
         existing = OutboundMessage.objects.filter(dedupe_key=dedupe_key).first()
         if existing is not None:
+            if (
+                existing.status == OutboundMessage.Status.FAILED
+                and existing.attempts < MAX_ATTEMPTS
+            ):
+                return self._retry(existing, reply_to)
             return SentCard("duplicate", existing.gowa_message_id or None)
         if not self._in_budget(chat_id, timezone.now()):
             return SentCard("failed", None)  # over the per-chat budget: nothing is recorded
@@ -69,6 +78,22 @@ class GroupReplier:
             subject_id=subject_id,
         )
         return SentCard(result.status, result.gowa_message_id)
+
+    def _retry(self, row: OutboundMessage, reply_to: str) -> SentCard:
+        """Send a failed card again on its own row (the ledger counts the attempt)."""
+        claimed = OutboundMessage.objects.filter(
+            pk=row.pk, status=OutboundMessage.Status.FAILED
+        ).update(status=OutboundMessage.Status.SENDING, claimed_at=timezone.now())
+        if not claimed:  # a concurrent retry got it first
+            return SentCard("duplicate", None)
+        ledger = DjangoOutboundLedger()
+        try:
+            message_id = build_gowa_client().send_text(row.to_jid, row.body, reply_to or None)
+        except GatewayError as exc:
+            ledger.mark_failed(row.pk, str(exc))
+            return SentCard("failed", None)
+        ledger.mark_sent(row.pk, message_id)
+        return SentCard("sent", message_id)
 
     def quoted_subject(self, chat_id: str, gowa_message_id: str) -> tuple[str, str] | None:
         row = (

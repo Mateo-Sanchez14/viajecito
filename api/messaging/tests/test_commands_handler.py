@@ -76,7 +76,8 @@ def test_ayuda_and_bare_command_reply_help():
 def test_unknown_subcommand_replies_with_the_hint():
     replies: list[str] = []
     handled = handle(ctx("/viaje bailar", replies))
-    assert replies == [es_ar.UNKNOWN_COMMAND]
+    assert replies == [f"{es_ar.UNKNOWN_COMMAND}\n{help_text()}"]
+    assert replies[0].splitlines()[0] == es_ar.UNKNOWN_COMMAND  # the hint leads the help
     assert handled.detail["command"] == "unknown"
 
 
@@ -90,11 +91,10 @@ def test_plain_text_is_not_handled_and_stays_silent():
 
 
 @pytest.fixture
-def registry(monkeypatch):
+def registry():
     """An isolated registry holding only the core subcommands."""
-    monkeypatch.setattr(commands, "_SUBCOMMANDS", {})
-    monkeypatch.setattr(commands, "_ALIASES", {})
-    commands.register_core_subcommands()
+    with commands.isolated():
+        yield
 
 
 def tareas(context, args):
@@ -161,3 +161,12 @@ def test_registering_twice_is_idempotent_and_a_clash_is_rejected(registry):
         register_subcommand("otra", tareas, aliases=("hoy",))
     with pytest.raises(ValueError):
         register_subcommand("PING", tareas)
+
+
+def test_isolated_starts_with_the_core_subcommands_and_restores_the_registry(registry):
+    register_subcommand("outer", tareas)
+    with commands.isolated():
+        assert set(commands._SUBCOMMANDS) == {"ping", "ayuda"}
+        register_subcommand("inner", tareas)
+    assert set(commands._SUBCOMMANDS) == {"ping", "ayuda", "outer"}
+    assert "inner" not in commands._ALIASES.values()

@@ -27,7 +27,7 @@ class OutboundMessage(models.Model):
     reply_to_message_id = models.CharField(max_length=128, blank=True)
     mentions = models.JSONField(default=list, blank=True)  # JIDs, sent only with mentions enabled
     subject_type = models.CharField(max_length=64, blank=True)
-    subject_id = models.CharField(max_length=64, blank=True)
+    subject_id = models.CharField(max_length=255, blank=True)
     sent_at = models.DateTimeField(null=True, blank=True)
     claimed_at = models.DateTimeField(null=True, blank=True)  # when a tick started sending
     error = models.TextField(blank=True)

@@ -20,7 +20,8 @@ again by a later tick.
 """
 
 import logging
-from collections.abc import Callable, Iterable
+from collections.abc import Callable, Iterable, Iterator
+from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import date, datetime, time
 from zoneinfo import ZoneInfo
@@ -119,6 +120,18 @@ def digest_sections(trip_id: str, local_date: date) -> list[str]:
         if block:
             blocks.append(block)
     return blocks
+
+
+@contextmanager
+def isolated() -> Iterator[None]:
+    """Tests only: swap in empty registries for the block, then restore the previous ones."""
+    global _RULES, _CHANNELS, _JOBS, _SECTIONS
+    previous = (_RULES, _CHANNELS, _JOBS, _SECTIONS)
+    _RULES, _CHANNELS, _JOBS, _SECTIONS = {}, {}, {}, {}
+    try:
+        yield
+    finally:
+        _RULES, _CHANNELS, _JOBS, _SECTIONS = previous
 
 
 def clear() -> None:
