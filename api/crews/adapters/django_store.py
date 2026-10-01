@@ -31,9 +31,10 @@ class DjangoCrewStore:
         has_membership = CrewMembership.objects.filter(
             person__phone=phone, status=CrewMembership.Status.ACTIVE
         ).exists()
-        return (
-            has_membership or Invite.objects.filter(phone=phone, accepted_at__isnull=True).exists()
+        pending = Invite.objects.filter(
+            phone=phone, accepted_at__isnull=True, cancelled_at__isnull=True
         )
+        return has_membership or pending.exists()
 
     def summaries_for(self, person_id: str) -> list[CrewSummary]:
         memberships = (
@@ -56,7 +57,7 @@ class DjangoCrewStore:
         accepted = 0
         with transaction.atomic():
             for invite in Invite.objects.select_for_update().filter(
-                phone=phone, accepted_at__isnull=True
+                phone=phone, accepted_at__isnull=True, cancelled_at__isnull=True
             ):
                 membership, created = CrewMembership.objects.get_or_create(
                     crew_id=invite.crew_id,

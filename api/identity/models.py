@@ -1,7 +1,10 @@
 import uuid
 
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
+from django.core.exceptions import ValidationError
 from django.db import models
+
+from shared.phone import InvalidPhoneError, normalize_phone
 
 
 class PersonManager(BaseUserManager):
@@ -46,6 +49,17 @@ class Person(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self) -> str:
         return self.display_name or self.phone
+
+    def clean(self) -> None:
+        super().clean()
+        try:
+            self.phone = normalize_phone(self.phone)
+        except InvalidPhoneError as exc:
+            raise ValidationError({"phone": "Enter a valid phone number."}) from exc
+
+    def save(self, *args, **kwargs):
+        self.phone = normalize_phone(self.phone)
+        super().save(*args, **kwargs)
 
 
 class WhatsAppIdentity(models.Model):
