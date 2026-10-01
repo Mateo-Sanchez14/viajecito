@@ -25,7 +25,7 @@ from identity.use_cases.logout import logout as logout_use_case
 from identity.use_cases.me import me as me_use_case
 from identity.use_cases.request_otp import request_otp as request_otp_use_case
 from identity.use_cases.verify_otp import verify_otp as verify_otp_use_case
-from shared.api_errors import ApiError, enforce_csrf
+from shared.api_errors import ApiError, CsrfCookie
 
 router = Router(tags=["auth"])
 
@@ -55,14 +55,18 @@ def csrf(request):
     response={
         HTTPStatus.ACCEPTED: OtpRequestOut,
         HTTPStatus.BAD_REQUEST: ErrorOut,
+        HTTPStatus.FORBIDDEN: ErrorOut,
         HTTPStatus.TOO_MANY_REQUESTS: ErrorOut,
         HTTPStatus.SERVICE_UNAVAILABLE: ErrorOut,
     },
-    auth=None,
+    auth=CsrfCookie(),
     summary="Request Otp",
 )
 def request_otp(request, payload: OtpRequestIn):
-    enforce_csrf(request)
+    """Always answers the same 202 for valid phones.
+
+    400 codes: `invalid_phone`, `invalid_request`. 403: `csrf_failed`.
+    """
     if not settings.OTP_DELIVERY_ENABLED:
         raise ApiError(
             HTTPStatus.SERVICE_UNAVAILABLE, "delivery_unavailable", "OTP delivery is disabled"
@@ -98,12 +102,20 @@ def request_otp(request, payload: OtpRequestIn):
 
 @router.post(
     "/auth/otp/verify",
-    response={HTTPStatus.OK: OtpVerifyOut, HTTPStatus.BAD_REQUEST: ErrorOut},
-    auth=None,
+    response={
+        HTTPStatus.OK: OtpVerifyOut,
+        HTTPStatus.BAD_REQUEST: ErrorOut,
+        HTTPStatus.FORBIDDEN: ErrorOut,
+    },
+    auth=CsrfCookie(),
     summary="Verify Otp",
 )
 def verify_otp(request, payload: OtpVerifyIn):
-    enforce_csrf(request)
+    """Logs the person in.
+
+    400 codes: `invalid_phone`, `invalid_code`, `expired_code`, `too_many_attempts`,
+    `invalid_request`. 403: `csrf_failed`.
+    """
     try:
         person = verify_otp_use_case(
             payload.phone,
@@ -128,7 +140,11 @@ def verify_otp(request, payload: OtpVerifyIn):
 
 @router.post(
     "/auth/logout",
-    response={HTTPStatus.NO_CONTENT: None, HTTPStatus.UNAUTHORIZED: ErrorOut},
+    response={
+        HTTPStatus.NO_CONTENT: None,
+        HTTPStatus.UNAUTHORIZED: ErrorOut,
+        HTTPStatus.FORBIDDEN: ErrorOut,
+    },
     auth=django_auth,
     summary="Logout",
 )

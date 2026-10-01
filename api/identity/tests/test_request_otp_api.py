@@ -207,3 +207,8 @@ def test_delivery_runs_off_the_request_path_after_commit(
     for callback in callbacks:
         callback()
     assert len(submitted) == 1 and gowa.call_count == 1
+
+
+def test_csrf_is_checked_before_body_validation(strict_client):
+    response = post_json(strict_client, "/api/auth/otp/request", {"nope": 1})
+    assert response.status_code == 403 and response.json()["code"] == "csrf_failed"

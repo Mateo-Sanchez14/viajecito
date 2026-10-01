@@ -12,3 +12,11 @@ def test_committed_contract_matches_the_exported_schema(tmp_path):
     assert out.read_text() == CONTRACT.read_text(), (
         "contracts/openapi.json is stale; regenerate it (see api/README.md)"
     )
+
+
+def test_post_routes_document_csrf_failures():
+    import json
+
+    paths = json.loads(CONTRACT.read_text())["paths"]
+    for path in ("/api/auth/otp/request", "/api/auth/otp/verify", "/api/auth/logout"):
+        assert "403" in paths[path]["post"]["responses"], path

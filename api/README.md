@@ -100,3 +100,14 @@ uv run python manage.py bootstrap_crew --name "Los Pibes" --chat-id 120363000000
 
 Creates the crew, its WhatsApp group link and the admin membership (and the admin person). Re-running
 it with the same `--chat-id` changes nothing. Invite more people from the Django admin (`Invite`).
+
+### Accepted risks
+
+- The global 30/h limit counts challenges for ineligible phones too. This is deliberate: excluding them
+  would make rate-limit behavior reveal which phones are eligible (anti-enumeration).
+- The rate-limit check and the challenge insert are not atomic, so a burst of parallel requests can
+  slightly overshoot the hourly counts. The per-phone 1/60 s window bounds it, and one live challenge
+  per phone means an overshoot never yields more than one usable code per phone.
+- Anonymous unsafe routes (`otp/request`, `otp/verify`) are protected by a CSRF-only auth scheme
+  (`CsrfCookie`), so a missing token returns `403 csrf_failed` before the body is validated. It shows up
+  in the OpenAPI document as an `apiKey` cookie scheme named `csrftoken`.
