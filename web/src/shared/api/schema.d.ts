@@ -76,7 +76,7 @@ export interface operations {
                     "application/json": components["schemas"]["HealthOut"];
                 };
             };
-            /** @description Degraded */
+            /** @description Service Unavailable */
             503: {
                 headers: {
                     [name: string]: unknown;
