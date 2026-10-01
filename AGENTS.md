@@ -152,3 +152,84 @@ call is deduplicated per request) before fetching. The api enforces auth on ever
   `CF-Connecting-IP` or `REMOTE_ADDR`.
 - Accepted risks: the global 30/h limit counts ineligible phones (deliberate); the rate-limit check and
   insert are not atomic (bounded by the per-phone 1/60 s window).
+
+## M0c contract: Gowa webhook, inbound ledger, bot commands, tick, Pi deploy
+
+### Webhook (api)
+- `POST /hooks/gowa/` is a plain Django view (`csrf_exempt`, outside the Ninja `/api` mount) that reads the
+  RAW body, verifies `X-Hub-Signature-256: sha256=<hex>` (HMAC-SHA256 with `GOWA_WEBHOOK_SECRET`; the
+  `sha256=` prefix is optional; `hmac.compare_digest`), and **fails closed**: empty secret or bad/missing
+  signature → `403 {"code":"invalid_signature"}`. Never does network I/O in the request path and answers
+  in well under a second. Gowa retries up to 5 times per URL with a 30 s budget, so idempotency is mandatory.
+- Payload shape follows `go-whatsapp-web-multidevice/docs/webhook-payload.md` (top-level `event`,
+  `device_id`, `payload` with `id`, `chat_id`, `from`, `from_lid`, `from_name`, `body`, `replied_to_id`,
+  `quoted_body`, `timestamp`, `is_from_me`). `messaging/gowa/parser.py` turns it into a `GroupMessage`
+  dataclass; `normalize_jid` strips the `:device` suffix.
+- Filtering before any insert: `event != "message"` → `200 {"status":"ignored","reason":"event"}`;
+  `is_from_me` → ignored `own_message`; `chat_id` not ending in `@g.us` → ignored `not_group`; no
+  `WhatsAppGroupLink` for the chat → ignored `unlinked_group` (nothing stored). Otherwise
+  `InboundMessage.get_or_create` on **unique (device_id, gowa_message_id)**: existing → `200
+  {"status":"duplicate"}`; new → `200 {"status":"accepted"}` and, on commit, `process_inbound(id)` is
+  submitted to the messaging executor (same pattern as the OTP sender; `OTP_SEND_SYNC`-style
+  `MESSAGING_PROCESS_SYNC=1` in tests).
+- `InboundMessage` fields per the plan (`device_id`, `gowa_message_id`, `event`, `chat_id`, `sender_jid`,
+  `sender_lid`, `sender_name`, `person` nullable, `body`, `replied_to_id`, `raw` JSON, `status`
+  received|processing|done|ignored|failed, `attempts`, `error`, `outcome` JSON, `received_at`, `processed_at`).
+- Processing: resolve the sender (`WhatsAppIdentity` by `jid`, then by `lid`, then trigger a roster sync for
+  that crew once and retry; unresolved → status `ignored`, reason `unknown_sender`), then run the handler
+  chain, first match wins: `commands` (`/viaje <sub>` or `/v <sub>`, accent- and case-insensitive) → later
+  handlers (quoted card, link capture) are M1. Unknown subcommand → the help text. Replies go to the group
+  through `OutboundMessage(kind="reply")` + `GowaClient.send_text(chat_id, body, reply_to=gowa_message_id)`.
+- Commands in M0c: `/viaje ping` → `"pong"`; `/viaje ayuda` → the command list. Copy lives in
+  `api/messaging/copy/es_ar.py` (voseo).
+- Roster sync: `GET {GOWA_BASE_URL}/group/participants?group_id=<chat_id>` returns participants with
+  `jid`, `phone_number`, `lid`, `display_name`; `sync_roster(crew)` upserts `Person` (by phone),
+  `WhatsAppIdentity` (jid/lid) and `CrewMembership(role=member, source=group_sync)` for every participant;
+  members no longer in the group are NOT removed automatically (removal is manual). Record
+  `WhatsAppGroupLink.last_synced_at`.
+- `tick` management command (idempotent, safe to run every minute): takes `JobLock(name="tick",
+  locked_until)` and exits 0 silently when another tick holds it; sweeps `InboundMessage` rows stuck in
+  `processing` longer than `INBOUND_STUCK_MINUTES` (default 2) back to `received` (≤ 3 attempts, else
+  `failed`); re-processes `received` rows; dispatches `OutboundMessage` rows with status `queued`
+  (`attempts` < 3); runs `sync_roster` for crews whose `last_synced_at` is older than `ROSTER_SYNC_HOURS`
+  (24). Prints a one-line JSON summary.
+- `replay_gowa` management command: `python manage.py replay_gowa <fixture.json> [--url
+  http://localhost:8000/hooks/gowa/]` signs the file's bytes with `GOWA_WEBHOOK_SECRET` and POSTs them,
+  printing status and body. Fixtures in `api/messaging/tests/fixtures/gowa/` are derived from the Gowa docs
+  with redacted phones until real captures replace them (T11).
+- Env (api): `GOWA_WEBHOOK_SECRET` (required in prod), `GOWA_DEVICE_ID` (optional; sent as `X-Device-Id`),
+  `INBOUND_STUCK_MINUTES` (2), `ROSTER_SYNC_HOURS` (24), `MESSAGING_PROCESS_SYNC` (0; 1 in tests).
+
+### Pi deployment (platform)
+- `deploy/compose.pi.yml` (project `viajecito`): `api` from `ghcr.io/${GHCR_OWNER}/viajecito-api:${IMAGE_TAG:-latest}`
+  with `env_file: /srv/viajecito/pi.env`, volume `/srv/viajecito/data:/data`, healthcheck on
+  `/api/health`, `restart: unless-stopped`; `web` from `ghcr.io/${GHCR_OWNER}/viajecito-web:${IMAGE_TAG:-latest}`
+  with `API_INTERNAL_URL=http://api:8000`; `cloudflared` (`cloudflare/cloudflared`) running
+  `tunnel --no-autoupdate run` with `TUNNEL_TOKEN` from the env file. **No published ports**: cloudflared
+  reaches `api:8000` and `web:3000` on the compose network, so nothing collides with the WAHA/`notify`
+  services already on the Pi, which are never touched.
+- Ingress (configured in the Cloudflare dashboard for a token tunnel, or in
+  `deploy/cloudflared/config.yml.tpl` for a credentials-file tunnel): `https://<host>/api/*`, `/hooks/*`,
+  `/media/*`, `/admin/*`, `/static/*` → `http://api:8000`; everything else → `http://web:3000`.
+- `deploy/env/pi.env.example`: `DJANGO_SECRET_KEY`, `PUBLIC_ORIGIN=https://<host>`, `DATABASE_PATH=/data/db.sqlite3`,
+  `MEDIA_ROOT=/data/media`, `STATIC_ROOT=/data/static`, `OTP_PEPPER`, `OTP_DELIVERY_ENABLED=1`,
+  `TRUST_CF_CONNECTING_IP=1`, `GOWA_BASE_URL=https://<gowa-host>`, `GOWA_BASIC_AUTH_USER`,
+  `GOWA_BASIC_AUTH_PASS`, `GOWA_WEBHOOK_SECRET`, `GOWA_DEVICE_ID`, `TUNNEL_TOKEN`, `GHCR_OWNER`, `IMAGE_TAG`,
+  `BACKUP_RESTIC_REPOSITORY`, `BACKUP_RESTIC_PASSWORD`, `HEALTHCHECKS_URL` (optional).
+- systemd units in `deploy/systemd/`: `viajecito-tick.service` + `.timer` (every minute:
+  `docker compose -f /srv/viajecito/compose.pi.yml exec -T api python manage.py tick`) and
+  `viajecito-backup.service` + `.timer` (daily 04:00 local, runs `backup.sh`).
+- Scripts in `deploy/scripts/` (run ON the Pi, never over ssh from this repo): `deploy.sh` (pull images,
+  `up -d`, wait for health, run `smoke.sh`), `backup.sh` (SQLite online `.backup` into
+  `/srv/viajecito/backups/db-<date>.sqlite3`, then `restic backup` of the snapshot + `/srv/viajecito/data/media`,
+  `restic forget --keep-daily 7 --keep-weekly 4 --prune`, optional healthchecks ping), `restore.sh`
+  (restore a snapshot into a stopped stack), `smoke.sh` (public `/api/health` 200; a signed POST from a
+  fake chat to `/hooks/gowa/` returns `ignored`; `systemctl list-timers` shows both timers; `restic
+  snapshots` lists at least one after the first backup).
+- `Makefile`: `replay FIXTURE=<path>` → `cd api && uv run python manage.py replay_gowa ../$(FIXTURE)`;
+  `deploy` prints the runbook pointer (deployment is executed on the Pi).
+- Go-live checklist (owner actions, documented in `deploy/README.md`): create the Cloudflare tunnel and
+  hostname; fill `/srv/viajecito/pi.env`; add the second URL to gastito's Gowa env on the droplet
+  (`WHATSAPP_WEBHOOK=http://bot:8000/webhooks/gowa/,https://<host>/hooks/gowa/`, gastito first, brief Gowa
+  restart); land the gastito change that ignores `/viaje`, `/v` and link-only messages; run
+  `bootstrap_crew` with the real `chat_id`; send `/viaje ping` in the group.
