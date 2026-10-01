@@ -26,7 +26,7 @@ export function TripList({ crewId }: { crewId: string }) {
 
   if (isPending) {
     return (
-      <div aria-label={t("list.loading")} className="flex flex-col gap-2">
+      <div role="status" aria-label={t("list.loading")} className="flex flex-col gap-2">
         <Skeleton className="h-16" />
         <Skeleton className="h-16" />
       </div>
