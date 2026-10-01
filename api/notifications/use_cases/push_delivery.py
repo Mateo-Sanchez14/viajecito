@@ -30,6 +30,7 @@ from shared.clock import Clock
 logger = logging.getLogger(__name__)
 
 MAX_SENDS_PER_DRAFT = 20
+MAX_SENDS_PER_PERSON = 3
 MAX_FAILURES = 5
 RECIPIENT_RSVPS = ("in", "maybe")
 TEST_URL = "/me/notifications"
@@ -41,6 +42,7 @@ _MENTION = re.compile(r"\{@([^{}]*)\}")
 class PushResult:
     sent: int = 0  # deliveries that succeeded
     config_error: int = 0  # sends that never got an HTTP response (our configuration or network)
+    aborted: bool = False
 
 
 @dataclass(frozen=True)
@@ -76,46 +78,39 @@ def recipient_ids(draft: ReminderDraft, services: PushServices) -> list[str]:
     return valid
 
 
-def _send_all(
-    subscriptions: list[SubscriptionData],
-    payload: str,
-    services: PushServices,
-    budget: "_Budget",
-    result: PushResult,
-) -> int:
-    """Send to each subscription; prunes dead ones. Returns how many deliveries succeeded.
+def _send_one(
+    subscription: SubscriptionData, payload: str, services: PushServices, result: PushResult
+) -> bool:
+    """Send to one subscription and apply the outcome; ``True`` when delivered.
 
     Only an HTTP answer counts against a subscription. A ``config_error`` (no HTTP response) never
-    touches it and stops the draft: every further send would fail the same way."""
-    ok = 0
-    for subscription in subscriptions:
-        if not budget.allow():
-            break
-        try:
-            endpoint_host(subscription.endpoint, services.allowed_hosts)
-        except InvalidSubscriptionError:
-            services.subscriptions.delete(subscription.id)  # allowlist changed since registering
-            continue
-        try:
-            outcome = services.sender.send(subscription, payload).outcome
-        except Exception:
-            logger.exception("push sender crashed for subscription %s", subscription.id)
-            outcome = "config_error"
-        now = services.clock.now()
-        if outcome == "config_error":
-            result.config_error += 1
-            budget.abort()
-            break
-        if outcome == "ok":
-            services.subscriptions.mark_ok(subscription.id, now)
-            ok += 1
-        elif outcome == "gone":
+    touches it and sets ``result.aborted``: every further send would fail the same way."""
+    try:
+        endpoint_host(subscription.endpoint, services.allowed_hosts)
+    except InvalidSubscriptionError:
+        # The allowlist changed since registering (or is misconfigured): skip, never delete.
+        logger.warning("push endpoint of subscription %s is not on the allowlist", subscription.id)
+        return False
+    try:
+        outcome = services.sender.send(subscription, payload).outcome
+    except Exception:
+        logger.exception("push sender crashed for subscription %s", subscription.id)
+        outcome = "config_error"
+    now = services.clock.now()
+    if outcome == "config_error":
+        result.config_error += 1
+        result.aborted = True
+        return False
+    if outcome == "ok":
+        services.subscriptions.mark_ok(subscription.id, now)
+        return True
+    if outcome == "gone":
+        services.subscriptions.delete(subscription.id)
+    else:
+        failures = services.subscriptions.mark_failed(subscription.id, now)
+        if failures >= MAX_FAILURES:
             services.subscriptions.delete(subscription.id)
-        else:
-            failures = services.subscriptions.mark_failed(subscription.id, now)
-            if failures >= MAX_FAILURES:
-                services.subscriptions.delete(subscription.id)
-    return ok
+    return False
 
 
 class _Budget:
@@ -123,20 +118,14 @@ class _Budget:
 
     def __init__(self, services: PushServices) -> None:
         self._sends = 0
-        self._aborted = False
         self._deadline = services.monotonic() + services.budget_seconds
         self._monotonic = services.monotonic
 
-    def abort(self) -> None:
-        self._aborted = True
+    def has_room(self) -> bool:
+        return self._sends < MAX_SENDS_PER_DRAFT and self._monotonic() < self._deadline
 
-    def allow(self) -> bool:
-        if self._aborted or self._sends >= MAX_SENDS_PER_DRAFT:
-            return False
-        if self._monotonic() >= self._deadline:
-            return False
+    def spend(self) -> None:
         self._sends += 1
-        return True
 
 
 _config_error_logged = False
@@ -169,7 +158,7 @@ def deliver_push(draft: ReminderDraft, services: PushServices) -> PushResult:
     )
     category = category_of(draft.dedupe_key)
     preferences = services.preferences.stored_for_people(people)
-    budget = _Budget(services)
+    plans: dict[str, list[SubscriptionData]] = {}
     for person_id in people:
         try:
             if not is_enabled(preferences.get(person_id, {}), category):
@@ -177,15 +166,38 @@ def deliver_push(draft: ReminderDraft, services: PushServices) -> PushResult:
                     services.ledger.finish(draft.dedupe_key, person_id, "skipped", 0)
                 continue
             subscriptions = services.subscriptions.list_for_person(person_id)
-            if not subscriptions:
-                continue
-            if not services.ledger.reserve(draft.dedupe_key, person_id):
-                continue
-            ok = _send_all(subscriptions, payload, services, budget, result)
-            result.sent += ok
-            services.ledger.finish(draft.dedupe_key, person_id, "sent" if ok else "failed", ok)
+            if subscriptions:  # the newest browsers first
+                plans[person_id] = subscriptions[::-1][:MAX_SENDS_PER_PERSON]
         except Exception:
             logger.exception("push delivery failed for person %s", person_id)
+    # Round-robin so one person's many browsers never starve the next recipient of the budget.
+    # A person is reserved in the ledger only when their first send is actually attempted, so
+    # recipients cut off by the budget stay unreserved.
+    budget = _Budget(services)
+    ok_by_person: dict[str, int] = {}
+    for round_index in range(MAX_SENDS_PER_PERSON):
+        for person_id, subscriptions in plans.items():
+            if round_index >= len(subscriptions) or person_id not in plans:
+                continue
+            if result.aborted or not budget.has_room():
+                break
+            try:
+                if person_id not in ok_by_person:
+                    if not services.ledger.reserve(draft.dedupe_key, person_id):
+                        plans[person_id] = []  # already delivered in an earlier pass
+                        continue
+                    ok_by_person[person_id] = 0
+                budget.spend()
+                if _send_one(subscriptions[round_index], payload, services, result):
+                    ok_by_person[person_id] += 1
+            except Exception:
+                logger.exception("push delivery failed for person %s", person_id)
+    for person_id, ok in ok_by_person.items():
+        try:
+            services.ledger.finish(draft.dedupe_key, person_id, "sent" if ok else "failed", ok)
+        except Exception:
+            logger.exception("push ledger update failed for person %s", person_id)
+        result.sent += ok
     if result.config_error:
         _log_config_error_once()
     return result
@@ -202,13 +214,14 @@ def send_test_push(person_id: str, services: PushServices) -> int:
         raise RateLimitedError(60)
     content = PushContent(title="", body=TEST_PUSH, dedupe_key=key, url_path=TEST_URL)
     payload = json.dumps(build_payload(content, {}, int(now.timestamp())), ensure_ascii=False)
-    ok = _send_all(
-        services.subscriptions.list_for_person(person_id),
-        payload,
-        services,
-        _Budget(services),
-        PushResult(),
-    )
+    result = PushResult()
+    budget = _Budget(services)
+    ok = 0
+    for subscription in services.subscriptions.list_for_person(person_id)[::-1]:
+        if result.aborted or not budget.has_room():
+            break
+        budget.spend()
+        ok += _send_one(subscription, payload, services, result)
     services.ledger.finish(key, person_id, "sent" if ok else "failed", ok)
     return ok
 

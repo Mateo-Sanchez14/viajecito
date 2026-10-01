@@ -49,3 +49,16 @@ def test_the_connect_and_read_timeouts_and_default_budget_are_tight(settings):
     assert conf.push_timeout() == (3, 2)
     assert conf.push_budget_seconds() == 10
     assert PRIVATE_KEY  # fixture material exists
+
+
+@pytest.mark.parametrize("raw", ["", "   ", ",,", "localhost", "not a host", "*", None, []])
+def test_empty_or_mistyped_endpoint_hosts_fall_back_to_the_defaults(settings, raw):
+    from notifications.domain.subscriptions import DEFAULT_ENDPOINT_HOSTS
+
+    settings.NOTIFICATIONS_PUSH_ENDPOINT_HOSTS = raw
+    assert tuple(conf.endpoint_hosts()) == tuple(DEFAULT_ENDPOINT_HOSTS)
+
+
+def test_valid_hosts_are_used_and_junk_entries_are_dropped(settings):
+    settings.NOTIFICATIONS_PUSH_ENDPOINT_HOSTS = "push.example.test, junk, *.push.other.test"
+    assert tuple(conf.endpoint_hosts()) == ("push.example.test", "*.push.other.test")

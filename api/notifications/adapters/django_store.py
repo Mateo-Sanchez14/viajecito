@@ -29,13 +29,6 @@ class DjangoSubscriptionStore:
         row = PushSubscription.objects.filter(endpoint=endpoint).first()
         return subscription_data(row) if row else None
 
-    def touched_since(self, person_id: str, since: datetime, excluding_endpoint: str) -> int:
-        return (
-            PushSubscription.objects.filter(person_id=person_id, updated_at__gte=since)
-            .exclude(endpoint=excluding_endpoint)
-            .count()
-        )
-
     def upsert(
         self, person_id: str, subscription: ValidSubscription
     ) -> tuple[SubscriptionData, bool]:
@@ -51,6 +44,18 @@ class DjangoSubscriptionStore:
                 },
             )
         return subscription_data(row), created
+
+    def trim(self, person_id: str, keep: int, protect_id: str) -> None:
+        ids = [
+            str(pk)
+            for pk in PushSubscription.objects.filter(person_id=person_id)
+            .order_by("created_at")
+            .values_list("pk", flat=True)
+        ]
+        excess = len(ids) - keep
+        if excess > 0:
+            doomed = [pk for pk in ids if pk != protect_id][:excess]
+            PushSubscription.objects.filter(pk__in=doomed).delete()
 
     def delete_endpoint(self, person_id: str, endpoint: str) -> None:
         PushSubscription.objects.filter(person_id=person_id, endpoint=endpoint).delete()

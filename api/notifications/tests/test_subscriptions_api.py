@@ -93,7 +93,7 @@ def test_more_than_ten_new_subscriptions_per_hour_are_rate_limited(as_person, an
     assert response.json()["code"] == "rate_limited"
     assert response["Retry-After"]
     # refreshing one of the existing endpoints is still fine
-    assert send(client, "post", URL, sub_body(3)).status_code == 200
+    assert send(client, "post", URL, sub_body(9)).status_code == 200
 
 
 def test_old_registrations_do_not_count_against_the_limit(as_person, ana, time_machine):
@@ -128,3 +128,21 @@ def test_delete_never_touches_someone_elses_subscription(as_person, ana, beto):
         == 204
     )
     assert PushSubscription.objects.filter(person=ana).count() == 1
+
+
+def test_only_the_five_newest_subscriptions_are_kept_per_person(as_person, ana, beto):
+    client = as_person(ana)
+    send(as_person(beto), "post", URL, sub_body(100))
+    for n in range(7):
+        assert send(client, "post", URL, sub_body(n)).status_code == 201
+    mine = PushSubscription.objects.filter(person=ana).order_by("created_at")
+    assert [s.endpoint.rsplit("-", 1)[1] for s in mine] == ["2", "3", "4", "5", "6"]
+    assert PushSubscription.objects.filter(person=beto).count() == 1  # others are untouched
+
+
+def test_refreshing_an_existing_subscription_never_evicts_another(as_person, ana):
+    client = as_person(ana)
+    for n in range(5):
+        send(client, "post", URL, sub_body(n))
+    assert send(client, "post", URL, sub_body(0)).status_code == 200
+    assert PushSubscription.objects.filter(person=ana).count() == 5

@@ -37,14 +37,14 @@ class SubscriptionStore(Protocol):
 
     def get_by_endpoint(self, endpoint: str) -> SubscriptionData | None: ...
 
-    def touched_since(self, person_id: str, since: datetime, excluding_endpoint: str) -> int:
-        """Subscriptions of the person registered or refreshed since ``since``."""
-        ...
-
     def upsert(
         self, person_id: str, subscription: ValidSubscription
     ) -> tuple[SubscriptionData, bool]:
         """Create, or refresh (and re-assign to ``person_id``) the row of that endpoint."""
+        ...
+
+    def trim(self, person_id: str, keep: int, protect_id: str) -> None:
+        """Delete the person's oldest subscriptions beyond ``keep``, never ``protect_id``."""
         ...
 
     def delete_endpoint(self, person_id: str, endpoint: str) -> None:

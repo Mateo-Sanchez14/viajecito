@@ -177,7 +177,7 @@ def test_a_crashing_sender_never_propagates_and_keeps_the_subscription(sender, t
     sender.raises = RuntimeError("boom")
     wiring.push_channel(make_draft(trip))  # must not raise
     assert PushSubscription.objects.count() == 2
-    assert deliveries() == {"Ana": ("failed", 0), "Beto": ("failed", 0)}
+    assert deliveries() == {"Ana": ("failed", 0)}  # the crash aborts the draft like a config error
 
 
 def test_one_persons_failure_does_not_stop_the_next(sender, trip, ana, beto, monkeypatch):
@@ -205,30 +205,71 @@ def test_the_channel_does_nothing_when_vapid_is_not_configured(settings, trip, a
     assert not PushDelivery.objects.exists()
 
 
-def test_at_most_twenty_sends_per_reminder(sender, trip, ana):
-    for n in range(25):
+def many_people(crew, count, subs_each):
+    from notifications.tests.conftest import make_person
+
+    people = [make_person(crew, f"+54911555{n:05d}", f"P{n:02d}") for n in range(count)]
+    for person in people:
+        for n in range(subs_each):
+            subscribe(person, n)
+    return people
+
+
+def test_a_person_gets_at_most_three_sends_per_reminder(sender, trip, ana):
+    for n in range(5):
         subscribe(ana, n)
     wiring.push_channel(make_draft(trip))
+    assert len(sender.sent) == 3
+    assert deliveries() == {"Ana": ("sent", 3)}
+
+
+def test_the_twenty_send_budget_is_shared_round_robin(sender, trip, crew):
+    people = many_people(crew, 8, 3)
+    ids = tuple(str(p.pk) for p in people)
+    wiring.push_channel(make_draft(trip, mention_person_ids=ids))
     assert len(sender.sent) == 20
+    per_person = {}
+    for subscription, _ in sender.sent:
+        per_person[subscription.person_id] = per_person.get(subscription.person_id, 0) + 1
+    assert sorted(per_person.values()) == [2, 2, 2, 2, 3, 3, 3, 3]
+    assert set(per_person) == set(ids)  # nobody is starved by an earlier recipient
 
 
-def test_the_time_budget_stops_further_sends(sender, trip, ana, beto):
-    subscribe(ana)
-    subscribe(beto)
-    clock = iter([0.0, 1.0, 100.0, 100.0, 100.0])  # budget start, ana ok, then past the budget
+def test_recipients_skipped_by_the_budget_get_no_ledger_row(sender, trip, crew):
+    people = many_people(crew, 22, 1)
+    wiring.push_channel(make_draft(trip, mention_person_ids=tuple(str(p.pk) for p in people)))
+    assert len(sender.sent) == 20
+    assert PushDelivery.objects.count() == 20
+    reserved = set(PushDelivery.objects.values_list("person_id", flat=True))
+    assert len({p.pk for p in people} - reserved) == 2
+
+
+def test_the_time_budget_stops_further_sends_and_leaves_the_rest_unreserved(sender, trip, crew):
+    people = many_people(crew, 3, 1)
+    now = [0.0]
+    original = sender.send
+
+    def slow_send(subscription, payload):
+        now[0] += 6  # each push "takes" 6 s against a 10 s budget
+        return original(subscription, payload)
+
+    sender.send = slow_send
     services = wiring.push_services()
-    services = services.__class__(**{**vars(services), "monotonic": lambda: next(clock)})
+    services = services.__class__(**{**vars(services), "monotonic": lambda: now[0]})
     from notifications.use_cases.push_delivery import deliver_push
 
-    deliver_push(make_draft(trip), services)
-    assert len(sender.sent) == 1
+    deliver_push(make_draft(trip, mention_person_ids=tuple(str(p.pk) for p in people)), services)
+    assert len(sender.sent) == 2
+    assert PushDelivery.objects.count() == 2
 
 
-def test_a_disallowed_endpoint_is_dropped_without_sending(sender, trip, ana, settings):
-    subscribe(ana, host="evil.example")
-    wiring.push_channel(make_draft(trip))
+def test_a_send_time_allowlist_mismatch_skips_but_keeps_the_subscription(sender, trip, ana, caplog):
+    sub = subscribe(ana, host="evil.example")
+    with caplog.at_level("WARNING"):
+        wiring.push_channel(make_draft(trip))
     assert sender.sent == []
-    assert not PushSubscription.objects.exists()
+    assert PushSubscription.objects.filter(pk=sub.pk).exists()
+    assert "allowlist" in caplog.text
 
 
 def test_a_draft_without_a_trip_or_mentions_reaches_nobody(sender, trip, ana):

@@ -1,6 +1,7 @@
 """Notifications settings, read lazily with defaults (the orchestrator adds the env parsing)."""
 
 import base64
+import re
 from collections.abc import Sequence
 
 from cryptography.hazmat.primitives import serialization
@@ -51,13 +52,21 @@ def push_enabled() -> bool:
     return bool(public and private and _subject_ok(vapid_subject()) and _keys_ok(public, private))
 
 
+_HOST_PATTERN = re.compile(r"(\*\.)?([a-z0-9]([a-z0-9-]*[a-z0-9])?\.)+[a-z]{2,}")
+
+
 def endpoint_hosts() -> Sequence[str]:
+    """The configured allowlist; empty, junk-only or mistyped values fall back to the defaults
+    (an empty list would silently reject every browser)."""
     raw = getattr(settings, "NOTIFICATIONS_PUSH_ENDPOINT_HOSTS", None)
-    if not raw:
-        return DEFAULT_ENDPOINT_HOSTS
     if isinstance(raw, str):
         raw = raw.split(",")
-    return tuple(host.strip() for host in raw if host.strip())
+    hosts = tuple(
+        host
+        for host in (str(item).strip().lower() for item in raw or ())
+        if _HOST_PATTERN.fullmatch(host)
+    )
+    return hosts or DEFAULT_ENDPOINT_HOSTS
 
 
 def push_timeout() -> tuple[float, float]:

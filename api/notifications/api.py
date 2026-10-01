@@ -8,6 +8,7 @@ from crews.api_auth import current_person
 from notifications import conf
 from notifications.adapters import wiring
 from notifications.adapters.django_store import (
+    DjangoDeliveryLedger,
     DjangoPreferenceStore,
     DjangoSubscriptionStore,
 )
@@ -100,6 +101,7 @@ def register(request, payload: SubscriptionIn):
             payload.keys.auth,
             payload.user_agent or request.META.get("HTTP_USER_AGENT", ""),
             store=DjangoSubscriptionStore(),
+            ledger=DjangoDeliveryLedger(),
             allowed_hosts=conf.endpoint_hosts(),
             clock=SystemClock(),
         )

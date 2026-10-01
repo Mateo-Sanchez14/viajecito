@@ -1,12 +1,11 @@
 from collections.abc import Iterable
-from datetime import timedelta
 
 from notifications.domain.subscriptions import RateLimitedError, validate_subscription
-from notifications.ports import SubscriptionData, SubscriptionStore
+from notifications.ports import DeliveryLedger, SubscriptionData, SubscriptionStore
 from shared.clock import Clock
 
 MAX_NEW_SUBSCRIPTIONS_PER_HOUR = 10
-WINDOW = timedelta(hours=1)
+MAX_SUBSCRIPTIONS_PER_PERSON = 5  # a person has a few browsers; the oldest are evicted
 
 
 def register_subscription(
@@ -17,6 +16,7 @@ def register_subscription(
     user_agent: str,
     *,
     store: SubscriptionStore,
+    ledger: DeliveryLedger,
     allowed_hosts: Iterable[str],
     clock: Clock,
 ) -> tuple[SubscriptionData, bool]:
@@ -27,12 +27,27 @@ def register_subscription(
     """
     valid = validate_subscription(endpoint, p256dh, auth, user_agent, allowed_hosts)
     existing = store.get_by_endpoint(valid.endpoint)
-    owned = existing is not None and existing.person_id == person_id
-    if not owned:
-        recent = store.touched_since(person_id, clock.now() - WINDOW, valid.endpoint)
-        if recent >= MAX_NEW_SUBSCRIPTIONS_PER_HOUR:
-            raise RateLimitedError(int(WINDOW.total_seconds()))
-    return store.upsert(person_id, valid)
+    if existing is None or existing.person_id != person_id:
+        _take_registration_slot(person_id, ledger, clock)
+    row, created = store.upsert(person_id, valid)
+    store.trim(person_id, MAX_SUBSCRIPTIONS_PER_PERSON, row.id)
+    return row, created
+
+
+def _take_registration_slot(person_id: str, ledger: DeliveryLedger, clock: Clock) -> None:
+    """At most ``MAX_NEW_SUBSCRIPTIONS_PER_HOUR`` takeovers or additions per person per clock hour.
+
+    The count lives in the delivery ledger (keys ``register:<hour>:<n>``) so that evicting old
+    subscriptions never resets it. The window is the calendar hour, not a sliding hour: it is an
+    approximate abuse guard (a person can do up to twice the limit around an hour boundary)."""
+    now = clock.now()
+    hour = now.strftime("%Y%m%d%H")
+    for slot in range(MAX_NEW_SUBSCRIPTIONS_PER_HOUR):
+        if ledger.reserve(f"register:{hour}:{slot}", person_id):
+            ledger.finish(f"register:{hour}:{slot}", person_id, "skipped", 0)
+            return
+    retry = 3600 - (now.minute * 60 + now.second)
+    raise RateLimitedError(retry)
 
 
 def unregister_subscription(person_id: str, endpoint: str, *, store: SubscriptionStore) -> None:
