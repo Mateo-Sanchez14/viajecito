@@ -1,0 +1,64 @@
+# Production stack for the Raspberry Pi. Lives at /srv/viajecito/compose.pi.yml.
+# Always pass the env file so ${GHCR_OWNER} / ${IMAGE_TAG} resolve:
+#   docker compose --env-file /srv/viajecito/pi.env -f /srv/viajecito/compose.pi.yml <command>
+# PI_ENV_FILE only exists so the file can be checked off the Pi (docker compose config); leave it unset.
+# No ports are published: cloudflared reaches api:8000 and web:3000 over the compose network,
+# so nothing can collide with the WAHA / notify services already running on the Pi.
+name: viajecito
+
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  api:
+    image: ghcr.io/${GHCR_OWNER:?set GHCR_OWNER in pi.env}/viajecito-api:${IMAGE_TAG:-latest}
+    env_file:
+      - path: ${PI_ENV_FILE:-/srv/viajecito/pi.env}
+        required: true
+    volumes:
+      - /srv/viajecito/data:/data
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health', timeout=3)"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+    restart: unless-stopped
+    logging: *default-logging
+
+  web:
+    image: ghcr.io/${GHCR_OWNER:?set GHCR_OWNER in pi.env}/viajecito-web:${IMAGE_TAG:-latest}
+    environment:
+      API_INTERNAL_URL: http://api:8000
+      HOSTNAME: 0.0.0.0
+      PORT: "3000"
+    # The runner image is node:alpine, which ships busybox wget.
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:3000/login"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+    logging: *default-logging
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    # Token tunnel: TUNNEL_TOKEN comes from pi.env; ingress rules live in the Cloudflare dashboard.
+    command: tunnel --no-autoupdate run
+    env_file:
+      - path: ${PI_ENV_FILE:-/srv/viajecito/pi.env}
+        required: true
+    depends_on:
+      api:
+        condition: service_healthy
+      web:
+        condition: service_healthy
+    restart: unless-stopped
+    logging: *default-logging
