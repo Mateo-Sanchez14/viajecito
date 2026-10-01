@@ -15,9 +15,9 @@ section nav, `TripProvider` and shared UI (web). Unblocks M1–M6 running in par
 - [x] **C2 web core** — delegated (same writer, same worktree, after C1 or in parallel inside the worktree).
   i18n split, home trips list + create trip, trip layout/shell/overview/placeholder, TripProvider, shared UI,
   tests, types regenerated.
-- [ ] **C3 contracts M1–M6** — delegated (writer opus, docs only, worktree `docs-contracts`):
+- [x] **C3 contracts M1–M6** — delegated (writer opus, docs only, worktree `docs-contracts`):
   `docs/contracts/{parallel-work,m1-proposals,m2-decisions,m3-logistics,m4-itinerary,m5-ski,m6-pwa}.md`.
-- [ ] **C4 integrate** — inline: merge, regenerate contract/types, full checks, `make e2e` + `make bot-smoke`,
+- [x] **C4 integrate** — inline: merge, regenerate contract/types, full checks, `make e2e` + `make bot-smoke`,
   merge to main, push; then launch wave A (M1, M2, M5, M6) and later wave B (M3, M4).
 
 ## Checks
@@ -30,4 +30,4 @@ api `uv run pytest`, ruff, lint-imports, `makemigrations --check`; web `pnpm lin
 | C1 | **done** (verifier REQUEST CHANGES → minors fixed; commits 74e5688…9639cf8; 438 tests; merged into main locally) | `uv run pytest` 390 passed, ruff/lint-imports clean, fresh migrate ok, export idempotent (writer) |
 | C2 | **done** (verifier REQUEST CHANGES → 3 majors + 6 minors fixed; commits eee79e3…25175a0; merged into main locally) | `pnpm test` 142 passed, lint/typecheck/build/api:types:check green (writer) |
 | C3 | **done**: docs/contracts/{README,m1..m6}.md (2440 lines) merged into main; core requests R-1…R-6 → C1c (api) + C2b (web) |
-| C4 | code integration **done** and pushed: api 438, web 150, fake-gowa 26, contract unchanged, types match; `make e2e` 2 passed; `make bot-smoke` passed (tick summary now includes reminders_queued/reminder_errors). Pending: merge C3 contracts, then wave A |
+| C4 | **done** 2026-10-01: contracts merged; C1c/C1d registries merged (api 494 tests, lint-imports 5 kept; web 154 tests, types regenerated with fx_rates); `make e2e` 2 passed; `make bot-smoke` passed (tick summary: reminders_queued/reminders_quiet/jobs_run). Opus verifier of the registries running; findings land as a follow-up before Wave A writers depend on them. |
