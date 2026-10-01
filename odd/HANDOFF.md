@@ -91,3 +91,9 @@ Read this first, then `AGENTS.md`, then the ODD feature documents in `odd/tasks/
 - The core `tick` summary test must stay inside `reminders.isolated()` (every milestone registers jobs).
 - Display names fall back to the member's E.164 phone inside crew-scoped responses by design; bot replies
   and push payloads must never include phones (use "alguien"); snow reports from other crews are redacted.
+
+## Codex continuation — 2026-10-01
+- M1 API/web now merged (`adcc1cb`, `bd6c33d`) plus verified settings/shared PersonRefOut, platform env and ski form.
+- Integrated correction merge `dece82f`: self-contained proposal e2e, shared login isolation and accessible home/loading headings. Final API1815 tests, web571 tests; final e2e8passed/2production-only skips; bot-smoke passed. Independent verification and one accessibility correction round completed.
+- See `odd/tasks/viajecito-m1-proposals.md` for evidence/commits. Push pending immediately after this documentation commit; then §2 step2 (Wave B + M6 map). Do not remerge M1.
+- RDD confirmed off clone-local. Source/functional checks green; production-only service worker/offline tests remain pending. Shared main remains no-FF/clean-only, export+pytest before merge commits.

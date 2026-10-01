@@ -23,7 +23,7 @@ Any link dropped in the group (or pasted on the web) becomes a proposal card wit
 - [x] **A2 web** — delegated (writer sonnet, worktree `m1-web`; verifier opus; one correction round).
   Builds against the contract's API table; generates types from a draft added to `contracts/openapi.json`
   in its branch; the orchestrator regenerates from the real api at integration.
-- [ ] **A3 integrate** — inline: merge api then web, regenerate contract/types, env parsing for the
+- [x] **A3 integrate** — inline: merge api then web, regenerate contract/types, env parsing for the
   contract's settings, full checks, `make e2e` + `make bot-smoke`, merge to `main`, push.
 
 ## Acceptance (from the contract)
@@ -37,7 +37,7 @@ Any link dropped in the group (or pasted on the web) becomes a proposal card wit
 |---|---|---|
 | A1 | integrated/verified | adcc1cb; 1778 pytest + export/lint/migrations |
 | A2 | integrated/verified | bd6c33d; 569 web tests/typecheck/lint/types/build |
-| A3 | integration corrections verified; e2e failing, no push | see evidence below |
+| A3 | verified locally; push pending | dece82f;1815 API/571 web; e2e8pass2production skips; bot-smoke passed |
 
 ## Resumption — 2026-10-01 (Codex)
 - Baseline: clean `main`/`origin/main` at `fafb953`; handoff records A1/A2 verified and corrected, but existing checklist/mirror is stale. Do not mark complete until integration checks reproduce.
@@ -62,10 +62,22 @@ Any link dropped in the group (or pasted on the web) becomes a proposal card wit
 - Ski work unit: `10be55d`, merged `737f9c7`; independent approval, RED 2 failed/6 passed → GREEN 8 focused and 570 full; parent reproduced 570. Type/lint/types/build pass. No actionable verifier findings, so correction rounds were unnecessary.
 - Each correction merge exported schema and passed 1815 pytest before commit (12.22s / 12.66s / 11.85s). Contract/types regenerated with no drift. Authored corrections: 454 additions+deletions across work units; direct-main delivery exception explicitly authorized, no PR chain.
 - Runtime RED: `make e2e` on 737f9c7: 2 failed, 6 passed, 2 skipped. Failures: proposals immediate sent-card assertion; signed-in PWA heading missing. Root causes not yet verified. Dev skips cover production-only service worker/offline tests; those remain pending production verification.
-- [ ] **A3-E1** — delegated web e2e correction, branch `codex/m1-e2e-fix`, worktree `m1-e2e-fix`; observed runtime RED above; independent verification/correction/spot check then rerun full smoke required. No scope expansion.
+- [x] **A3-E1** — delegated web e2e correction, branch `codex/m1-e2e-fix`, worktree `m1-e2e-fix`; observed runtime RED above; independent verification/correction/spot check then rerun full smoke required. No scope expansion.
 - `make bot-smoke` is running sequentially after e2e stack cleanup. Push and Wave B remain blocked by e2e gate.
 
 ### A3-E1 independent verifier correction
 - Writer `4a52e18`: self-contained webhook capture/shared auth and accessible home h1; unit RED2→GREEN2, 570 full checks pass; writer e2e8passed/2production-only skips. Parent CrewTrips spot2passed.
 - Independent e2e reproduced 7passed/1failed/2skipped: axe `aria-prohibited-attr` on TripList loading div with aria-label but no role, confirmed by delayed trip-list response. No auth loss.
 - Single correction round sent to SAME writer: valid loading status semantics + RED/GREEN regression; retain axe without suppressions/waits. Reverify then parent final integrated e2e/bot smoke before push.
+
+### A3-E1 correction terminal verification
+- Same-writer correction `b5278fb`: TripList named role=status with gated-MSW loader/removal regression; RED1failed/3passed→GREEN4passed. All571 tests and type/lint/types/build pass. Parent focused CrewTrips/TripList spot6passed.
+- Same independent verifier terminal APPROVE `4a52e18` + `b5278fb`: deterministic axe exact original fails/corrected0violations; full571 tests/lint pass; e2e8passed/2production-only skips (11.4s). No unresolved findings.
+- Parent merging corrected web candidate after API export/pytest, then final main `make e2e` and `make bot-smoke` sequentially. Push remains pending until both pass; Wave B not launched.
+
+### Final integrated verification (2026-10-01)
+- Corrected e2e merged `dece82f` only after API export/1815 pytest (12.11s).
+- Parent final main `make e2e`: exit0, 8passed/2production-only skipped (20.3s). Parent sequential `make bot-smoke`: passed; pong, duplicate replay, tick errors0. Docker cleaned. Logs `/tmp/viajecito-m1-final-e2e.log`, `/tmp/viajecito-m1-final-bot.log`.
+- Pending checks honestly retained: production SW registration and offline Today/documents; not executable in dev harness, deferred to production stack/M4 integration.
+- Functional implementation A1/A2/A3/E1 complete; push is the next authorized delivery action. No native receipt (RDD disabled/unmanaged).
+- Next feature work starts only after push succeeds: M3/M4 API+web and M6 map, each writer in isolated worktree, independent verifier, one correction round, spot check, API before web, regenerate/smoke/push.
