@@ -68,7 +68,7 @@ Legend: route = `inline` (orchestrator) | `delegated` (one bounded writer + one 
   dev rewrite `/api/:path*` → `API_INTERNAL_URL`, `web/.env.example`.
   Acceptance: `pnpm lint`, `pnpm typecheck`, `pnpm test` green (HealthBadge + HealthStatus with MSW);
   `pnpm api:types:check` clean; `pnpm build` succeeds.
-- [ ] **T3 platform** — route: delegated (writer sonnet, worktree `m0a-platform`, branch `feat/m0a-platform`; verifier opus).
+- [x] **T3 platform** — route: delegated (writer sonnet, worktree `m0a-platform`, branch `feat/m0a-platform`; verifier opus).
   Deliver: `Makefile` (`up down logs test api-test web-test lint api-schema api-types api-types-check`
   + documented placeholders `replay deploy`), dev `docker-compose.yml` (api, web, fake-gowa; bind
   mounts; `./data`), `deploy/docker/{api,web}.Dockerfile` (+ `api-entrypoint.sh`; multi-stage, dev
@@ -122,7 +122,7 @@ Legend: route = `inline` (orchestrator) | `delegated` (one bounded writer + one 
 |---|---|---|---|---|
 | T1 | **done** 2026-10-01 (verifier opus: APPROVE WITH MINORS → 5 minors fixed in one correction round) | delegated | `feat/m0a-api`: 88ddcdd, 3ecc6a7, d89d7cb, 1e28b08, f7840ca, 9f6edab | writer: `uv run pytest` 23 passed; `ruff check` + `ruff format --check` clean; `lint-imports` 1 kept/0 broken; `manage.py check` ok; `migrate` ok on fresh path; schema export idempotent (same md5 twice). RED observed per unit (collection errors before implementation). Verifier reproduced all checks; after corrections `uv run pytest` 27 passed, contract unchanged. Orchestrator spot check: `uv run pytest` 27 passed in 0.29s; `lint-imports` 1 kept/0 broken; tree clean. |
 | T2 | writer done, opus verifier running | delegated | `feat/m0a-web`: 1cfd2d6, 982219c, b2acb63, db2f519, 458df7e, d00d114, 05894a9 | writer: `pnpm lint` clean; `pnpm typecheck` clean (also from fresh checkout); `pnpm test` 5 files / 14 passed; `pnpm api:types:check` exit 0 (exit 1 on drift); `pnpm build` ok (Next 16.3.8, standalone server.js present); no Spanish outside es-AR.json. RED observed per unit (unresolved imports before implementation). Not run: Playwright. |
-| T3 | writer done, opus verifier running | delegated | `feat/m0a-platform`: 531058f, 1d2f473, 7990fb6, 02f50b1, fa9e762 | writer: fake-gowa `uv run pytest` 13 passed; `docker build` fake-gowa ok + `/health` answers; `docker compose config -q` ok; 4 workflows parse; `make help` 15 targets; `make -n up/test` ok. RED observed (ModuleNotFoundError app before implementation). Not built: api/web images (no api/web in that worktree). |
+| T3 | **done** 2026-10-01 (verifier opus: REQUEST CHANGES → 3 blockers, 1 major, 5 minors fixed in one correction round) | delegated | `feat/m0a-platform`: 531058f, 1d2f473, 7990fb6, 02f50b1, fa9e762, 67d7c70, 29160b7, e8d63a4 | writer: fake-gowa `uv run pytest` 13 passed; `docker build` fake-gowa ok + `/health` answers; `docker compose config -q` ok; 4 workflows parse; `make help` 15 targets; `make -n up/test` ok. RED observed (ModuleNotFoundError app before implementation). Not built: api/web images (no api/web in that worktree). Verifier blockers fixed: pnpm version conflict in web.yml, pnpm-workspace.yaml copied into web image, recursive .dockerignore globs; env_file optional; healthcheck-based depends_on. Orchestrator spot check: fake-gowa `uv run pytest` 13 passed; `docker compose config -q` without .env ok; tree clean. |
 | T4 | pending | inline | `feat/m0-foundation` | — |
 | T5–T11 | pending | — | — | — |
 
