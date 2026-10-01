@@ -87,3 +87,12 @@ jobs:
       - name: Tear down the stack
         if: always()
         run: docker compose down -v
+
+  bot-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - run: cp .env.example .env
+      - name: Bot loop smoke (replay /viaje ping against the dev stack and fake Gowa)
+        run: make bot-smoke   # prints the stack logs itself on failure, then tears the stack down

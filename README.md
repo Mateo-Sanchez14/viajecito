@@ -57,6 +57,14 @@ make e2e-keep   # same, but leave the stack running to debug
 `make e2e` never touches your dev database (`./data`); the stack data is a bind mount, so `down -v` alone does not
 reset it, which is why the e2e data dir is removed before each run. CI runs the same flow in `.github/workflows/e2e.yml`.
 
+Bot loop smoke (no browser): `make bot-smoke` starts the dev stack on its own data dir (`./data/bot-smoke`),
+bootstraps a crew, seeds the fake group, replays the `/viaje ping` fixture through the signed webhook, expects a
+`pong` reply (read from fake Gowa) and a `duplicate` on replay, runs `tick`, and always tears the stack down.
+CI runs it as the `bot-smoke` job in `.github/workflows/e2e.yml`. The fake Gowa serves group rosters like Gowa's
+`GET /group/participants`; seed one with
+`curl -X PUT localhost:4000/__groups/<id>@g.us -H 'Content-Type: application/json' -d '[{"jid":"<digits>@s.whatsapp.net","display_name":"Ana"}]'`
+(list with `GET /__groups`, clear with `DELETE /__groups`).
+
 Changing the API contract:
 
 ```sh
