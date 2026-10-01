@@ -39,7 +39,7 @@ describe("TripOverview", () => {
     expect(items).toHaveLength(2);
     expect(items[0]).toHaveTextContent("Mateo");
     expect(items[0]).toHaveTextContent(messages.trips.rsvp.in);
-    expect(items[1]).toHaveTextContent("Lucía Gómez");
+    expect(items[1]).toHaveTextContent("Lucia Gomez");
     expect(items[1]).toHaveTextContent(messages.trips.rsvp.maybe);
   });
 

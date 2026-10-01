@@ -15,15 +15,15 @@ describe("initialsOf", () => {
 
 describe("Avatar", () => {
   it("shows initials when there is no image", () => {
-    render(<Avatar name="Lucía Gómez" />);
+    render(<Avatar name="Lucia Gomez" />);
 
-    expect(screen.getByLabelText("Lucía Gómez")).toHaveTextContent("LG");
+    expect(screen.getByLabelText("Lucia Gomez")).toHaveTextContent("LG");
   });
 
   it("shows the image when a src is given", () => {
-    render(<Avatar name="Lucía Gómez" src="/lucia.png" />);
+    render(<Avatar name="Lucia Gomez" src="/lucia.png" />);
 
-    expect(screen.getByRole("img", { name: "Lucía Gómez" })).toHaveAttribute(
+    expect(screen.getByRole("img", { name: "Lucia Gomez" })).toHaveAttribute(
       "src",
       "/lucia.png",
     );

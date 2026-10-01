@@ -1,10 +1,10 @@
+import { CrewTrips } from "@/features/trips/containers/CrewTrips";
 import { HealthStatus } from "@/features/ops/containers/HealthStatus";
-import { MyCrews } from "@/features/auth/containers/MyCrews";
 
 export default function Home() {
   return (
     <>
-      <MyCrews />
+      <CrewTrips />
       <HealthStatus />
     </>
   );

@@ -8,7 +8,7 @@ function setup(open = true) {
   render(
     <ConfirmDialog
       open={open}
-      title="¿Seguro?"
+      title="Sure?"
       description="No se puede deshacer"
       confirmLabel="Borrar"
       cancelLabel="Dejar"
@@ -23,7 +23,7 @@ describe("ConfirmDialog", () => {
   it("shows title, description and both actions when open", () => {
     setup();
 
-    expect(screen.getByRole("dialog", { name: "¿Seguro?" })).toBeInTheDocument();
+    expect(screen.getByRole("dialog", { name: "Sure?" })).toBeInTheDocument();
     expect(screen.getByText("No se puede deshacer")).toBeInTheDocument();
   });
 

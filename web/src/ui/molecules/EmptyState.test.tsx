@@ -7,21 +7,21 @@ describe("EmptyState", () => {
     render(
       <EmptyState
         icon={<span data-testid="icon" />}
-        title="Nada por acá"
-        description="Todavía no hay nada"
+        title="Nothing here"
+        description="Nothing yet"
         action={<button>Crear</button>}
       />,
     );
 
     expect(screen.getByTestId("icon")).toBeInTheDocument();
-    expect(screen.getByText("Nada por acá")).toBeInTheDocument();
-    expect(screen.getByText("Todavía no hay nada")).toBeInTheDocument();
+    expect(screen.getByText("Nothing here")).toBeInTheDocument();
+    expect(screen.getByText("Nothing yet")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Crear" })).toBeInTheDocument();
   });
 
   it("renders with only a title", () => {
-    render(<EmptyState title="Vacío" />);
+    render(<EmptyState title="Empty" />);
 
-    expect(screen.getByText("Vacío")).toBeInTheDocument();
+    expect(screen.getByText("Empty")).toBeInTheDocument();
   });
 });

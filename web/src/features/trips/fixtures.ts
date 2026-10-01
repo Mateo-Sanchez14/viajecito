@@ -25,7 +25,7 @@ export function makeTrip(overrides: Partial<Schemas["TripOut"]> = {}): Schemas["
     modules: ["proposals", "dates", "logistics", "itinerary", "today", "budget", "documents"],
     participants: [
       makeParticipant(),
-      makeParticipant({ person_id: "33333333-3333-4333-8333-333333333333", display_name: "Lucía Gómez", rsvp: "maybe" }),
+      makeParticipant({ person_id: "33333333-3333-4333-8333-333333333333", display_name: "Lucia Gomez", rsvp: "maybe" }),
     ],
     my_rsvp: "in",
     ...overrides,

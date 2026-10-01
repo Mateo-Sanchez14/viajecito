@@ -14,9 +14,9 @@ describe("PageHeader", () => {
   });
 
   it("omits optional parts", () => {
-    render(<PageHeader title="Solo título" />);
+    render(<PageHeader title="Only a title" />);
 
-    expect(screen.getByRole("heading", { name: "Solo título" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Only a title" })).toBeInTheDocument();
     expect(screen.queryByRole("button")).not.toBeInTheDocument();
   });
 });
