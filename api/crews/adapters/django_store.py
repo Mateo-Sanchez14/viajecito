@@ -31,6 +31,13 @@ class DjangoCrewStore:
             person=person,
             defaults={"role": "admin", "source": "bootstrap", "status": "active"},
         )
+        # Give the admin a WhatsApp identity so their first message resolves without a roster
+        # sync. Resolved by label to keep crews free of an import on identity; an existing
+        # identity is never touched.
+        identity_model = apps.get_model("identity", "WhatsAppIdentity")
+        jid = phone_to_jid(phone)
+        if not identity_model.objects.filter(Q(person=person) | Q(jid=jid)).exists():
+            identity_model.objects.create(person=person, jid=jid)
 
     def phone_has_membership_or_invite(self, phone: str) -> bool:
         has_membership = CrewMembership.objects.filter(
