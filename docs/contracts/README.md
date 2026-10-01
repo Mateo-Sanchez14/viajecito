@@ -306,3 +306,31 @@ core (M-core + R-1..R-6) ──► Wave A: M1 ║ M2 ║ M5 ║ M6(minus map) �
 | `notifications.prune` | M6 | tick job | — |
 | `ski.snow` | M5 | digest section | — |
 | `push` | M6 | channel | `PushDelivery (dedupe_key, person)` |
+
+---
+
+## Addendum — final core API as implemented (2026-10-01, supersedes §2 where they differ)
+
+Writers code against these facts; read `api/README.md` for examples.
+
+- **Dedupe keys**: `ReminderDraft.dedupe_key` is persisted verbatim as `OutboundMessage.dedupe_key`
+  (no tick prefix). Namespace your keys as the contracts show (`<app>:<rule>:<ids>`).
+- **Mentions**: `{@person_id}` renders as `@<digits>` (E.164 without `+`); with `GOWA_MENTIONS_ENABLED=1`
+  the JIDs are also passed to Gowa. Unknown ids render as an empty string.
+- **Tick summary keys**: `reminders_queued`, `reminders_quiet`, `jobs_run`; failures are counted in
+  `errors`. Counters returned by a tick job appear as `<job key>.<counter>`. Reminders queued in a pass are
+  dispatched in the same pass.
+- **Help text**: `/viaje ayuda` lists subcommands sorted by name (not registration order).
+- **Subcommand handlers**: returning `None` leaves the message unclaimed so later handlers may run.
+- **`trips.use_cases.update_trip(trip_id, actor_id, **fields) -> TripData`**: the caller authorizes
+  (`actor_id` is recorded, not checked). Import as `from trips.use_cases.update_trip import update_trip`;
+  likewise `from crews.use_cases.active_member_ids import active_member_ids` and
+  `from trips.use_cases.default_trip_for_crew import default_trip_for_crew` (modules, not package re-exports).
+  `fx_rates` accepts decimal strings or numbers and returns decimal strings.
+- **`send_card`**: returns `SentCard("failed", None)` when the chat is over its 20-per-10-minutes budget
+  (cards count against the reply budget but skip the 3 s gap). Statuses: `sent`, `failed`, `duplicate`.
+- **Events**: `shared.events.publish` is synchronous and propagates subscriber exceptions (rollback);
+  `shared.events_django.publish_after_commit` isolates subscribers and runs after commit. Tests use
+  `events.isolated()`. `pytest-django`'s default `django_db` never fires `on_commit` callbacks: tests of
+  `publish_after_commit` subscribers use `django_capture_on_commit_callbacks(execute=True)`.
+- **Settings added by core**: `GOWA_MENTIONS_ENABLED` (default 0).
