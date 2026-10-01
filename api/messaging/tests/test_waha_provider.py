@@ -89,7 +89,7 @@ def test_tick_dispatches_queued_rows_through_waha(waha, crew):
     with time_machine.travel(now, tick=False), reminders.isolated():
         call_command("tick")
     row.refresh_from_db()
-    assert (row.status, row.gowa_message_id) == ("sent", SENT["id"])
+    assert (row.status, row.gowa_message_id) == ("sent", "WAID1")
     assert sent_bodies(waha)[0]["chatId"] == CHAT
 
 

@@ -11,7 +11,7 @@ from typing import Any
 
 from messaging.domain import GroupMessage
 
-__all__ = ["GroupMessage", "normalize_jid", "parse_message_event"]
+__all__ = ["GroupMessage", "normalize_jid", "parse_message_event", "stanza_id"]
 
 USER_SERVER = "s.whatsapp.net"
 
@@ -27,6 +27,19 @@ def normalize_jid(raw: str | None) -> str:
     if server == "c.us":
         server = USER_SERVER
     return f"{user.split(':', 1)[0]}@{server}"
+
+
+def stanza_id(raw: str | None) -> str:
+    """The bare WhatsApp message id of a WAHA id.
+
+    WAHA ids are ``{fromMe}_{chat}_{stanza}[_{participant}]``; GOWS may also give just the stanza.
+    The ledger keeps the stanza on both sides so a quote finds our card whichever form arrives.
+    """
+    value = (raw or "").strip()
+    parts = value.split("_")
+    if len(parts) >= 3 and parts[0] in ("true", "false") and "@" in parts[1]:
+        return parts[2]
+    return value
 
 
 def _text(value: Any) -> str:
@@ -90,7 +103,7 @@ def parse_message_event(payload: dict) -> GroupMessage | None:
         sender_lid=lid,
         sender_name=_sender_name(body),
         body=body.get("body") if isinstance(body.get("body"), str) else "",
-        replied_to_id=_text(_dict(body.get("replyTo")).get("id")),
+        replied_to_id=stanza_id(_text(_dict(body.get("replyTo")).get("id"))),
         timestamp=_timestamp(body.get("timestamp")),
         is_from_me=body.get("fromMe") is True,
     )

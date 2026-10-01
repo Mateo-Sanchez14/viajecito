@@ -37,5 +37,5 @@ def test_otp_goes_to_the_c_us_dm_and_the_ledger_keeps_the_code_out(waha):
     assert body["chatId"] == "5491155551234@c.us" and "482913" in body["text"]
     assert waha.send.calls.last.request.headers["x-api-key"] == "k3y"
     row = OutboundMessage.objects.get()
-    assert (row.kind, row.status, row.gowa_message_id) == ("otp", "sent", SENT["id"])
+    assert (row.kind, row.status, row.gowa_message_id) == ("otp", "sent", "WAID1")
     assert "482913" not in row.body

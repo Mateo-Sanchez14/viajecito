@@ -10,7 +10,7 @@ from typing import Any
 import httpx
 
 from messaging.ports import GatewayError, Participant
-from messaging.waha.parser import USER_SERVER, normalize_jid
+from messaging.waha.parser import USER_SERVER, normalize_jid, stanza_id
 
 ADMIN_ROLES = {"admin", "superadmin"}
 
@@ -77,7 +77,7 @@ class WahaClient:
             message_id = message_id.get("_serialized")
         if not message_id or not isinstance(message_id, str):
             raise GatewayError("waha response has an empty id")
-        return message_id
+        return stanza_id(message_id)  # the ledger keys cards by the bare stanza id
 
     def group_participants(self, chat_id: str) -> list[Participant]:
         response = self._request("GET", f"/api/{self._session}/groups/{chat_id}/participants/v2")

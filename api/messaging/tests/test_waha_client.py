@@ -23,7 +23,7 @@ def client():
 @respx.mock
 def test_send_text_posts_to_send_text_with_api_key_and_returns_the_id(client):
     route = respx.post(f"{BASE}/api/sendText").mock(return_value=httpx.Response(201, json=SENT))
-    assert client.send_text("5491100000001@s.whatsapp.net", "hola") == SENT["id"]
+    assert client.send_text("5491100000001@s.whatsapp.net", "hola") == "3EB0AAAA"
     request = route.calls.last.request
     assert request.headers["x-api-key"] == "k3y"
     assert json.loads(request.content) == {
