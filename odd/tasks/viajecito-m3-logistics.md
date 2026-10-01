@@ -64,3 +64,7 @@ Tasks with owners and due dates (todo / bring / booking), packing templates per 
 - Proposal bridge writer commit5462b14: RED missing module → GREEN11 focused; full1827pytest,Ruff/format,10importcontracts,migration drift/export unchanged. Independent verification pending before parent merge.
 - Launched B1 M3 API writer in m3-api and B1 M4 API writer in m4-api. M3 web writer launched in m3-web using completed mapping actor due runtime thread limit; all retain exact writer ownership/no-subagent rules. M4 web/map queued until slot available, not dropped.
 - Vault storage decision: bounded whole-file Fernet with atomic temp-save (15MiB upload cap), avoids unsafe unauthenticated chunk framing; persistent TaskSequence prevents deleted-number reuse. cryptography direct runtime dependency to confirm with Context7.
+
+### B0 packing registry seam
+- Additional required pure trips.use_cases.packing_templates(trip_type)->tuple[str,...] exposes registry templates through use-case boundary; M3 still applies generic plus returned plugin templates. No core plugin/model changes, unknown type follows registry semantics.
+- Delegated bounded writer on bridge worktree (previous verifier role closed; new authored commit requires DIFFERENT independent verifier), strict TDD/full checks. Original snapshots5462b14/cc6f06e independently approved/full1836. Parent spot20passed; one initial wrong test filename ran0 and was corrected; concurrent focused/full same test DB caused verifier retry disk-I/O, final full green. Avoid concurrent same-worktree pytest.
