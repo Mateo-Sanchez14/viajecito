@@ -1,0 +1,58 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "viajecito",
+    "version": "0.1.0",
+    "description": "Placeholder contract for M0a. Regenerated from the real API at integration (T4)."
+  },
+  "paths": {
+    "/api/health": {
+      "get": {
+        "operationId": "ops_api_health",
+        "summary": "Health",
+        "tags": ["ops"],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HealthOut" }
+              }
+            }
+          },
+          "503": {
+            "description": "Degraded",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HealthOut" }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "HealthChecks": {
+        "type": "object",
+        "title": "HealthChecks",
+        "properties": {
+          "db": { "type": "string", "enum": ["ok", "error"], "title": "Db" },
+          "media": { "type": "string", "enum": ["ok", "error"], "title": "Media" }
+        },
+        "required": ["db", "media"]
+      },
+      "HealthOut": {
+        "type": "object",
+        "title": "HealthOut",
+        "properties": {
+          "status": { "type": "string", "enum": ["ok", "degraded"], "title": "Status" },
+          "version": { "type": "string", "title": "Version" },
+          "checks": { "$ref": "#/components/schemas/HealthChecks" }
+        },
+        "required": ["status", "version", "checks"]
+      }
+    }
+  }
+}
