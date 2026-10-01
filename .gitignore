@@ -33,3 +33,6 @@ data/
 
 # ODD scratch
 odd/.cache/
+
+# Agent tooling caches
+.atl/
