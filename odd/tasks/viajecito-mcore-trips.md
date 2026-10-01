@@ -12,7 +12,7 @@ section nav, `TripProvider` and shared UI (web). Unblocks M1–M6 running in par
 ## Tasks
 - [ ] **C1 api core** — delegated (writer sonnet; verifier opus). trips app, crews.default_trip, authz
   helpers, router auto-discovery, handler registry, PROJECT_APPS split, endpoints + tests, contract export.
-- [ ] **C2 web core** — delegated (same writer, same worktree, after C1 or in parallel inside the worktree).
+- [x] **C2 web core** — delegated (same writer, same worktree, after C1 or in parallel inside the worktree).
   i18n split, home trips list + create trip, trip layout/shell/overview/placeholder, TripProvider, shared UI,
   tests, types regenerated.
 - [ ] **C3 contracts M1–M6** — delegated (writer opus, docs only, worktree `docs-contracts`):
@@ -28,6 +28,6 @@ api `uv run pytest`, ruff, lint-imports, `makemigrations --check`; web `pnpm lin
 | Task | Status | Evidence |
 |---|---|---|
 | C1 | verifier opus: REQUEST CHANGES (schema mismatch resolved on the web side; minors: idempotent plugin registry, per-trip reminder isolation + tz validation, dedupe prefix) → correction round running | `uv run pytest` 390 passed, ruff/lint-imports clean, fresh migrate ok, export idempotent (writer) |
-| C2 | verifier opus: REQUEST CHANGES (types vs real contract, ski type, shared ApiError) → correction round running | `pnpm test` 142 passed, lint/typecheck/build/api:types:check green (writer) |
+| C2 | **done** (verifier REQUEST CHANGES → 3 majors + 6 minors fixed; commits eee79e3…25175a0; merged into main locally) | `pnpm test` 142 passed, lint/typecheck/build/api:types:check green (writer) |
 | C3 | opus design writer running | — |
 | C4 | pending | — |
