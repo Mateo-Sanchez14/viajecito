@@ -35,9 +35,13 @@ _REGISTRY: dict[str, TripTypePlugin] = {}
 
 
 def register(plugin: TripTypePlugin) -> None:
-    if plugin.key in _REGISTRY:
+    """Register a trip type. The same plugin again is a no-op (``ready()`` may run twice);
+    a different plugin under a used key raises ``DuplicatePluginError``."""
+    existing = _REGISTRY.get(plugin.key)
+    if existing is None:
+        _REGISTRY[plugin.key] = plugin
+    elif existing != plugin:
         raise DuplicatePluginError(f"trip type {plugin.key!r} is already registered")
-    _REGISTRY[plugin.key] = plugin
 
 
 def get(key: str) -> TripTypePlugin:

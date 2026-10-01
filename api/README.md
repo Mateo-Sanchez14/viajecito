@@ -199,7 +199,7 @@ removed members, unknown ids: existence is never revealed).
 
 **Plugin registry** (`trips/plugins.py`). `TripTypePlugin(key, label_key, modules, packing_templates=(),
 reminder_rules=())`; `register`, `get`, `all`, `modules_for(type)` (unknown keys fall back to `generic` and
-log a warning). Registering an existing key raises `DuplicatePluginError`. Core registers `generic`
+log a warning). Registering the same plugin again is a no-op (`ready()` may run twice); a different plugin under a used key raises `DuplicatePluginError`. Core registers `generic`
 (`proposals, dates, logistics, itinerary, today, budget, documents`) in `TripsConfig.ready()`; another app
 registers its own type the same way (`ski` = generic modules + `"ski"`). `trips` never imports a plugin app
 (import-linter).

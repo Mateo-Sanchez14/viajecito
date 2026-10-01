@@ -54,6 +54,20 @@ def test_duplicate_key_is_rejected(registry):
         plugins.register(make(modules=("x",)))
 
 
+def test_registering_an_equal_plugin_again_is_a_no_op(registry):
+    plugins.register(make())
+    plugins.register(make())
+    assert [p.key for p in plugins.all()] == ["generic", "ski"]
+
+
+def test_app_config_ready_is_idempotent():
+    from django.apps import apps
+
+    apps.get_app_config("trips").ready()
+    apps.get_app_config("trips").ready()
+    assert [p.key for p in plugins.all()].count("generic") == 1
+
+
 def test_get_unknown_key_raises_keyerror(registry):
     with pytest.raises(KeyError):
         plugins.get("nope")
