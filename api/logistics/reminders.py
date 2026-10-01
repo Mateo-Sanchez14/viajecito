@@ -3,6 +3,7 @@ from zoneinfo import ZoneInfo
 
 from django.db.models import F
 
+from identity.use_cases.display_names import display_names
 from logistics import conf
 from logistics.adapters.django_store import DjangoTaskStore
 from logistics.copy import es_ar
@@ -65,12 +66,20 @@ def on_queued(draft, *, now=None):
 def digest_section(trip_id, local_date):
     tasks = DjangoTaskStore().list(trip_id, ["open", "blocked"])
     due = [t for t in tasks if t["due_on"] and t["due_on"] <= local_date]
+    names = display_names([t["owner_id"] for t in due if t["owner_id"]])
+
+    def owner_name(task):
+        if not task["owner_id"]:
+            return es_ar.NO_OWNER
+        name = names.get(task["owner_id"], es_ar.SAFE_PERSON)
+        return es_ar.SAFE_PERSON if name.startswith("+") else name
+
     return (
         "\n".join(
             es_ar.TASK_LINE.format(
                 number=t["number"],
                 title=t["title"],
-                owner=es_ar.NO_OWNER,
+                owner=owner_name(t),
                 due=due_label(t["due_on"], local_date),
             )
             for t in due[:5]

@@ -37,3 +37,15 @@ def test_commands_format_and_status(trip, ana):
     task.save()
     tareas(ctx, "")
     assert ana.phone not in replies[-1] and "alguien" in replies[-1]
+
+
+def test_digest_owner_names_never_phone_fallback(trip, ana):
+    from datetime import date
+
+    from logistics.reminders import digest_section
+
+    Task.objects.create(trip=trip, number=1, title="Food", owner=ana, due_on=date(2026, 10, 1))
+    assert "Ana" in digest_section(str(trip.pk), date(2026, 10, 1))
+    ana.display_name = ""
+    ana.save()
+    assert ana.phone not in digest_section(str(trip.pk), date(2026, 10, 1))
