@@ -330,3 +330,16 @@ call is deduplicated per request) before fetching. The api enforces auth on ever
   never prefix themselves. Rules run every tick; drafts in quiet hours are dropped, so keys must be stable.
 - The PUT body for RSVP is `ParticipantIn {rsvp}`; `TripSummaryOut` has no `crew_id` (links use the
   route's `crewId`).
+
+### Amendments for parallel milestones (from `docs/contracts/README.md`, accepted 2026-10-01)
+- Each milestone owns its bot copy in `api/<app>/copy/es_ar.py`; `api/messaging/copy/es_ar.py` stays
+  core-owned. Bot handlers live in `api/<app>/bot/` and call the app's own use cases.
+- Allowed one-line appends also include `web/src/features/trips/cards/index.ts` (overview cards).
+- M6 alone may edit `web/next.config.ts` and `web/package.json` (Serwist, Leaflet) in Wave A.
+- Milestones read new settings with `getattr(settings, "NAME", default)` in their own `conf.py`; the
+  orchestrator adds env parsing to `config/settings/*.py`, `.env.example` and `deploy/env/*.example` at
+  integration from the settings list in each contract.
+- Domain events: `shared.events.publish` is synchronous and transactional (a subscriber exception
+  propagates and rolls back the publisher's write); `shared.events_django.publish_after_commit` is the
+  non-critical alternative. The registries `messaging/reminders.py` (rules, channels, tick jobs, digest
+  sections), the subcommand registry and `HandlerContext.send_card` follow `docs/contracts/README.md` §2.
