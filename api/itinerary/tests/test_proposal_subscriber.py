@@ -81,3 +81,39 @@ def test_manual_entry_preserved_and_rollback_atomic(trip, ana):
         raise RuntimeError("Publisher rolls back")
     assert not ItineraryEntry.objects.filter(proposal=p2).exists()
     assert not ItineraryDay.objects.exists()
+
+
+def test_preview_location_coordinates_and_copy_does_not_follow_edits(trip, ana):
+    from linkpreview.models import LinkPreview
+
+    preview = LinkPreview.objects.create(
+        url="https://example.test/place",
+        canonical_url="https://example.test/place",
+        site_name="Base",
+        title="Preview",
+        lat="-41.150000",
+        lng="-71.300000",
+    )
+    p = Proposal.objects.create(
+        trip=trip, author=ana, title="Stay", category="lodging", link_preview=preview
+    )
+    publish(p)
+    e = ItineraryEntry.objects.get(proposal=p)
+    assert e.location_label == "Base"
+    assert float(e.lat) == -41.15
+    assert float(e.lng) == -71.3
+    p.title = "Different"
+    p.save()
+    publish(p, "booked")
+    e.refresh_from_db()
+    assert e.title == "Stay"
+
+
+def test_status_transition_through_http_creates_entry_in_same_action(trip, ana, client_as):
+    from itinerary.tests.conftest import send
+
+    p = Proposal.objects.create(trip=trip, author=ana, title="Walk", category="activity")
+    response = send(client_as(ana), "post", f"/api/proposals/{p.id}/transition", {"to": "chosen"})
+    assert response.status_code == 200, response.content
+    assert ItineraryEntry.objects.get(proposal=p).created_by_id == ana.id
+    assert response.json()["status"] == "chosen"

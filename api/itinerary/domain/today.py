@@ -1,30 +1,44 @@
 """Today selection uses only the trip timezone and an injected UTC instant."""
 
+from collections.abc import Sequence
 from dataclasses import dataclass
-from datetime import timedelta
+from datetime import date, datetime, timedelta
+from typing import Protocol
 from zoneinfo import ZoneInfo
 
-from itinerary.domain import DayData, order_entries
+from itinerary.domain import DayData, EntryData, NoteData, order_entries
+
+
+class DatedTrip(Protocol):
+    timezone: str
+    start_on: date | None
+    end_on: date | None
 
 
 @dataclass(frozen=True)
 class TodaySnapshot:
     mode: str
-    local_date: object
+    local_date: date
     local_time: str
     timezone: str
     countdown_days: int | None
     day: DayData | None
-    entries: list
-    now_entry: object
-    next_entry: object
-    next_meeting_point: object
-    pinned_notes: list
-    recent_notes: list
-    generated_at: object
+    entries: list[EntryData]
+    now_entry: EntryData | None
+    next_entry: EntryData | None
+    next_meeting_point: EntryData | None
+    pinned_notes: list[NoteData]
+    recent_notes: list[NoteData]
+    generated_at: datetime
 
 
-def build_today(trip, entries, days, notes, now_utc):
+def build_today(
+    trip: DatedTrip,
+    entries: Sequence[EntryData],
+    days: Sequence[DayData],
+    notes: Sequence[NoteData],
+    now_utc: datetime,
+) -> TodaySnapshot:
     local = now_utc.astimezone(ZoneInfo(trip.timezone))
     day_date, countdown = local.date(), None
     if trip.start_on is None or trip.end_on is None:

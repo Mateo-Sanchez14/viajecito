@@ -124,3 +124,74 @@ def test_move_within_class_and_reject_different_time(trip, ana, client_as):
         == "at_edge"
     )
     assert send(c, "delete", f"/api/itinerary_entries/{b['id']}").status_code == 204
+
+
+@pytest.mark.parametrize("field", ["title", "kind", "location_label", "is_meeting_point", "notes"])
+def test_nonnullable_entry_fields_reject_null(trip, ana, client_as, field):
+    c = client_as(ana)
+    e = create(c, trip)
+    r = send(c, "patch", f"/api/itinerary_entries/{e['id']}", {field: None})
+    assert r.status_code == 400
+    assert r.json()["code"] == "invalid_request"
+
+
+def test_same_time_reorder_then_delete_compacts_positions(trip, ana, client_as):
+    c = client_as(ana)
+    one = create(c, trip, title="One", day_date="2026-10-01", start_time="09:00")
+    two = create(c, trip, title="Two", day_date="2026-10-01", start_time="09:00")
+    three = create(c, trip, title="Three", day_date="2026-10-01")
+    r = send(c, "post", f"/api/itinerary_entries/{two['id']}/move", {"direction": "up"})
+    assert r.status_code == 200
+    assert [e["id"] for e in r.json()["entries"]] == [two["id"], one["id"], three["id"]]
+    assert [e["position"] for e in r.json()["entries"]] == [0, 1, 2]
+    assert send(c, "delete", f"/api/itinerary_entries/{one['id']}").status_code == 204
+    day = c.get(path(trip)).json()["days"][0]
+    assert [e["position"] for e in day["entries"]] == [0, 1]
+
+
+def test_partial_day_updates_preserve_other_fields(trip, ana, client_as):
+    c = client_as(ana)
+    url = path(trip, "/days/2026-10-01")
+    assert send(c, "put", url, {"title": "Day one", "notes": "Original"}).status_code == 200
+    assert send(c, "put", url, {"title": "Changed"}).json()["notes"] == "Original"
+    trip.start_on = trip.end_on = None
+    trip.save()
+    assert send(c, "put", url, {"title": "No dates"}).json()["code"] == "day_out_of_range"
+
+
+def test_note_edit_pin_cap_and_listing_order(trip, ana, beto, client_as):
+    c = client_as(ana)
+    url = f"/api/trips/{trip.id}/notes"
+    pinned = [send(c, "post", url, {"body": str(i), "pinned": True}).json() for i in range(5)]
+    recent = send(c, "post", url, {"body": "Recent"}).json()
+    assert (
+        send(c, "patch", f"/api/notes/{recent['id']}", {"pinned": True}).json()["code"]
+        == "too_many_pinned"
+    )
+    assert (
+        send(
+            client_as(beto),
+            "patch",
+            f"/api/notes/{pinned[0]['id']}",
+            {"body": "Edited", "pinned": False},
+        ).status_code
+        == 200
+    )
+    assert send(c, "patch", f"/api/notes/{recent['id']}", {"pinned": True}).status_code == 200
+    results = c.get(url).json()
+    assert all(n["pinned"] for n in results[:5])
+    assert not results[-1]["pinned"]
+    assert len(c.get(url + "?pinned=true").json()) == 5
+    assert len(c.get(url + "?pinned=false").json()) == 1
+
+
+def test_member_and_outsider_note_authorization(trip, ana, outsider, client_as):
+    c = client_as(ana)
+    url = f"/api/trips/{trip.id}/notes"
+    n = send(c, "post", url, {"body": "Private"}).json()
+    other = client_as(outsider)
+    assert other.get(url).status_code == 404
+    assert send(other, "post", url, {"body": "Attack"}).status_code == 404
+    assert send(other, "patch", f"/api/notes/{n['id']}", {"body": "Attack"}).status_code == 404
+    assert send(other, "delete", f"/api/notes/{n['id']}").status_code == 404
+    assert send(c, "delete", f"/api/notes/{n['id']}").status_code == 204

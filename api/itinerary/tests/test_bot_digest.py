@@ -84,3 +84,41 @@ def test_inactive_trip_has_no_digest(trip, status):
     trip.status = status
     trip.save()
     assert list(morning_digest(ReminderContext(datetime(2026, 10, 1, 12, tzinfo=UTC)))) == []
+
+
+def test_morning_tick_respects_quiet_hours_and_queues_once(trip, crew):
+    from datetime import timedelta
+
+    from django.db import transaction
+
+    from crews.models import WhatsAppGroupLink
+    from itinerary.adapters.reminders import morning_rule
+    from messaging.adapters.crews_gateway import CrewsGateway
+    from messaging.adapters.identity_gateway import IdentityGateway
+    from messaging.adapters.ledger import DjangoOutboundLedger
+    from messaging.models import OutboundMessage
+    from messaging.reminders import register_reminder_rule
+    from messaging.use_cases.queue_reminders import queue_reminders
+
+    WhatsAppGroupLink.objects.create(crew=crew, chat_id="12000000@g.us")
+    with isolated():
+        register_reminder_rule("itinerary.morning_digest", morning_rule)
+
+        def run(hour):
+            now = datetime(2026, 10, 1, hour, tzinfo=UTC)
+            return queue_reminders(
+                chats=CrewsGateway(),
+                people=IdentityGateway(),
+                ledger=DjangoOutboundLedger(),
+                atomic=transaction.atomic,
+                now=now,
+                clock=FrozenClock(now),
+                deadline=now + timedelta(minutes=1),
+            )
+
+        assert run(11).quiet == 1
+        assert OutboundMessage.objects.count() == 0
+        assert run(12).queued == 1
+        assert run(13).queued == 0
+        assert OutboundMessage.objects.count() == 1
+        assert OutboundMessage.objects.get().dedupe_key == f"itinerary:digest:{trip.id}:2026-10-01"

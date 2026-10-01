@@ -1,5 +1,6 @@
 """Pure itinerary records, ordering and local-time validation."""
 
+from collections.abc import Sequence
 from dataclasses import dataclass, field
 from datetime import UTC, date, datetime, time
 from zoneinfo import ZoneInfo
@@ -54,7 +55,7 @@ def in_range(trip, day):
     return bool(trip.start_on and trip.end_on and trip.start_on <= day <= trip.end_on)
 
 
-def order_entries(entries):
+def order_entries(entries: Sequence[EntryData]) -> list[EntryData]:
     if entries and all(e.day_date is None for e in entries):
         return sorted(entries, key=lambda e: (e.position, e.created_at))
     return sorted(
@@ -68,7 +69,9 @@ def order_entries(entries):
     )
 
 
-def compose_times(day, start, end, tz):
+def compose_times(
+    day: date | None, start: str | None, end: str | None, tz: str
+) -> tuple[datetime | None, datetime | None]:
     if day is None and (start is not None or end is not None):
         raise ItineraryError("invalid_times")
     if end is not None and start is None:
