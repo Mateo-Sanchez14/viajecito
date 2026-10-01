@@ -48,3 +48,17 @@ automatic `proposed → discussing` (first comment or first non-zero vote) all g
 LINKPREVIEW_FETCHER=static uv run python manage.py runserver 0.0.0.0:8000
 uv run python manage.py replay_gowa proposals/tests/fixtures/gowa/group_link.json
 ```
+
+## Cross-app reads (Wave B)
+
+Trusted consumers import `get_proposal_snapshot` from
+`proposals.use_cases.get_proposal_snapshot` and `list_trip_proposals` from
+`proposals.use_cases.list_trip_proposals`; neither imports Django or HTTP.
+`ProposalsConfig.ready()` configures the default `ProposalStore` factory, so consumers do not import
+models or adapters. An explicit keyword-only `store` can be injected for isolated tests.
+
+- `get_proposal_snapshot(proposal_id)` returns the existing `ProposalRecord`, or `None` when missing.
+- `list_trip_proposals(trip_id, statuses=None)` returns up to 500 records, newest first. `None` includes
+  every status; an empty collection returns no records; a collection filters to those statuses.
+- These are internal reads, not authorization boundaries. The caller must authorize the trip before
+  exposing any proposal data to a person. No HTTP endpoints or schema changes are introduced.
