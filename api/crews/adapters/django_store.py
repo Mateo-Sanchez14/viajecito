@@ -60,7 +60,7 @@ class DjangoCrewStore:
                 name=m.crew.name,
                 role=m.role,
                 gastito_group_url=m.crew.gastito_group_url,
-                default_trip_id=None,
+                default_trip_id=str(m.crew.default_trip_id) if m.crew.default_trip_id else None,
             )
             for m in memberships
         ]

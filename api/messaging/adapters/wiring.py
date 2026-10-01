@@ -29,7 +29,7 @@ def run_process_inbound(inbound_id: int) -> str:
         senders=IdentityGateway(),
         roster=crews_gateway(),
         replier=GroupReplier(),
-        handlers=router.DEFAULT_HANDLERS,
+        handlers=router.handler_chain(),
         clock=SystemClock(),
         roster_min_interval=timedelta(seconds=settings.ROSTER_SYNC_MIN_INTERVAL_SECONDS),
     )

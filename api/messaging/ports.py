@@ -1,7 +1,7 @@
 """Ports of the messaging app: what the use cases need from the outside world."""
 
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import date, datetime
 from typing import Protocol
 
 from messaging.domain import GroupMessage, InboundRecord
@@ -158,3 +158,19 @@ class RosterSyncSource(Protocol):
     def crews_needing_sync(self, before: datetime) -> list[str]: ...
 
     def sync_roster(self, crew_id: str) -> object: ...
+
+
+@dataclass(frozen=True)
+class ReminderTrip:
+    """An active trip whose crew has a linked WhatsApp group."""
+
+    trip_id: str
+    crew_id: str
+    chat_id: str
+    timezone: str
+    start_on: date | None
+    end_on: date | None
+
+
+class ReminderTrips(Protocol):
+    def active_trips(self) -> list[ReminderTrip]: ...

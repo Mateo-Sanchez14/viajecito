@@ -138,7 +138,7 @@ Processing resolves the sender through `identity` (`WhatsAppIdentity` by JID, th
 the last one is younger than `ROSTER_SYNC_MIN_INTERVAL_SECONDS`) and retries; still failing means status
 `ignored` with `outcome.reason` `unknown_sender` or `not_a_member` (removed, or a member of another crew).
 If Gowa is down during that sync the row goes back to `received` for the tick (up to 3 attempts, then
-`ignored` / `roster_unavailable`). Then the handler chain in `messaging/router.py` runs (first match
+`ignored` / `roster_unavailable`). Then the handler chain (registered in `messaging/router.py`, see below) runs (first match
 wins). Commands: `/viaje <sub>` or `/v <sub>`, case, accent and whitespace tolerant: `ping` replies
 `pong`, `ayuda` lists the commands, anything else replies with a hint; plain text has no handler
 (`outcome.reason = "no_handler"`, status `done`). Replies go to the group as a threaded
@@ -173,3 +173,105 @@ captures replace them.
 
 Production requires `GOWA_WEBHOOK_SECRET` (settings import fails without it) and, for replies and roster
 syncs, `GOWA_BASE_URL` plus the Basic-auth pair of the Gowa instance.
+
+## Trips, trip-type plugins and how a new app plugs in
+
+Core (`trips`, plus `crews`/`messaging` hooks) is the only place that knows about every app; milestone
+apps plug in without editing it.
+
+**Trips.** `Trip(crew, name, type, status, start_on, end_on, destination_label, timezone, currency,
+fx_rates)` and `Participation(trip, person, rsvp)` (unique per trip and person). Rules live in
+`trips/domain.py` (`end_on >= start_on`, 3-letter uppercased currency, closed status and RSVP sets);
+`timezone` defaults to the crew's on creation; `crews.Crew.default_trip` (nullable FK, `SET_NULL`, a string
+reference so `crews` never imports `trips`) is set by the first `POST` when empty and shown as
+`default_trip_id` by `/api/me`. All endpoints use `django_auth` and the `{code, message}` error envelope:
+
+| Endpoint | Success | Notes |
+|---|---|---|
+| `GET /api/crews/{crew_id}/trips` | `200 [TripSummaryOut]` | |
+| `POST /api/crews/{crew_id}/trips` | `201 TripOut` | creator gets `rsvp=in`; `type` must be a registered plugin |
+| `GET /api/trips/{trip_id}` | `200 TripOut` | `modules` from the plugin registry; `participants` lists every active crew member (`pending` without a row; `display_name` falls back to the phone); `my_rsvp` likewise |
+| `PATCH /api/trips/{trip_id}` | `200 TripOut` | any active member; partial; `null` clears a date; dates validated after merging |
+| `PUT /api/trips/{trip_id}/participation` | `200 ParticipantOut` | sets the caller's own RSVP (creates the row) |
+
+Errors: `400 invalid_request`, `401 unauthenticated`, `403 csrf_failed`, `404 not_found` (non-members,
+removed members, unknown ids: existence is never revealed).
+
+**Plugin registry** (`trips/plugins.py`). `TripTypePlugin(key, label_key, modules, packing_templates=(),
+reminder_rules=())`; `register`, `get`, `all`, `modules_for(type)` (unknown keys fall back to `generic` and
+log a warning). Registering the same plugin again is a no-op (`ready()` may run twice); a different plugin under a used key raises `DuplicatePluginError`. Core registers `generic`
+(`proposals, dates, logistics, itinerary, today, budget, documents`) in `TripsConfig.ready()`; another app
+registers its own type the same way (`ski` = generic modules + `"ski"`). `trips` never imports a plugin app
+(import-linter).
+
+**Authorization helpers.** Every milestone endpoint goes through one of them:
+
+- `crews.api_auth.member_of_crew(request, crew_id)` -> the caller's active `CrewMembership`.
+- `trips.api_auth.member_of_trip(request, trip_id)` -> `TripAccess(trip, membership)`.
+
+Anonymous callers get `401 unauthenticated`; everyone else without an active membership gets
+`404 not_found`. **Deviation from the AGENTS.md contract**: it names `shared/api_auth.py`, but `shared` may
+not depend on any other project package (import-linter), and the helpers need the membership and trip
+models, so they live in `crews/api_auth.py` and `trips/api_auth.py`. The pure rule is
+`crews.use_cases.authz.require_active_member(person_id, crew_id, store)` (raises `crews.domain.NotMember`).
+
+**Router auto-discovery.** `config/api.py` mounts, for every app in `PROJECT_APPS`, `<app>.api.router` at
+`<app>.api.PREFIX` (default `""`). Apps without an `api` module are skipped; an `api` module that fails to
+import raises. Never edit `config/api.py`.
+
+**Handler registry.** `messaging.router.register_handler(order, handler)` from `AppConfig.ready()`;
+the chain runs by ascending order (stable for ties), registering the same `(order, handler)` twice is a
+no-op. Orders: commands 10 (registered by `MessagingConfig`), quoted card 20, link capture 30, fallback 100.
+
+**Adding an app.** Checklist:
+
+1. Append the app to `PROJECT_APPS` in `config/settings/apps.py` (one per line), and to `root_packages`,
+   `known-first-party` and `testpaths` in `pyproject.toml`.
+2. Expose `api.router` (and optionally `PREFIX`); `config/api.py` mounts it. Guard every endpoint with
+   `crews.api_auth.member_of_crew(request, crew_id)` or `trips.api_auth.member_of_trip(request, trip_id)`.
+3. From `AppConfig.ready()` register what you contribute: a trip type (`trips.plugins.register`), inbound
+   bot handlers (`messaging.router.register_handler(order, handler)`), reminder rules
+   (`messaging.reminders.register_reminder_rule(key, rule)`) and event subscribers
+   (`shared.events.subscribe(event_name, callback)`, see *Domain events*).
+4. Never edit core files (`config/api.py`, `messaging/router.py`, `trips`); a core change goes in a request.
+
+## Domain events
+
+`shared/events.py` is a tiny in-process bus: `subscribe(event_name, callback)`, `publish(event_name,
+**payload)` and `clear()` (tests). Subscribers run in registration order; one that raises is logged
+(`logger.exception`) and never stops the others; publishing with no subscribers does nothing. Subscribe
+from `AppConfig.ready()`.
+
+- **Names**: `"<app>.<entity>_<past_tense>"`, e.g. `proposals.status_changed`.
+- **Payload**: keyword arguments with ids and plain values only (never model instances).
+- **Inside a transaction** use `shared.events_django.publish_after_commit(...)`: it defers through
+  `transaction.on_commit` (dropped on rollback) and publishes immediately outside an atomic block.
+- **Testing**: pytest-django's default `django_db` wraps the test in a transaction that is never
+  committed, so `on_commit` callbacks never fire. Tests of `publish_after_commit` subscribers must use
+  the `django_capture_on_commit_callbacks(execute=True)` fixture (or `django_db(transaction=True)`).
+
+## Reminder rules and the tick `reminders` phase
+
+`messaging/reminders.py` is a registry of reminder rules: `register_reminder_rule(key, rule)`,
+`registered_rules()`, `clear()`. A rule is `rule(ctx: ReminderContext) -> Iterable[ReminderDraft]` and
+returns the reminders that are due *now*; milestones register theirs from `AppConfig.ready()`.
+
+- `ReminderContext` (frozen): `now` (aware UTC), `trip_id`, `crew_id`, `chat_id` (the crew's group),
+  `trip_timezone`, `trip_start_on`, `trip_end_on`, `quiet_hours=(22, 9)`.
+- `ReminderDraft` (frozen): `to_jid`, `body`, `dedupe_key`, `subject_type`, `subject_id`, `kind="reminder"`.
+- Rules must be idempotent: a reminder always carries the same `dedupe_key`. The tick persists each draft
+  as `OutboundMessage(status="queued", dedupe_key=...)` and the unique key ignores duplicates, so re-runs
+  are safe. Re-registering the same `(key, rule)` is a no-op; a different rule under a used key raises.
+- The `tick` phase visits every trip with status `planning|booked|ongoing` whose crew has a linked chat,
+  runs every rule inside try/except (logged and counted, never fatal), and drops drafts produced while the
+  trip's local time is in quiet hours (22:00-09:00 in `trip_timezone`); a later tick produces them again.
+  The tick summary gains `reminders_queued` and `reminder_errors`.
+- **Dedupe keys**: the tick persists `"<rule key>:<draft dedupe_key>"`, so rules never share a key space.
+  Milestones never prefix their own keys; they only keep `dedupe_key` stable per reminder.
+- **Delivery**: reminders queued in a tick are sent by the NEXT tick (outbound rows must be older than
+  `QUEUED_MIN_AGE_SECONDS`, 60 s, so a row is never sent while the process that made it may still be
+  working on it).
+- **Failures**: one failing rule or trip (e.g. an invalid `Trip.timezone`) is logged with the trip id,
+  counted in `reminder_errors` and skipped; the other trips and rules still run.
+- **Timezones** of `Crew` and `Trip` are validated against IANA names (`shared/timezones.py`) in
+  `clean()` and `save()`; the trips API answers `400 invalid_request` when the crew's is invalid.

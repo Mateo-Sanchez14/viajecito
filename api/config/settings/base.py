@@ -5,6 +5,8 @@ from urllib.parse import urlparse
 
 from environs import Env
 
+from config.settings.apps import PROJECT_APPS
+
 env = Env()
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent  # api/
@@ -28,10 +30,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "ninja",
-    "ops",
-    "identity",
-    "crews",
-    "messaging",
+    *PROJECT_APPS,
 ]
 
 MIDDLEWARE = [

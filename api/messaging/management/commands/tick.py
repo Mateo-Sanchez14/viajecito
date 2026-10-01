@@ -8,7 +8,8 @@ from messaging.adapters.tick_wiring import run_default_tick
 class Command(BaseCommand):
     help = (
         "Periodic housekeeping (run every minute): unstick and reprocess inbound messages, "
-        "deliver queued outbound messages and refresh stale group rosters."
+        "queue due trip reminders, deliver queued outbound messages and refresh stale group "
+        "rosters."
     )
 
     def handle(self, *args, **options):

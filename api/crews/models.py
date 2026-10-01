@@ -6,6 +6,7 @@ from django.db import models
 from django.utils import timezone
 
 from shared.phone import InvalidPhoneError, normalize_phone
+from shared.timezones import InvalidTimezoneError, validate_timezone
 
 
 class Crew(models.Model):
@@ -15,10 +16,25 @@ class Crew(models.Model):
     name = models.CharField(max_length=120)
     timezone = models.CharField(max_length=64, default="America/Argentina/Buenos_Aires")
     gastito_group_url = models.URLField(null=True, blank=True)
+    # String reference: trips depends on crews, never the other way round.
+    default_trip = models.ForeignKey(
+        "trips.Trip", null=True, blank=True, on_delete=models.SET_NULL, related_name="+"
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self) -> str:
         return self.name
+
+    def clean(self) -> None:
+        super().clean()
+        try:
+            validate_timezone(self.timezone)
+        except InvalidTimezoneError as exc:
+            raise ValidationError({"timezone": "Enter a valid IANA timezone."}) from exc
+
+    def save(self, *args, **kwargs):
+        validate_timezone(self.timezone)
+        super().save(*args, **kwargs)
 
 
 class WhatsAppGroupLink(models.Model):

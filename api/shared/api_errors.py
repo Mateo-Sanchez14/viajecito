@@ -3,9 +3,14 @@
 from http import HTTPStatus
 
 from django.http import HttpRequest, HttpResponse
-from ninja import NinjaAPI
+from ninja import NinjaAPI, Schema
 from ninja.errors import AuthenticationError, HttpError, ValidationError
 from ninja.security import APIKeyCookie
+
+
+class ErrorOut(Schema):
+    code: str
+    message: str
 
 
 class ApiError(Exception):

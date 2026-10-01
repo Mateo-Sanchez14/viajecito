@@ -208,7 +208,7 @@ def test_handler_exception_is_recorded_not_raised(crew, ana, gowa, monkeypatch):
     def boom(ctx):
         raise RuntimeError("kaput")
 
-    monkeypatch.setattr("messaging.router.DEFAULT_HANDLERS", [boom])
+    monkeypatch.setattr("messaging.router.handler_chain", lambda: [boom])
     row_id = inbound("group_command_ping.json")
     wiring.run_process_inbound(row_id)
     row = InboundMessage.objects.get(pk=row_id)

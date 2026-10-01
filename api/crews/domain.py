@@ -9,6 +9,10 @@ class InvalidCrewInputError(ValueError):
     """A crew name or WhatsApp group id is not acceptable."""
 
 
+class NotMember(Exception):
+    """The person is not an active member of the crew."""
+
+
 @dataclass(frozen=True)
 class CrewSummary:
     id: str
