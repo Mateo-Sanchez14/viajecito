@@ -1,3 +1,6 @@
+import { LogisticsOverviewCard } from "@/features/logistics/containers/LogisticsOverviewCard";
+import { BudgetOverviewCard } from "@/features/budget/containers/BudgetOverviewCard";
+import { DocumentsOverviewCard } from "@/features/documents/containers/DocumentsOverviewCard";
 import { ProposalsOverviewCard } from "@/features/proposals/containers/ProposalsOverviewCard";
 import { DatesOverviewCard } from "@/features/dates/containers/DatesOverviewCard";
 import { SkiOverviewCard } from "@/features/ski/containers/SkiOverviewCard";
@@ -16,6 +19,10 @@ export type { TripCard } from "./types";
  * Modules enabled on a trip without an entry here get a core placeholder card.
  */
 export const tripCards: TripCard[] = [
+  { key: "logistics", module: "logistics", order: 30, Component: LogisticsOverviewCard },
+  { key: "budget", module: "budget", order: 40, Component: BudgetOverviewCard },
+  { key: "documents", module: "documents", order: 60, Component: DocumentsOverviewCard },
+
   { key: "proposals", module: "proposals", order: 10, Component: ProposalsOverviewCard },
   { key: "dates", module: "dates", order: 20, Component: DatesOverviewCard },
   { key: "ski", module: "ski", order: 15, Component: SkiOverviewCard },

@@ -1,0 +1,47 @@
+{
+  "documents": {
+    "title": "Documentos",
+    "loading": "Cargando…",
+    "upload": "Subir documento",
+    "file": "Archivo",
+    "name": "Título",
+    "kindLabel": "Tipo de documento",
+    "visibilityLabel": "Visibilidad",
+    "expiry": "Fecha de vencimiento",
+    "privateHelp": "Solo vos lo vas a ver",
+    "uploaded": "Documento guardado",
+    "progress": "Subiendo: {percent}%",
+    "all": "Todos",
+    "filter": "Filtrar documentos",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "download": "Descargar",
+    "downloadNamed": "Descargar {title}",
+    "view": "Ver",
+    "validUntil": "Vence el {date}",
+    "empty": "Subí reservas, pasajes y seguros para tenerlos a mano en el viaje",
+    "kind": {
+      "reservation": "Reserva",
+      "ticket": "Pasaje",
+      "insurance": "Seguro",
+      "id": "Documento de identidad",
+      "photo": "Foto",
+      "other": "Otro"
+    },
+    "visibility": {
+      "crew": "Lo ve todo el grupo",
+      "owner_only": "Solo vos"
+    },
+    "errors": {
+      "file_too_large": "El archivo es muy pesado (máximo 15 MB)",
+      "unsupported_type": "Solo PDF o fotos (JPG, PNG, WebP, HEIC)",
+      "quota_exceeded": "Se llenó el espacio del viaje",
+      "invalid_request": "No pudimos guardar el documento. Revisá los datos.",
+      "delivery_unavailable": "No está disponible por ahora",
+      "csrf_failed": "Tu sesión cambió. Volvé a intentar."
+    },
+    "overview": "{n} documentos"
+  }
+}
