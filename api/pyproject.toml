@@ -48,6 +48,7 @@ testpaths = [
     "ski",
     "linkpreview",
     "proposals",
+    "logistics",
 ]
 python_files = ["test_*.py"]
 
@@ -76,6 +77,7 @@ known-first-party = [
     "ski",
     "linkpreview",
     "proposals",
+    "logistics",
 ]
 
 [tool.importlinter]
@@ -95,6 +97,7 @@ root_packages = [
     "ski",
     "linkpreview",
     "proposals",
+    "logistics",
 ]
 
 include_external_packages = true
@@ -107,6 +110,7 @@ forbidden_modules = [
     "config", "ops", "identity", "crews", "messaging", "trips", "decisions", "notifications", "ski",
     "linkpreview",
     "proposals",
+    "logistics",
 ]
 
 [[tool.importlinter.contracts]]
@@ -127,6 +131,7 @@ source_modules = [
     "notifications.domain",
     "notifications.use_cases",
     "notifications.ports",
+    "logistics.domain", "logistics.use_cases", "logistics.ports",
     "ski.domain",
     "ski.use_cases",
     "ski.ports",
