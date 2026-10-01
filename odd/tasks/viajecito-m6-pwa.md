@@ -43,3 +43,5 @@ Installable PWA with countdown and offline cache of Today and documents list, We
 - [ ] **M1 map** — delegated web writer (2+non-trivial files), strict TDD from AGENTS `pnpm test`; contract m6-pwa.md/README addenda, reads M1 endpoint through paths types. Independent verifier, one correction round, parent spot/checks, regenerate/smoke/push.
 - Forecast >400 authored lines allowed via user direct-main exception-ok delivery; coherent work-unit commits, no code golf. RDD off clone_local disabled/unmanaged. No remote operations, dependency APIs/version evidence via Context7 before pinning.
 - Map insertion into core overview/routes only through orchestrator request; writer owns contract files/appends and must not write others. New work starts after mapping, no unsafe draft contracts.
+
+- Map writer may edit package.json and lockfile for Leaflet/react-leaflet/types as explicit contract exception; confirm versions/APIs via Context7 before pinning. Own map static route + overview card module=proposals/order11; no new nav module. Estimate400–800 authored lines direct-main exception-ok.

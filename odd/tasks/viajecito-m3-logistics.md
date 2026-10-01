@@ -52,3 +52,9 @@ Tasks with owners and due dates (todo / bring / booking), packing templates per 
 ### B0 seam decision
 - Add get_proposal_snapshot(proposal_id:str)->ProposalRecord|None and list_trip_proposals(trip_id:str,statuses:Collection[str]|None=None)->list[ProposalRecord] through existing ProposalStore.get/list_for_trip and default-store factory pattern from trips. No crossapp models/adapters imports; preserve current bounded list500. M4 derives location label from preview.site_name/title or empty (preview has no location_label).
 - Core bridge writer owns api/proposals ports/AppConfig/use_cases/tests only; API writers defer budget/subscribers until bridge integrated. Default-store setup is framework adapter work; use cases stay pure.
+
+### Dispatch decisions
+- Reconciled actual file/full observation before dispatch; task file locator in root checkout is authoritative for Codex resumption notes (worktrees predate docs commits).
+- Web parallel draft JSON/generated paths stay feature-owned, not contracts/openapi.json; feature-local openapi-fetch client uses exported CSRF middleware/credentials. At API integration replace with shared generated paths/client and remove draft artifacts (parent-owned integration). M4 contract-local document types allowed until M3 types exist.
+- Record coherent work-unit slices from contract test list, with RED/GREEN/checks/rollback in reports. Estimates: M3 3000–5000, M4 2000–3500 authored lines; direct-main exception-ok authorized (no PR chain).
+- M3 task numbers require persistent app-owned sequence, never reuse after deleting highest. M4 nullable tray DayOut.date; no bot/push phone fallback.
