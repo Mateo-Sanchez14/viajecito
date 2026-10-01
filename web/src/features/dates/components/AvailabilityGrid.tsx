@@ -16,7 +16,7 @@ type AvailabilityGridProps = {
   disabled?: boolean;
 };
 
-type Gesture = { origin: string; last: string; painting: boolean };
+type Gesture = { origin: string; last: string; painting: boolean; scrolls: boolean };
 
 const ARROWS = ["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"];
 /** Monday 2024-01-01 seeds the weekday header; only its weekday matters. */
@@ -51,7 +51,8 @@ export function AvailabilityGrid({ dates, answers, onChange, disabled = false }:
     const date = dateOf(event.target);
     if (disabled || !date) return;
     suppressClick.current = false;
-    gesture.current = { origin: date, last: date, painting: paintMode };
+    // A touch drag outside paint mode belongs to the page (scrolling), never to the grid.
+    gesture.current = { origin: date, last: date, painting: paintMode, scrolls: event.pointerType === "touch" && !paintMode };
     if (paintMode) {
       suppressClick.current = true;
       onChange({ [date]: paint });
@@ -60,7 +61,7 @@ export function AvailabilityGrid({ dates, answers, onChange, disabled = false }:
 
   function onPointerMove(event: PointerEvent) {
     const current = gesture.current;
-    if (disabled || !current) return;
+    if (disabled || !current || current.scrolls) return;
     // Touch pointers are captured by the first cell, so the cell under the finger is looked up.
     const under = document.elementFromPoint?.(event.clientX, event.clientY) ?? event.target;
     const date = dateOf(under);

@@ -64,7 +64,7 @@ describe("DatesPlanner without a decision", () => {
     server.use(listDecisions([]));
     setup();
 
-    expect(await screen.findByText(/El viaje ya tiene fechas/)).toBeInTheDocument();
+    expect(await screen.findByText(new RegExp(m.empty.tripDates.split(":")[0]))).toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: m.open.title })).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: m.empty.voteOther }));

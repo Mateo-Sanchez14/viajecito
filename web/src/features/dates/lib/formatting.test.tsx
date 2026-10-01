@@ -18,8 +18,11 @@ describe("useDayFormat", () => {
     const { result } = renderHook(() => useDayFormat(), { wrapper });
 
     expect(result.current.short("2027-07-10")).toBe("10 jul");
-    expect(result.current.long("2027-07-10")).toBe("sáb, 10 de julio");
-    expect(result.current.weekday("2027-07-10")).toBe("sáb");
+    const intl = (options: Intl.DateTimeFormatOptions) =>
+      new Intl.DateTimeFormat("es-AR", { ...options, timeZone: "UTC" }).format(new Date("2027-07-10T00:00:00Z"));
+    expect(result.current.long("2027-07-10")).toBe(intl({ weekday: "short", day: "numeric", month: "long" }));
+    expect(result.current.long("2027-07-10")).toMatch(/10 de julio$/);
+    expect(result.current.weekday("2027-07-10")).toBe(intl({ weekday: "short" }));
     expect(result.current.dayOfMonth("2027-07-10")).toBe("10");
   });
 

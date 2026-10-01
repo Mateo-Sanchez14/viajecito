@@ -147,6 +147,17 @@ describe("AvailabilityGrid paint", () => {
     ]);
   });
 
+  it("does not paint on a touch drag without paint mode, so the page can scroll", () => {
+    const onChange = setup();
+
+    fireEvent.pointerDown(cell("2027-07-05"), { pointerId: 1, pointerType: "touch" });
+    stubPointAt("2027-07-06");
+    fireEvent.pointerMove(screen.getByRole("grid"), { pointerId: 1, pointerType: "touch", clientX: 5, clientY: 5 });
+    fireEvent.pointerUp(screen.getByRole("grid"), { pointerId: 1, pointerType: "touch" });
+
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
   it("ignores pointer moves when no gesture is active", () => {
     const onChange = setup();
     stubPointAt("2027-07-06");

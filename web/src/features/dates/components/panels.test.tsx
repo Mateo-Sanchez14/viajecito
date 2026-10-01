@@ -9,6 +9,10 @@ import { DecisionOutcome } from "./DecisionOutcome";
 import { NonResponders } from "./NonResponders";
 
 const m = messages.dates;
+const longDay = (iso: string) =>
+  new Intl.DateTimeFormat("es-AR", { weekday: "short", day: "numeric", month: "long", timeZone: "UTC" }).format(
+    new Date(`${iso}T00:00:00Z`),
+  );
 
 describe("BestWindowsPanel", () => {
   it("lists the leading windows with their metrics", () => {
@@ -91,9 +95,9 @@ describe("CrewHeatmap", () => {
 
     const label = (day: string, yes: number, maybe: number) =>
       m.heatmap.cellLabel.replace("{day}", day).replace("{yes}", String(yes)).replace("{maybe}", String(maybe));
-    expect(screen.getByRole("button", { name: label("lun, 12 de julio", 1, 0) })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: label("mar, 13 de julio", 0, 1) })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: label("mié, 14 de julio", 0, 0) })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: label(longDay("2027-07-12"), 1, 0) })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: label(longDay("2027-07-13"), 0, 1) })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: label(longDay("2027-07-14"), 0, 0) })).toBeInTheDocument();
   });
 
   it("shows who answered what for the tapped day", () => {

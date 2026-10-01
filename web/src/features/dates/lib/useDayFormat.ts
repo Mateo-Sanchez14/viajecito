@@ -9,10 +9,10 @@ export function useDayFormat() {
   return {
     /** "10 jul" */
     short,
-    /** "sáb, 10 de julio" */
+    /** Weekday, day and month: "<weekday>, 10 de julio" */
     long: (iso: string) =>
       format.dateTime(utc(iso), { weekday: "short", day: "numeric", month: "long", timeZone: "UTC" }),
-    /** "sáb" */
+    /** Short weekday name. */
     weekday: (iso: string) => format.dateTime(utc(iso), { weekday: "short", timeZone: "UTC" }),
     /** "10" */
     dayOfMonth,
