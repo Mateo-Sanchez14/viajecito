@@ -33,7 +33,16 @@ package = false
 DJANGO_SETTINGS_MODULE = "config.settings.test"
 addopts = "--disable-socket --allow-unix-socket -ra"
 testpaths = [
-    "tests", "ops", "shared", "identity", "crews", "messaging", "trips", "decisions", "notifications",
+    "tests",
+    "ops",
+    "shared",
+    "identity",
+    "crews",
+    "messaging",
+    "trips",
+    "decisions",
+    "notifications",
+    "ski",
 ]
 python_files = ["test_*.py"]
 
@@ -50,12 +59,33 @@ select = ["E", "F", "I", "B", "UP"]
 
 [tool.ruff.lint.isort]
 known-first-party = [
-    "config", "shared", "ops", "identity", "crews", "messaging", "trips", "decisions", "notifications",
+    "config",
+    "shared",
+    "ops",
+    "identity",
+    "crews",
+    "messaging",
+    "trips",
+    "decisions",
+    "notifications",
+    "ski",
 ]
 
 [tool.importlinter]
 root_packages = [
-    "config", "shared", "ops", "identity", "crews", "messaging", "trips", "decisions", "notifications", "django", "ninja", "httpx",
+    "config",
+    "shared",
+    "ops",
+    "identity",
+    "crews",
+    "messaging",
+    "trips",
+    "decisions",
+    "notifications",
+    "django",
+    "ninja",
+    "httpx",
+    "ski",
 ]
 
 include_external_packages = true
@@ -64,7 +94,9 @@ include_external_packages = true
 name = "shared depends on no other project package"
 type = "forbidden"
 source_modules = ["shared"]
-forbidden_modules = ["config", "ops", "identity", "crews", "messaging", "trips", "decisions", "notifications"]
+forbidden_modules = [
+    "config", "ops", "identity", "crews", "messaging", "trips", "decisions", "notifications", "ski",
+]
 
 [[tool.importlinter.contracts]]
 name = "domain, use cases and ports import no framework or HTTP code"
@@ -79,7 +111,12 @@ source_modules = [
     "messaging.reminders",
     "shared.phone", "shared.clock", "shared.events",
     "shared.timezones",
-    "notifications.domain", "notifications.use_cases", "notifications.ports",
+    "notifications.domain",
+    "notifications.use_cases",
+    "notifications.ports",
+    "ski.domain",
+    "ski.use_cases",
+    "ski.ports",
 ]
 forbidden_modules = ["django", "ninja", "httpx", "pywebpush", "requests"]
 
@@ -139,6 +176,28 @@ name = "trips never imports a trip-type plugin"
 type = "forbidden"
 source_modules = ["trips"]
 forbidden_modules = ["ski"]
+
+[[tool.importlinter.contracts]]
+name = "ski reaches other apps only through their use cases"
+type = "forbidden"
+source_modules = ["ski"]
+forbidden_modules = [
+    "identity.models", "identity.domain", "identity.ports", "identity.adapters", "identity.api",
+    "identity.schemas", "crews.models", "crews.domain", "crews.ports", "crews.adapters",
+    "crews.api", "crews.schemas",
+    "trips.models", "trips.domain", "trips.ports", "trips.adapters", "trips.api",
+    "trips.schemas",
+    "messaging.models", "messaging.domain", "messaging.ports", "messaging.adapters",
+    "messaging.api", "messaging.schemas",
+]
+allow_indirect_imports = true
+# Tests create their rows through the other apps' models.
+ignore_imports = [
+    "ski.tests.* -> crews.models",
+    "ski.tests.* -> identity.models",
+    "ski.tests.* -> trips.models",
+    "ski.tests.* -> messaging.domain",
+]
 
 [[tool.importlinter.contracts]]
 name = "decisions reaches other apps only through their use cases"
