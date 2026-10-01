@@ -1,10 +1,15 @@
-from datetime import datetime
+from datetime import date, datetime
 
 from django.db import transaction
 from django.db.models import F
 
 from notifications.domain.subscriptions import ValidSubscription
-from notifications.models import NotificationPreference, PushDelivery, PushSubscription
+from notifications.models import (
+    NotificationJobState,
+    NotificationPreference,
+    PushDelivery,
+    PushSubscription,
+)
 from notifications.ports import DeliveryStatus, SubscriptionData
 
 
@@ -124,3 +129,18 @@ class DjangoDeliveryLedger:
             return 0
         deleted, _ = PushDelivery.objects.filter(pk__in=ids).delete()
         return deleted
+
+
+class DjangoJobState:
+    def claim_daily(self, name: str, today: date) -> bool:
+        with transaction.atomic():
+            _, created = NotificationJobState.objects.get_or_create(
+                name=name, defaults={"last_run_on": today}
+            )
+            if created:
+                return True
+            return bool(
+                NotificationJobState.objects.filter(name=name, last_run_on__lt=today).update(
+                    last_run_on=today
+                )
+            )

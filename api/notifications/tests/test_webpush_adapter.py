@@ -164,3 +164,45 @@ def test_errors_before_any_http_response_are_config_errors_not_subscription_fail
 ):
     calls.outcome = failure
     assert sender().send(subscription(), "x").outcome == "config_error"
+
+
+def test_a_307_is_not_followed_and_counts_as_an_http_failure(monkeypatch):
+    """Real ``requests`` redirect handling: the transport sees exactly one request."""
+    from requests.adapters import HTTPAdapter
+
+    requests_seen: list[str] = []
+
+    def fake_adapter_send(self, request, **kwargs):
+        requests_seen.append(request.url)
+        resp = response(307)
+        resp.headers["Location"] = "http://169.254.169.254/latest/meta-data"
+        resp.url = request.url
+        resp.request = request
+        resp.raw = None
+        return resp
+
+    monkeypatch.setattr(HTTPAdapter, "send", fake_adapter_send)
+    vapid = Vapid()
+    vapid.generate_keys()
+    private = (
+        base64.urlsafe_b64encode(
+            vapid.private_key.private_numbers().private_value.to_bytes(32, "big")
+        )
+        .decode()
+        .rstrip("=")
+    )
+    receiver = ec.generate_private_key(ec.SECP256R1())
+    p256dh = (
+        base64.urlsafe_b64encode(
+            receiver.public_key().public_bytes(
+                serialization.Encoding.X962, serialization.PublicFormat.UncompressedPoint
+            )
+        )
+        .decode()
+        .rstrip("=")
+    )
+    sub = subscription()
+    sub = SubscriptionData(**{**vars(sub), "p256dh": p256dh, "auth": "B" * 22})
+    result = WebPushSender(private_key=private, subject=SUBJECT, timeout=(3, 2)).send(sub, "{}")
+    assert requests_seen == [sub.endpoint]
+    assert result.outcome == "error"

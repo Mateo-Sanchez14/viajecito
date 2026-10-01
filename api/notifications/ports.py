@@ -3,7 +3,7 @@
 from collections.abc import Callable, Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import date, datetime
 from typing import Literal, Protocol
 
 from notifications.domain.subscriptions import ValidSubscription
@@ -78,6 +78,12 @@ class DeliveryLedger(Protocol):
     ) -> None: ...
 
     def delete_older_than(self, cutoff: datetime, limit: int) -> int: ...
+
+
+class JobState(Protocol):
+    def claim_daily(self, name: str, today: date) -> bool:
+        """``True`` for exactly one caller per ``today``; later calls that day get ``False``."""
+        ...
 
 
 class PushSender(Protocol):

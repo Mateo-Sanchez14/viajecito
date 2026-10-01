@@ -81,3 +81,10 @@ class PushDelivery(Stamped):
             models.UniqueConstraint(fields=["dedupe_key", "person"], name="notif_delivery_unique")
         ]
         indexes = [models.Index(fields=["created_at"], name="notif_delivery_created_idx")]
+
+
+class NotificationJobState(Stamped):
+    """Last run of a daily tick job (each tick is a fresh process, so the state lives here)."""
+
+    name = models.CharField(max_length=64, unique=True)
+    last_run_on = models.DateField()

@@ -81,6 +81,10 @@ def _size(payload: dict[str, object]) -> int:
 def build_payload(draft: Draftish, names: Mapping[str, str], now_ts: int) -> dict[str, object]:
     """``{"title", "body", "url", "tag", "ts"}``, JSON-serialized at most ``MAX_PAYLOAD_BYTES``.
 
+    Deviates from the contract's ``build_payload(draft, person)`` on purpose: the domain stays
+    pure, so the caller resolves the ``{@person_id}`` names (already made lock-screen safe by
+    ``neutral_names``) and the clock reading, and the payload is the same for every recipient.
+
     ``names`` maps person ids to display names for the ``{@person_id}`` mention tokens.
     """
     payload: dict[str, object] = {

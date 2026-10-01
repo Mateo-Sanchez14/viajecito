@@ -8,13 +8,14 @@ from messaging import reminders
 from notifications import conf, ports
 from notifications.adapters.django_store import (
     DjangoDeliveryLedger,
+    DjangoJobState,
     DjangoPreferenceStore,
     DjangoSubscriptionStore,
 )
 from notifications.adapters.webpush_sender import WebPushSender
 from notifications.domain.payload import neutral_names
 from notifications.use_cases.countdown import countdown_drafts
-from notifications.use_cases.push_delivery import PushServices, deliver_push, prune_deliveries
+from notifications.use_cases.push_delivery import PushServices, deliver_push, prune_daily
 from shared.clock import SystemClock
 from trips.use_cases.list_active_trips import list_active_trips
 from trips.use_cases.trip_participants import trip_participants
@@ -67,8 +68,8 @@ def countdown_rule(ctx: reminders.ReminderContext):
     return countdown_drafts(ctx.now, list_active_trips())
 
 
-def prune_job(now) -> dict[str, int]:
-    return prune_deliveries(now, DjangoDeliveryLedger())
+def prune_job(now) -> dict[str, int] | None:
+    return prune_daily(now, DjangoDeliveryLedger(), DjangoJobState())
 
 
 def install() -> None:

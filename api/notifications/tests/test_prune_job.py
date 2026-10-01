@@ -39,3 +39,22 @@ def test_nothing_to_prune_is_a_zero(ana):
 def test_the_registered_tick_job_prunes(ana):
     make(ana, "old", 45)
     assert wiring.prune_job(NOW) == {"deleted": 1}
+
+
+def test_the_prune_job_runs_at_most_once_per_day(ana):
+    make(ana, "old-1", 45)
+    assert wiring.prune_job(NOW) == {"deleted": 1}
+    make(ana, "old-2", 45)
+    assert wiring.prune_job(NOW + timedelta(hours=5)) is None  # same day: skipped
+    assert PushDelivery.objects.filter(dedupe_key="old-2").exists()
+    assert wiring.prune_job(NOW + timedelta(days=1)) == {"deleted": 1}
+
+
+def test_the_daily_claim_is_taken_by_one_caller_only():
+    from notifications.adapters.django_store import DjangoJobState
+
+    state = DjangoJobState()
+    assert state.claim_daily("notifications.prune", NOW.date()) is True
+    assert state.claim_daily("notifications.prune", NOW.date()) is False
+    assert state.claim_daily("other", NOW.date()) is True
+    assert state.claim_daily("notifications.prune", NOW.date() + timedelta(days=1)) is True

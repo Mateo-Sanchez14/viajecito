@@ -20,6 +20,7 @@ from notifications.domain.subscriptions import (
 )
 from notifications.ports import (
     DeliveryLedger,
+    JobState,
     PreferenceStore,
     PushSender,
     SubscriptionData,
@@ -206,7 +207,8 @@ def deliver_push(draft: ReminderDraft, services: PushServices) -> PushResult:
 def send_test_push(person_id: str, services: PushServices) -> int:
     """The settings page's "send me one": to every subscription of the person, once a minute.
 
-    Returns how many deliveries succeeded. Raises ``RateLimitedError`` inside the same minute.
+    Returns how many deliveries succeeded. Raises ``RateLimitedError`` for a second call in the same
+    calendar minute (approximate: a call on each side of a minute boundary both pass).
     """
     now = services.clock.now()
     key = f"test:{int(now.timestamp()) // 60}"
@@ -226,7 +228,18 @@ def send_test_push(person_id: str, services: PushServices) -> int:
     return ok
 
 
+PRUNE_JOB = "notifications.prune"
+
+
 def prune_deliveries(
     now: datetime, ledger: DeliveryLedger, *, days: int = 30, limit: int = 1000
 ) -> dict[str, int]:
+    """Delete up to ``limit`` ledger rows older than ``days`` days."""
     return {"deleted": ledger.delete_older_than(now - timedelta(days=days), limit)}
+
+
+def prune_daily(now: datetime, ledger: DeliveryLedger, state: JobState) -> dict[str, int] | None:
+    """The tick job: ``prune_deliveries`` at most once per UTC day (``None`` when already run)."""
+    if not state.claim_daily(PRUNE_JOB, now.date()):
+        return None
+    return prune_deliveries(now, ledger)
