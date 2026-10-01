@@ -3,27 +3,34 @@ from datetime import timedelta
 from django.utils import timezone
 
 from messaging.adapters.sender import GowaMessageSender
+from messaging.handlers.types import SentCard
 from messaging.models import OutboundMessage
 
 MIN_GAP = timedelta(seconds=3)  # at most one reply per chat every 3 s ...
 WINDOW = timedelta(minutes=10)
-MAX_PER_WINDOW = 20  # ... and 20 per 10 minutes
+MAX_PER_WINDOW = 20  # ... and 20 replies plus cards per 10 minutes
+
+BUDGET_KINDS = (OutboundMessage.Kind.REPLY, OutboundMessage.Kind.CARD)
 
 
 class GroupReplier:
-    """Replies in the group through the outbound ledger (one reply per inbound message)."""
+    """Replies and cards in the group through the outbound ledger."""
 
     def __init__(self, sender: GowaMessageSender | None = None) -> None:
         self._sender = sender or GowaMessageSender()
 
+    def _in_budget(self, chat_id: str, now) -> bool:
+        used = OutboundMessage.objects.filter(
+            kind__in=BUDGET_KINDS, to_jid=chat_id, created_at__gte=now - WINDOW
+        ).count()
+        return used < MAX_PER_WINDOW
+
     def can_reply(self, chat_id: str) -> bool:
         now = timezone.now()
-        recent = OutboundMessage.objects.filter(
-            kind=OutboundMessage.Kind.REPLY, to_jid=chat_id, created_at__gte=now - WINDOW
+        recent_reply = OutboundMessage.objects.filter(
+            kind=OutboundMessage.Kind.REPLY, to_jid=chat_id, created_at__gt=now - MIN_GAP
         )
-        if recent.filter(created_at__gt=now - MIN_GAP).exists():
-            return False
-        return recent.count() < MAX_PER_WINDOW
+        return not recent_reply.exists() and self._in_budget(chat_id, now)
 
     def reply(self, *, chat_id: str, body: str, reply_to: str, inbound_id: int) -> str:
         result = self._sender.send(
@@ -36,3 +43,37 @@ class GroupReplier:
             subject_id=str(inbound_id),
         )
         return result.status
+
+    def send_card(
+        self,
+        *,
+        chat_id: str,
+        body: str,
+        reply_to: str,
+        subject_type: str,
+        subject_id: str,
+        dedupe_key: str,
+    ) -> SentCard:
+        existing = OutboundMessage.objects.filter(dedupe_key=dedupe_key).first()
+        if existing is not None:
+            return SentCard("duplicate", existing.gowa_message_id or None)
+        if not self._in_budget(chat_id, timezone.now()):
+            return SentCard("failed", None)  # over the per-chat budget: nothing is recorded
+        result = self._sender.send(
+            chat_id,
+            body,
+            "card",
+            dedupe_key=dedupe_key,
+            reply_to=reply_to,
+            subject_type=subject_type,
+            subject_id=subject_id,
+        )
+        return SentCard(result.status, result.gowa_message_id)
+
+    def quoted_subject(self, chat_id: str, gowa_message_id: str) -> tuple[str, str] | None:
+        row = (
+            OutboundMessage.objects.filter(to_jid=chat_id, gowa_message_id=gowa_message_id)
+            .exclude(subject_type="")
+            .first()
+        )
+        return (row.subject_type, row.subject_id) if row else None

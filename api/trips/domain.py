@@ -1,13 +1,19 @@
 """Pure trip rules (no Django, no HTTP)."""
 
+import re
+from collections.abc import Mapping
 from dataclasses import dataclass
 from datetime import date
+from decimal import Decimal, InvalidOperation
+from typing import Any
 
 TRIP_STATUSES = ("idea", "planning", "booked", "ongoing", "done")
 ACTIVE_STATUSES = ("planning", "booked", "ongoing")  # trips that still need reminders
 RSVP_VALUES = ("in", "maybe", "out", "pending")
 DEFAULT_TRIP_TYPE = "generic"
 DEFAULT_CURRENCY = "USD"
+MAX_FX_RATES = 10
+_CURRENCY_CODE = re.compile(r"^[A-Z]{3}$")
 
 
 class InvalidTripInputError(ValueError):
@@ -26,6 +32,10 @@ class TripData:
     destination_label: str
     timezone: str
     currency: str
+    fx_rates: dict[str, str]
+
+
+TripRef = TripData  # what other apps get back from the callable use cases
 
 
 @dataclass(frozen=True)
@@ -53,6 +63,26 @@ def normalize_currency(raw: str) -> str:
     if len(cleaned) != 3 or not (cleaned.isascii() and cleaned.isalpha()):
         raise InvalidTripInputError("currency must be a 3-letter code")
     return cleaned
+
+
+def validate_fx_rates(raw: Mapping[str, Any]) -> dict[str, str]:
+    """``{"<ISO 4217 code>": <decimal > 0>}`` with at most 10 keys, as decimal strings."""
+    if len(raw) > MAX_FX_RATES:
+        raise InvalidTripInputError(f"at most {MAX_FX_RATES} fx rates are allowed")
+    clean: dict[str, str] = {}
+    for code, value in raw.items():
+        if not isinstance(code, str) or not _CURRENCY_CODE.match(code):
+            raise InvalidTripInputError("fx rate keys must be 3 uppercase letters")
+        try:
+            if value is None or isinstance(value, bool):
+                raise InvalidOperation
+            rate = Decimal(str(value).strip())
+        except InvalidOperation as exc:
+            raise InvalidTripInputError(f"fx rate for {code} is not a number") from exc
+        if not rate.is_finite() or rate <= 0:
+            raise InvalidTripInputError(f"fx rate for {code} must be a positive number")
+        clean[code] = format(rate, "f")
+    return clean
 
 
 def validate_status(status: str) -> str:

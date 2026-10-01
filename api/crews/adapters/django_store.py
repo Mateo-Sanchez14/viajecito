@@ -89,6 +89,12 @@ class DjangoCrewStore:
             crew_id=crew_id, person_id=person_id, status=CrewMembership.Status.ACTIVE
         ).exists()
 
+    def active_member_ids(self, crew_id: str) -> list[str]:
+        rows = CrewMembership.objects.filter(
+            crew_id=crew_id, status=CrewMembership.Status.ACTIVE
+        ).order_by("created_at", "pk")
+        return [str(person_id) for person_id in rows.values_list("person_id", flat=True)]
+
     def roster_last_synced_at(self, crew_id: str) -> datetime | None:
         return (
             WhatsAppGroupLink.objects.filter(crew_id=crew_id)

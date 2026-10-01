@@ -1,4 +1,5 @@
 import uuid
+from datetime import date
 
 import pytest
 
@@ -86,6 +87,7 @@ def test_create_returns_the_trip_and_enrolls_the_creator(as_person, crew, ana):
         "destination_label": "Cerro Catedral",
         "timezone": "America/Santiago",
         "currency": "USD",
+        "fx_rates": {},
         "modules": GENERIC_MODULES,
         "participants": [{"person_id": str(ana.pk), "display_name": "Ana", "rsvp": "in"}],
         "my_rsvp": "in",
@@ -301,3 +303,65 @@ def test_create_is_400_when_the_crews_timezone_is_invalid(as_person, crew, ana):
     response = send(as_person(ana), "post", trips_url(crew), {"name": "x"})
     assert response.status_code == 400 and response.json()["code"] == "invalid_request"
     assert Trip.objects.count() == 0
+
+
+# --- fx_rates and callable use cases (R-6 / R-4) -----------------------------------------------
+
+
+def test_fx_rates_default_to_empty_and_are_patchable(as_person, trip, beto):
+    client = as_person(beto)
+    assert client.get(trip_url(trip)).json()["fx_rates"] == {}
+    response = send(client, "patch", trip_url(trip), {"fx_rates": {"ARS": "1150.00", "CLP": 950}})
+    assert response.status_code == 200
+    assert response.json()["fx_rates"] == {"ARS": "1150.00", "CLP": "950"}
+    assert client.get(trip_url(trip)).json()["fx_rates"] == {"ARS": "1150.00", "CLP": "950"}
+    assert send(client, "patch", trip_url(trip), {"name": "x"}).json()["fx_rates"] == {
+        "ARS": "1150.00",
+        "CLP": "950",
+    }  # untouched by other patches
+    assert send(client, "patch", trip_url(trip), {"fx_rates": {}}).json()["fx_rates"] == {}
+
+
+@pytest.mark.parametrize(
+    "rates",
+    [{"ars": "1"}, {"AR": "1"}, {"ARS": "0"}, {"ARS": "-1"}, {"ARS": "x"}, None]
+    + [{f"A{c}{d}": "1" for c in "ABCDEF" for d in "ABC"}],
+)
+def test_invalid_fx_rates_are_400(as_person, trip, ana, rates):
+    response = send(as_person(ana), "patch", trip_url(trip), {"fx_rates": rates})
+    assert response.status_code == 400 and response.json()["code"] == "invalid_request"
+
+
+def test_update_trip_is_callable_from_other_apps(trip, ana):
+    from trips.use_cases.update_trip import update_trip
+
+    ref = update_trip(
+        str(trip.pk), str(ana.pk), start_on=date(2026, 7, 10), end_on=date(2026, 7, 17)
+    )
+    assert (ref.id, ref.start_on, ref.end_on) == (
+        str(trip.pk),
+        date(2026, 7, 10),
+        date(2026, 7, 17),
+    )
+    trip.refresh_from_db()
+    assert (trip.start_on, trip.end_on) == (date(2026, 7, 10), date(2026, 7, 17))
+
+
+def test_update_trip_rejects_unknown_fields_and_bad_dates(trip, ana):
+    from trips.domain import InvalidTripInputError
+    from trips.use_cases.update_trip import update_trip
+
+    with pytest.raises(InvalidTripInputError):
+        update_trip(str(trip.pk), str(ana.pk), bogus=1)
+    with pytest.raises(InvalidTripInputError):
+        update_trip(str(trip.pk), str(ana.pk), start_on=date(2026, 7, 10), end_on=date(2026, 7, 1))
+
+
+def test_default_trip_for_crew(crew, ana, trip):
+    from trips.use_cases.default_trip_for_crew import default_trip_for_crew
+
+    assert default_trip_for_crew(str(crew.pk)) is None
+    crew.default_trip = trip
+    crew.save()
+    assert default_trip_for_crew(str(crew.pk)) == str(trip.pk)
+    assert default_trip_for_crew(str(uuid.uuid4())) is None

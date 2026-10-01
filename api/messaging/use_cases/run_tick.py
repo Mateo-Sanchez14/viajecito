@@ -5,11 +5,12 @@ rosters.
 """
 
 import logging
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 
 from messaging.ports import JobLocks, OutboundQueue, RosterSyncSource, TickInbound
+from messaging.reminders import TickJob
 from messaging.use_cases.dispatch_queued import DispatchResult
 from messaging.use_cases.queue_reminders import RemindersResult
 from shared.clock import Clock
@@ -38,6 +39,7 @@ def run_tick(
     process: Callable[[int], str],
     dispatch: Callable[[datetime], DispatchResult],
     reminders: Callable[[datetime], RemindersResult] | None = None,
+    jobs: Sequence[tuple[str, TickJob]] = (),
     clock: Clock,
     config: TickConfig,
     owner: str,
@@ -65,14 +67,15 @@ def run_tick(
             except Exception:  # one bad row must not stop the pass
                 logger.exception("tick: processing inbound %s crashed", inbound_id)
                 errors += 1
-        reminders_queued = reminder_errors = 0
+        reminders_queued = reminders_quiet = 0
         if reminders is not None and clock.now() < deadline:
             try:
                 outcome = reminders(now)
-                reminders_queued, reminder_errors = outcome.queued, outcome.errors
+                reminders_queued, reminders_quiet = outcome.queued, outcome.quiet
+                errors += outcome.errors
             except Exception:  # e.g. database trouble: the next tick tries again
                 logger.exception("tick: reminders phase crashed")
-                reminder_errors += 1
+                errors += 1
         dispatched = dispatch(deadline)
         synced = 0
         for crew_id in rosters.crews_needing_sync(now - timedelta(hours=config.roster_sync_hours)):
@@ -84,6 +87,19 @@ def run_tick(
             except Exception:  # gateway down: stays stale, retried on the next tick
                 logger.exception("tick: roster sync of crew %s failed", crew_id)
                 errors += 1
+        jobs_run = 0
+        job_counters: dict[str, int] = {}
+        for key, job in jobs:
+            if clock.now() >= deadline:
+                break
+            try:
+                result = job(now)
+            except Exception:  # one bad job must not stop the others
+                logger.exception("tick: job %s failed", key)
+                errors += 1
+                continue
+            jobs_run += 1
+            job_counters.update({f"{key}.{name}": value for name, value in (result or {}).items()})
         return {
             "requeued": requeued,
             "swept_failed": swept_failed,
@@ -92,7 +108,9 @@ def run_tick(
             "dispatch_failed": dispatched.failed,
             "rosters_synced": synced,
             "reminders_queued": reminders_queued,
-            "reminder_errors": reminder_errors,
+            "reminders_quiet": reminders_quiet,
+            "jobs_run": jobs_run,
+            **job_counters,
             "errors": errors,
         }
     finally:

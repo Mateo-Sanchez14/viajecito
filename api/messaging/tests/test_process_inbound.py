@@ -10,6 +10,7 @@ from messaging.adapters import wiring
 from messaging.adapters.inbound_store import DjangoInboundStore
 from messaging.copy import es_ar
 from messaging.gowa.parser import parse_message_event
+from messaging.handlers import commands
 from messaging.models import InboundMessage, OutboundMessage
 from messaging.tests.gowa_fixtures import load
 
@@ -91,7 +92,7 @@ def test_sender_known_only_by_lid_is_resolved(crew, ana, gowa):
     wiring.run_process_inbound(row_id)
     row = InboundMessage.objects.get(pk=row_id)
     assert (row.status, row.person_id) == ("done", ana.pk)
-    assert OutboundMessage.objects.get().body == es_ar.HELP
+    assert OutboundMessage.objects.get().body == commands.help_text()
 
 
 @pytest.mark.django_db
@@ -102,7 +103,7 @@ def test_unknown_sender_triggers_one_roster_sync_then_resolves(crew, gowa):
     row = InboundMessage.objects.get(pk=row_id)
     assert row.status == "done"
     assert row.person.phone == "+5491100000002"
-    assert OutboundMessage.objects.get().body == es_ar.HELP
+    assert OutboundMessage.objects.get().body == commands.help_text()
 
 
 @pytest.mark.django_db

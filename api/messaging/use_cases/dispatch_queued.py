@@ -26,10 +26,12 @@ def dispatch_queued(
     max_attempts: int,
     limit: int,
     deadline: datetime,
+    mentions_enabled: bool = False,
 ) -> DispatchResult:
     """Deliver queued rows, claiming each one first so an overlapping tick cannot resend it.
 
     Rows younger than ``min_age`` may still be in flight in the process that reserved them.
+    ``mentions`` are passed to the gateway only when ``mentions_enabled``.
     Stops once ``deadline`` has passed (the tick lock is about to expire).
     """
     sent = failed = 0
@@ -42,7 +44,12 @@ def dispatch_queued(
             queue.mark_failed(message.id, "body was redacted; cannot be redelivered")
             continue
         try:
-            gateway_id = gateway.send_text(message.to_jid, message.body, message.reply_to)
+            if mentions_enabled and message.mentions:
+                gateway_id = gateway.send_text(
+                    message.to_jid, message.body, message.reply_to, mentions=message.mentions
+                )
+            else:
+                gateway_id = gateway.send_text(message.to_jid, message.body, message.reply_to)
         except GatewayError as exc:
             logger.warning("queued outbound %s failed: %s", message.id, exc)
             queue.mark_failed(message.id, str(exc))

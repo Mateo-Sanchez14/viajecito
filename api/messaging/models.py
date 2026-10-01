@@ -25,6 +25,7 @@ class OutboundMessage(models.Model):
     attempts = models.PositiveIntegerField(default=0)
     gowa_message_id = models.CharField(max_length=128, blank=True)
     reply_to_message_id = models.CharField(max_length=128, blank=True)
+    mentions = models.JSONField(default=list, blank=True)  # JIDs, sent only with mentions enabled
     subject_type = models.CharField(max_length=64, blank=True)
     subject_id = models.CharField(max_length=64, blank=True)
     sent_at = models.DateTimeField(null=True, blank=True)

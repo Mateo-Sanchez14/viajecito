@@ -1,10 +1,12 @@
 """Ports of the messaging app: what the use cases need from the outside world."""
 
+from collections.abc import Sequence
 from dataclasses import dataclass
-from datetime import date, datetime
+from datetime import datetime
 from typing import Protocol
 
 from messaging.domain import GroupMessage, InboundRecord
+from messaging.handlers.types import SentCard
 
 
 class GatewayError(Exception):
@@ -23,7 +25,9 @@ class Participant:
 
 
 class TextGateway(Protocol):
-    def send_text(self, to_jid: str, body: str, reply_to: str | None = None) -> str:
+    def send_text(
+        self, to_jid: str, body: str, reply_to: str | None = None, mentions: Sequence[str] = ()
+    ) -> str:
         """Send a text message and return the gateway message id. Raises ``GatewayError``."""
         ...
 
@@ -32,6 +36,7 @@ class TextGateway(Protocol):
 class LedgerEntry:
     id: int
     created: bool  # False when the dedupe key already existed
+    gowa_message_id: str | None = None  # of the existing row when ``created`` is False
 
 
 class OutboundLedger(Protocol):
@@ -45,6 +50,7 @@ class OutboundLedger(Protocol):
         reply_to: str | None,
         subject_type: str,
         subject_id: str,
+        mentions: Sequence[str] = (),
     ) -> LedgerEntry: ...
 
     def mark_sent(self, entry_id: int, gowa_message_id: str) -> None: ...
@@ -108,6 +114,23 @@ class Replier(Protocol):
         """Send a threaded reply in the group and return its send status."""
         ...
 
+    def send_card(
+        self,
+        *,
+        chat_id: str,
+        body: str,
+        reply_to: str,
+        subject_type: str,
+        subject_id: str,
+        dedupe_key: str,
+    ) -> SentCard:
+        """Send a threaded card (exempt from the reply gap, bounded by the 10-minute budget)."""
+        ...
+
+    def quoted_subject(self, chat_id: str, gowa_message_id: str) -> tuple[str, str] | None:
+        """The ledger subject of one of our messages in this chat, or ``None``."""
+        ...
+
 
 @dataclass(frozen=True)
 class QueuedMessage:
@@ -116,6 +139,7 @@ class QueuedMessage:
     kind: str
     body: str
     reply_to: str | None
+    mentions: tuple[str, ...] = ()  # JIDs to @-mention (sent only when GOWA_MENTIONS_ENABLED)
 
 
 class JobLocks(Protocol):
@@ -161,16 +185,16 @@ class RosterSyncSource(Protocol):
 
 
 @dataclass(frozen=True)
-class ReminderTrip:
-    """An active trip whose crew has a linked WhatsApp group."""
-
-    trip_id: str
-    crew_id: str
-    chat_id: str
-    timezone: str
-    start_on: date | None
-    end_on: date | None
+class PersonRef:
+    name: str  # display name, or the E.164 phone when the person has none
+    phone: str  # E.164
 
 
-class ReminderTrips(Protocol):
-    def active_trips(self) -> list[ReminderTrip]: ...
+class PersonDirectory(Protocol):
+    def people(self, person_ids: list[str]) -> dict[str, PersonRef]:
+        """The known people among ``person_ids``; unknown ids are absent."""
+        ...
+
+
+class ChatDirectory(Protocol):
+    def chat_id_for_crew(self, crew_id: str) -> str | None: ...

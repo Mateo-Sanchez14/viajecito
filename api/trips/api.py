@@ -119,7 +119,9 @@ def update_trip(request, trip_id: UUID, payload: TripPatchIn):
     """Any active member of the crew may update. 400 codes: `invalid_request`."""
     access = member_of_trip(request, trip_id)
     try:
-        trip = update_trip_use_case(str(trip_id), payload.model_dump(exclude_unset=True), store())
+        trip = update_trip_use_case(
+            str(trip_id), str(access.membership.person_id), **payload.model_dump(exclude_unset=True)
+        )
     except (InvalidTripInputError, InvalidTimezoneError) as exc:
         raise invalid(exc) from exc
     return Status(HTTPStatus.OK, trip_out(detail_of(trip, str(access.membership.person_id))))

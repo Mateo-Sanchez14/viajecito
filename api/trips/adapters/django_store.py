@@ -20,6 +20,7 @@ def trip_data(trip: Trip) -> TripData:
         destination_label=trip.destination_label,
         timezone=trip.timezone,
         currency=trip.currency,
+        fx_rates=dict(trip.fx_rates),
     )
 
 
@@ -64,6 +65,10 @@ class DjangoTripStore:
     def list_active(self) -> list[TripData]:
         trips = Trip.objects.filter(status__in=ACTIVE_STATUSES).order_by("created_at", "pk")
         return [trip_data(t) for t in trips]
+
+    def default_trip_id(self, crew_id: str) -> str | None:
+        value = Crew.objects.filter(pk=crew_id).values_list("default_trip_id", flat=True).first()
+        return str(value) if value else None
 
     def get(self, trip_id: str) -> TripData | None:
         trip = Trip.objects.filter(pk=trip_id).first()

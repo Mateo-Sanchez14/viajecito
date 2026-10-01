@@ -191,7 +191,7 @@ reference so `crews` never imports `trips`) is set by the first `POST` when empt
 | `GET /api/crews/{crew_id}/trips` | `200 [TripSummaryOut]` | |
 | `POST /api/crews/{crew_id}/trips` | `201 TripOut` | creator gets `rsvp=in`; `type` must be a registered plugin |
 | `GET /api/trips/{trip_id}` | `200 TripOut` | `modules` from the plugin registry; `participants` lists every active crew member (`pending` without a row; `display_name` falls back to the phone); `my_rsvp` likewise |
-| `PATCH /api/trips/{trip_id}` | `200 TripOut` | any active member; partial; `null` clears a date; dates validated after merging |
+| `PATCH /api/trips/{trip_id}` | `200 TripOut` | any active member; partial (also `fx_rates`: `{"ARS": "1150.00"}`, <= 10 uppercase 3-letter codes, rates > 0, returned as decimal strings); `null` clears a date; dates validated after merging |
 | `PUT /api/trips/{trip_id}/participation` | `200 ParticipantOut` | sets the caller's own RSVP (creates the row) |
 
 Errors: `400 invalid_request`, `401 unauthenticated`, `403 csrf_failed`, `404 not_found` (non-members,
@@ -229,49 +229,82 @@ no-op. Orders: commands 10 (registered by `MessagingConfig`), quoted card 20, li
    `known-first-party` and `testpaths` in `pyproject.toml`.
 2. Expose `api.router` (and optionally `PREFIX`); `config/api.py` mounts it. Guard every endpoint with
    `crews.api_auth.member_of_crew(request, crew_id)` or `trips.api_auth.member_of_trip(request, trip_id)`.
-3. From `AppConfig.ready()` register what you contribute: a trip type (`trips.plugins.register`), inbound
-   bot handlers (`messaging.router.register_handler(order, handler)`), reminder rules
-   (`messaging.reminders.register_reminder_rule(key, rule)`) and event subscribers
-   (`shared.events.subscribe(event_name, callback)`, see *Domain events*).
-4. Never edit core files (`config/api.py`, `messaging/router.py`, `trips`); a core change goes in a request.
+3. From `AppConfig.ready()` register what you contribute (all idempotent for the same callable):
+   - trip type: `trips.plugins.register(plugin)`;
+   - inbound bot handler: `messaging.router.register_handler(order, handler)` (commands 10, quoted card 20,
+     link capture 30, fallback 100);
+   - `/viaje` subcommand: `messaging.handlers.commands.register_subcommand(name, handler, aliases=(),
+     help_line="")`; `handler(ctx, args)` gets the text after the subcommand (original casing, stripped)
+     and returns `Handled | None`; names match accent- and case-insensitively, `ayuda` lists every
+     `help_line` sorted by name, and a throttled chat never reaches your handler;
+   - reminder rule / channel / tick job / digest section: see *Reminders* below;
+   - event subscriber: `shared.events.subscribe(event_name, callback)` (see *Domain events*).
+4. Handler context (`HandlerContext`): `reply(body)`; `reply_allowed()`;
+   `send_card(body, *, subject_type, subject_id, dedupe_key) -> SentCard(status, gowa_message_id)`, a
+   threaded `kind="card"` row that keeps its subject, exempt from the 3 s reply gap but counted in the
+   per-chat 20-per-10-minutes budget (`"failed"` when over it, `"duplicate"` for a known `dedupe_key`);
+   `quoted_subject`: `(subject_type, subject_id)` of OUR message the inbound one quotes, else `None`.
+5. Callable core use cases (import from the module, e.g. `from trips.use_cases.update_trip import
+   update_trip`): `update_trip(trip_id, actor_id, **fields)` (the caller authorizes the actor),
+   `default_trip_for_crew(crew_id)`, `crews.use_cases.active_member_ids(crew_id)`.
+6. Never edit core files (`config/api.py`, `messaging/router.py`, `trips`); a core change goes in a request.
 
 ## Domain events
 
-`shared/events.py` is a tiny in-process bus: `subscribe(event_name, callback)`, `publish(event_name,
-**payload)` and `clear()` (tests). Subscribers run in registration order; one that raises is logged
-(`logger.exception`) and never stops the others; publishing with no subscribers does nothing. Subscribe
-from `AppConfig.ready()`.
+`shared/events.py` is a tiny in-process bus (pure Python): `subscribe(name, callback)` (the same callable
+twice is a no-op), `publish(name, **payload)`, `subscribers(name)` (introspection), `isolated()` (tests:
+swap in an empty registry for a block) and `clear()`.
 
-- **Names**: `"<app>.<entity>_<past_tense>"`, e.g. `proposals.status_changed`.
-- **Payload**: keyword arguments with ids and plain values only (never model instances).
-- **Inside a transaction** use `shared.events_django.publish_after_commit(...)`: it defers through
-  `transaction.on_commit` (dropped on rollback) and publishes immediately outside an atomic block.
-- **Testing**: pytest-django's default `django_db` wraps the test in a transaction that is never
-  committed, so `on_commit` callbacks never fire. Tests of `publish_after_commit` subscribers must use
-  the `django_capture_on_commit_callbacks(execute=True)` fixture (or `django_db(transaction=True)`).
+- **`publish` is synchronous and transactional.** Subscribers run in registration order in the caller's
+  thread and transaction, and a subscriber exception PROPAGATES: the publisher calls it inside
+  `transaction.atomic()` after its writes, so a failing subscriber rolls the whole change back. Use it for
+  effects that are part of the same user action. Subscribers must be small and idempotent.
+- **`shared.events_django.publish_after_commit(name, **payload)` is the extra for non-critical side
+  effects.** It defers through `transaction.on_commit` (dropped on rollback, immediate outside an atomic
+  block) and isolates every subscriber: failures are logged, never raised.
+- **Names** `<noun>.<past_participle>` (`proposal.status_changed`); **payload** ids as `str(uuid)` and plain
+  values (`str`, `int`, `bool`, `None`, `date`, aware `datetime`), never model instances.
+- **Subscribe** from `AppConfig.ready()`. In tests wrap registrations in `with events.isolated():`.
+- **Testing `publish_after_commit`**: pytest-django's default `django_db` wraps the test in a transaction
+  that is never committed, so `on_commit` callbacks never fire. Use the
+  `django_capture_on_commit_callbacks(execute=True)` fixture (or `django_db(transaction=True)`).
 
-## Reminder rules and the tick `reminders` phase
+## Reminders, channels, tick jobs and digest sections
 
-`messaging/reminders.py` is a registry of reminder rules: `register_reminder_rule(key, rule)`,
-`registered_rules()`, `clear()`. A rule is `rule(ctx: ReminderContext) -> Iterable[ReminderDraft]` and
-returns the reminders that are due *now*; milestones register theirs from `AppConfig.ready()`.
+`messaging/reminders.py` (pure) holds four registries; milestones fill them from `AppConfig.ready()`.
 
-- `ReminderContext` (frozen): `now` (aware UTC), `trip_id`, `crew_id`, `chat_id` (the crew's group),
-  `trip_timezone`, `trip_start_on`, `trip_end_on`, `quiet_hours=(22, 9)`.
-- `ReminderDraft` (frozen): `to_jid`, `body`, `dedupe_key`, `subject_type`, `subject_id`, `kind="reminder"`.
-- Rules must be idempotent: a reminder always carries the same `dedupe_key`. The tick persists each draft
-  as `OutboundMessage(status="queued", dedupe_key=...)` and the unique key ignores duplicates, so re-runs
-  are safe. Re-registering the same `(key, rule)` is a no-op; a different rule under a used key raises.
-- The `tick` phase visits every trip with status `planning|booked|ongoing` whose crew has a linked chat,
-  runs every rule inside try/except (logged and counted, never fatal), and drops drafts produced while the
-  trip's local time is in quiet hours (22:00-09:00 in `trip_timezone`); a later tick produces them again.
-  The tick summary gains `reminders_queued` and `reminder_errors`.
-- **Dedupe keys**: the tick persists `"<rule key>:<draft dedupe_key>"`, so rules never share a key space.
-  Milestones never prefix their own keys; they only keep `dedupe_key` stable per reminder.
-- **Delivery**: reminders queued in a tick are sent by the NEXT tick (outbound rows must be older than
-  `QUEUED_MIN_AGE_SECONDS`, 60 s, so a row is never sent while the process that made it may still be
-  working on it).
-- **Failures**: one failing rule or trip (e.g. an invalid `Trip.timezone`) is logged with the trip id,
-  counted in `reminder_errors` and skipped; the other trips and rules still run.
+- `register_reminder_rule(key, fn, *, on_queued=None)`: `fn(ReminderContext(now)) -> Iterable[ReminderDraft]`
+  is a PURE READ returning what is due now (the rule picks the trips it cares about, normally status
+  `planning|booked|ongoing`). All writes go in `on_queued(draft)`.
+- `register_channel(name, deliver)`: `deliver(draft)` for every new reminder (web push...).
+- `register_tick_job(key, fn)`: `fn(now) -> dict[str, int] | None`, once per tick.
+- `register_digest_section(key, fn, *, order=100)` and `digest_sections(trip_id, local_date)`: ordered
+  blocks of copy for the morning digest (`None` dropped, a failing section logged and skipped).
+- `is_quiet_time(now, tz)` with `QUIET_START = 22:00` (inclusive) and `QUIET_END = 09:00` (exclusive), local.
+
+`ReminderDraft(crew_id, trip_id, body, dedupe_key, timezone, subject_type="", subject_id="",
+mention_person_ids=(), title="", url_path="", respect_quiet_hours=True)`. Re-registering the same
+`(key, fn)` is a no-op; any other use of a key raises `ValueError`.
+
+**Tick order** (one pass, under the lock and deadline): sweep and reprocess inbound; **reminder rules**;
+dispatch of queued outbound (so reminders queued in this pass go out in the same pass); roster sync;
+**tick jobs**. For every draft: skip when `respect_quiet_hours` and it is quiet in `draft.timezone`
+(`reminders_quiet`; a later tick produces it again, so date-based keys send it at 09:00); skip when the
+crew has no linked chat; render the body; reserve `OutboundMessage(kind="reminder", status="queued")`.
+Only when the row is NEW: `on_queued(draft)` runs in the same transaction (a failure rolls the row back and
+the next tick retries), then every channel runs, each isolated (a failing channel never un-queues the group
+message). Every failure is logged and counted in `errors`. The summary gains `reminders_queued`,
+`reminders_quiet` and `jobs_run` (plus `<job key>.<counter>` for counters a job returns); tick jobs run in
+registration order, each isolated, and are skipped once the lock deadline is near.
+
+- **Dedupe keys**: `ReminderDraft.dedupe_key` is persisted verbatim as `OutboundMessage.dedupe_key`
+  (globally unique, <= 200 chars), so a re-run queues nothing. Milestones namespace their own keys
+  (`<app>:<rule>:<subject>:<local-date>`, e.g. `proposals:majority:<id>`).
+- **Mentions**: `{@<person_id>}` tokens render as `@<digits>` (the member's E.164 digits without `+`); an
+  unknown id renders as an empty string. With `GOWA_MENTIONS_ENABLED=1` the JIDs (tokens plus
+  `mention_person_ids`) are also stored on the row and sent to Gowa as `mentions` (the field name is
+  unconfirmed, hence the flag, default off). Channels get the original draft, tokens included.
+- **Delivery**: rows queued by the reminders phase are backdated past `QUEUED_MIN_AGE_SECONDS` so the same
+  pass sends them (rows made by other processes still wait that long, as they may be in flight).
 - **Timezones** of `Crew` and `Trip` are validated against IANA names (`shared/timezones.py`) in
   `clean()` and `save()`; the trips API answers `400 invalid_request` when the crew's is invalid.

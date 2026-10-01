@@ -2,21 +2,41 @@
 
 import os
 import socket
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 from django.conf import settings
+from django.db import transaction
 
+from messaging import reminders
 from messaging.adapters import wiring
 from messaging.adapters.gowa_factory import build_gowa_client
+from messaging.adapters.identity_gateway import IdentityGateway
 from messaging.adapters.ledger import DjangoOutboundLedger
 from messaging.adapters.tick_store import DjangoJobLocks, DjangoOutboundQueue, DjangoTickInbound
-from messaging.adapters.trips_gateway import TripsGateway
+from messaging.models import OutboundMessage
 from messaging.use_cases.dispatch_queued import dispatch_queued
 from messaging.use_cases.queue_reminders import queue_reminders
 from messaging.use_cases.run_tick import TickConfig, run_tick
 from shared.clock import SystemClock
 
 QUEUED_MIN_AGE_SECONDS = 60  # younger rows may still be in flight in the process that made them
+
+
+class TickReminderLedger(DjangoOutboundLedger):
+    """The ledger the reminders phase writes to.
+
+    Rows created by the tick itself are not in flight anywhere else, so they are backdated past
+    ``QUEUED_MIN_AGE_SECONDS``: the dispatch phase of the SAME pass can send them.
+    """
+
+    def __init__(self, now: datetime) -> None:
+        self._created_at = now - timedelta(seconds=QUEUED_MIN_AGE_SECONDS + 1)
+
+    def reserve(self, **kwargs):
+        entry = super().reserve(**kwargs)
+        if entry.created:
+            OutboundMessage.objects.filter(pk=entry.id).update(created_at=self._created_at)
+        return entry
 
 
 def process_one(inbound_id: int) -> str:
@@ -41,10 +61,18 @@ def run_default_tick() -> dict[str, int] | None:
             max_attempts=config.max_attempts,
             limit=config.batch_size,
             deadline=deadline,
+            mentions_enabled=settings.GOWA_MENTIONS_ENABLED,
         )
 
-    def reminders(now):
-        return queue_reminders(trips=TripsGateway(), ledger=DjangoOutboundLedger(), now=now)
+    def queue_due_reminders(now):
+        return queue_reminders(
+            chats=wiring.crews_gateway(),
+            people=IdentityGateway(),
+            ledger=TickReminderLedger(now),
+            atomic=transaction.atomic,
+            now=now,
+            mentions_enabled=settings.GOWA_MENTIONS_ENABLED,
+        )
 
     return run_tick(
         locks=DjangoJobLocks(),
@@ -53,7 +81,8 @@ def run_default_tick() -> dict[str, int] | None:
         rosters=wiring.crews_gateway(),
         process=lambda inbound_id: process_one(inbound_id),
         dispatch=dispatch,
-        reminders=reminders,
+        reminders=queue_due_reminders,
+        jobs=reminders.registered_tick_jobs(),
         clock=clock,
         config=config,
         owner=f"{socket.gethostname()}:{os.getpid()}",
