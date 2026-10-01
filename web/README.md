@@ -1,36 +1,37 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# viajecito web
 
-## Getting Started
+Next.js (App Router, TypeScript, Tailwind v4) front end. Single locale `es-AR` via
+`next-intl` without routing; all user-facing copy lives in `messages/es-AR.json`.
 
-First, run the development server:
+## Scripts
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+| Script | What it does |
+|---|---|
+| `pnpm dev` | Dev server on `0.0.0.0:3000` (proxies `/api/*` to `API_INTERNAL_URL`) |
+| `pnpm build` / `pnpm start` | Production build (`output: "standalone"`; run it with `node .next/standalone/server.js`) |
+| `pnpm lint` / `pnpm typecheck` | ESLint / `tsc --noEmit` |
+| `pnpm test` / `pnpm test:watch` | Vitest + Testing Library + MSW (no network) |
+| `pnpm test:e2e` | Playwright against `E2E_BASE_URL` (default `http://localhost:3000`); run `pnpm exec playwright install chromium` once |
+| `pnpm api:types` | Regenerate `src/shared/api/schema.d.ts` from `../contracts/openapi.json` |
+| `pnpm api:types:check` | Fail if the committed schema types drift from the contract |
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Environment
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+See `.env.example`.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `API_INTERNAL_URL` (default `http://localhost:8000`): where the Next.js server reaches the api.
+  Used by the server-side client and by the dev rewrite of `/api/:path*`.
+- `E2E_BASE_URL` (default `http://localhost:3000`): target of the Playwright suite.
 
-## Learn More
+## Typed API client
 
-To learn more about Next.js, take a look at the following resources:
+`contracts/openapi.json` is exported by the api. `pnpm api:types` turns it into
+`src/shared/api/schema.d.ts` (committed). `src/shared/api/client.ts` exposes
+`createBrowserClient()` (same-origin) and `createServerClient(cookieHeader?)` (server components;
+forwards the session cookie). Test handlers are typed with `openapi-msw` from the same `paths`.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Layout
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `src/ui/{atoms,molecules,...}`: presentational, prop-driven, no fetching.
+- `src/features/<capability>/{containers,components,hooks,api}`: fetch and wire.
+- `src/shared/{api,i18n,lib}`: cross-cutting code.
