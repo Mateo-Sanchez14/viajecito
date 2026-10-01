@@ -656,6 +656,7 @@
         ]
       }
     },
+<<<<<<< HEAD
     "/api/trips/{trip_id}/decisions": {
       "get": {
         "operationId": "decisions_api_list_decisions",
@@ -688,23 +689,93 @@
             "required": false
           }
         ],
+=======
+    "/api/notifications/vapid_public_key": {
+      "get": {
+        "operationId": "notifications_api_vapid_public_key",
+        "summary": "Get Vapid Public Key",
+        "parameters": [],
         "responses": {
           "200": {
             "description": "OK",
             "content": {
               "application/json": {
                 "schema": {
-                  "items": {
-                    "$ref": "#/components/schemas/DecisionOut"
-                  },
-                  "title": "Response",
-                  "type": "array"
+                  "$ref": "#/components/schemas/VapidKeyOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          }
+        },
+        "description": "503 `push_unavailable` when the VAPID keys are not configured.",
+        "tags": [
+          "notifications"
+        ],
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ]
+      }
+    },
+    "/api/notifications/subscriptions": {
+      "post": {
+        "operationId": "notifications_api_register",
+        "summary": "Register Push Subscription",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubscriptionOut"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubscriptionOut"
                 }
               }
             }
           },
           "400": {
             "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
             "content": {
               "application/json": {
                 "schema": {
@@ -732,6 +803,134 @@
                 }
               }
             }
+          }
+        },
+        "description": "201 when new, 200 when the endpoint already was mine or is re-assigned to me.\n400 codes: `invalid_subscription`. 429: `rate_limited` (more than 10 new per hour).",
+        "tags": [
+          "notifications"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubscriptionIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ]
+      },
+      "delete": {
+        "operationId": "notifications_api_unregister",
+        "summary": "Unregister Push Subscription",
+        "parameters": [],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          }
+        },
+        "description": "Idempotent; only the caller's own rows are ever removed.",
+        "tags": [
+          "notifications"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UnsubscribeIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ]
+      },
+      "get": {
+        "operationId": "notifications_api_list_mine",
+        "summary": "List Push Subscriptions",
+        "parameters": [],
+>>>>>>> feat/m6-api
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+<<<<<<< HEAD
+                    "$ref": "#/components/schemas/DecisionOut"
+=======
+                    "$ref": "#/components/schemas/SubscriptionOut"
+>>>>>>> feat/m6-api
+                  },
+                  "title": "Response",
+                  "type": "array"
+                }
+              }
+            }
+          },
+<<<<<<< HEAD
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+=======
+>>>>>>> feat/m6-api
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+<<<<<<< HEAD
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
           },
           "404": {
             "description": "Not Found",
@@ -747,12 +946,19 @@
         "description": "Newest first. 400 codes: `invalid_request` (unknown `status`).",
         "tags": [
           "decisions"
+=======
+          }
+        },
+        "tags": [
+          "notifications"
+>>>>>>> feat/m6-api
         ],
         "security": [
           {
             "SessionAuth": []
           }
         ]
+<<<<<<< HEAD
       },
       "post": {
         "operationId": "decisions_api_open_decision",
@@ -868,13 +1074,26 @@
             "required": true
           }
         ],
+=======
+      }
+    },
+    "/api/notifications/preferences": {
+      "get": {
+        "operationId": "notifications_api_get_prefs",
+        "summary": "Get Notification Preferences",
+        "parameters": [],
+>>>>>>> feat/m6-api
         "responses": {
           "200": {
             "description": "OK",
             "content": {
               "application/json": {
                 "schema": {
+<<<<<<< HEAD
                   "$ref": "#/components/schemas/DecisionOut"
+=======
+                  "$ref": "#/components/schemas/PreferencesOut"
+>>>>>>> feat/m6-api
                 }
               }
             }
@@ -888,6 +1107,7 @@
                 }
               }
             }
+<<<<<<< HEAD
           },
           "403": {
             "description": "Forbidden",
@@ -1077,6 +1297,12 @@
         },
         "tags": [
           "decisions"
+=======
+          }
+        },
+        "tags": [
+          "notifications"
+>>>>>>> feat/m6-api
         ],
         "security": [
           {
@@ -1085,6 +1311,7 @@
         ]
       },
       "put": {
+<<<<<<< HEAD
         "operationId": "decisions_api_set_availability",
         "summary": "Set Availability",
         "parameters": [
@@ -1099,13 +1326,22 @@
             "required": true
           }
         ],
+=======
+        "operationId": "notifications_api_put_prefs",
+        "summary": "Set Notification Preferences",
+        "parameters": [],
+>>>>>>> feat/m6-api
         "responses": {
           "200": {
             "description": "OK",
             "content": {
               "application/json": {
                 "schema": {
+<<<<<<< HEAD
                   "$ref": "#/components/schemas/AvailabilityOut"
+=======
+                  "$ref": "#/components/schemas/PreferencesOut"
+>>>>>>> feat/m6-api
                 }
               }
             }
@@ -1120,6 +1356,7 @@
               }
             }
           },
+<<<<<<< HEAD
           "409": {
             "description": "Conflict",
             "content": {
@@ -1130,6 +1367,8 @@
               }
             }
           },
+=======
+>>>>>>> feat/m6-api
           "401": {
             "description": "Unauthorized",
             "content": {
@@ -1149,6 +1388,7 @@
                 }
               }
             }
+<<<<<<< HEAD
           },
           "404": {
             "description": "Not Found",
@@ -1164,12 +1404,23 @@
         "description": "Writes the CALLER's answers only (`null` clears a day). 400 codes: `date_out_of_range`,\n`invalid_request`. 409: `decision_closed`.",
         "tags": [
           "decisions"
+=======
+          }
+        },
+        "description": "Partial updates are fine; unknown categories are `400 invalid_request`.",
+        "tags": [
+          "notifications"
+>>>>>>> feat/m6-api
         ],
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
+<<<<<<< HEAD
                 "$ref": "#/components/schemas/AvailabilityIn"
+=======
+                "$ref": "#/components/schemas/PreferencesIn"
+>>>>>>> feat/m6-api
               }
             }
           },
@@ -1182,6 +1433,7 @@
         ]
       }
     },
+<<<<<<< HEAD
     "/api/decisions/{decision_id}/close": {
       "post": {
         "operationId": "decisions_api_close_decision",
@@ -1205,12 +1457,31 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/DecisionOut"
+=======
+    "/api/notifications/test": {
+      "post": {
+        "operationId": "notifications_api_test_push",
+        "summary": "Send Test Push",
+        "parameters": [],
+        "responses": {
+          "202": {
+            "description": "Accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TestPushOut"
+>>>>>>> feat/m6-api
                 }
               }
             }
           },
+<<<<<<< HEAD
           "400": {
             "description": "Bad Request",
+=======
+          "429": {
+            "description": "Too Many Requests",
+>>>>>>> feat/m6-api
             "content": {
               "application/json": {
                 "schema": {
@@ -1219,8 +1490,13 @@
               }
             }
           },
+<<<<<<< HEAD
           "409": {
             "description": "Conflict",
+=======
+          "503": {
+            "description": "Service Unavailable",
+>>>>>>> feat/m6-api
             "content": {
               "application/json": {
                 "schema": {
@@ -1248,6 +1524,7 @@
                 }
               }
             }
+<<<<<<< HEAD
           },
           "404": {
             "description": "Not Found",
@@ -1352,6 +1629,13 @@
         "description": "Trip dates stay untouched. 409: `decision_open`, `decision_already_open`.",
         "tags": [
           "decisions"
+=======
+          }
+        },
+        "description": "Sends the test notification to the caller's subscriptions (1 per minute).",
+        "tags": [
+          "notifications"
+>>>>>>> feat/m6-api
         ],
         "security": [
           {
@@ -2025,13 +2309,31 @@
         "title": "ParticipantIn",
         "type": "object"
       },
+<<<<<<< HEAD
       "DecisionOut": {
+=======
+      "VapidKeyOut": {
+        "properties": {
+          "public_key": {
+            "title": "Public Key",
+            "type": "string"
+          }
+        },
+        "required": [
+          "public_key"
+        ],
+        "title": "VapidKeyOut",
+        "type": "object"
+      },
+      "SubscriptionOut": {
+>>>>>>> feat/m6-api
         "properties": {
           "id": {
             "format": "uuid",
             "title": "Id",
             "type": "string"
           },
+<<<<<<< HEAD
           "trip_id": {
             "format": "uuid",
             "title": "Trip Id",
@@ -2140,10 +2442,21 @@
           "eligible": {
             "title": "Eligible",
             "type": "integer"
+=======
+          "endpoint_host": {
+            "title": "Endpoint Host",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+>>>>>>> feat/m6-api
           }
         },
         "required": [
           "id",
+<<<<<<< HEAD
           "trip_id",
           "kind",
           "status",
@@ -2173,10 +2486,33 @@
           },
           "display_name": {
             "title": "Display Name",
+=======
+          "endpoint_host",
+          "created_at"
+        ],
+        "title": "SubscriptionOut",
+        "type": "object"
+      },
+      "SubscriptionIn": {
+        "properties": {
+          "endpoint": {
+            "maxLength": 2000,
+            "title": "Endpoint",
+            "type": "string"
+          },
+          "keys": {
+            "$ref": "#/components/schemas/SubscriptionKeysIn"
+          },
+          "user_agent": {
+            "default": "",
+            "maxLength": 1000,
+            "title": "User Agent",
+>>>>>>> feat/m6-api
             "type": "string"
           }
         },
         "required": [
+<<<<<<< HEAD
           "person_id",
           "display_name"
         ],
@@ -2426,10 +2762,60 @@
               "type": "string"
             },
             "title": "Answers",
+=======
+          "endpoint",
+          "keys"
+        ],
+        "title": "SubscriptionIn",
+        "type": "object"
+      },
+      "SubscriptionKeysIn": {
+        "properties": {
+          "p256dh": {
+            "maxLength": 400,
+            "title": "P256Dh",
+            "type": "string"
+          },
+          "auth": {
+            "maxLength": 400,
+            "title": "Auth",
+            "type": "string"
+          }
+        },
+        "required": [
+          "p256dh",
+          "auth"
+        ],
+        "title": "SubscriptionKeysIn",
+        "type": "object"
+      },
+      "UnsubscribeIn": {
+        "properties": {
+          "endpoint": {
+            "maxLength": 2000,
+            "title": "Endpoint",
+            "type": "string"
+          }
+        },
+        "required": [
+          "endpoint"
+        ],
+        "title": "UnsubscribeIn",
+        "type": "object"
+      },
+      "PreferencesOut": {
+        "properties": {
+          "push": {
+            "additionalProperties": {
+              "type": "boolean"
+            },
+            "title": "Push",
+>>>>>>> feat/m6-api
             "type": "object"
           }
         },
         "required": [
+<<<<<<< HEAD
           "person_id",
           "display_name",
           "rsvp",
@@ -2582,6 +2968,40 @@
           }
         },
         "title": "CloseDecisionIn",
+=======
+          "push"
+        ],
+        "title": "PreferencesOut",
+        "type": "object"
+      },
+      "PreferencesIn": {
+        "properties": {
+          "push": {
+            "additionalProperties": {
+              "type": "boolean"
+            },
+            "title": "Push",
+            "type": "object"
+          }
+        },
+        "required": [
+          "push"
+        ],
+        "title": "PreferencesIn",
+        "type": "object"
+      },
+      "TestPushOut": {
+        "properties": {
+          "sent": {
+            "title": "Sent",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "sent"
+        ],
+        "title": "TestPushOut",
+>>>>>>> feat/m6-api
         "type": "object"
       }
     },
