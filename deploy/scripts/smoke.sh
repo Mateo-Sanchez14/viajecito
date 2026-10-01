@@ -8,10 +8,13 @@ here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$here/lib.sh"
 
 load_env "$PI_ENV_FILE"
-# The webhook secret lives in api.env; it is only read here to sign the probe request.
+# The provider and its webhook secret live in api.env; they are only read here to sign the probe request.
 load_env "$API_ENV_FILE"
 require_cmd curl python3
-require_var PUBLIC_HOST GOWA_WEBHOOK_SECRET
+provider="$(provider_of "${WHATSAPP_PROVIDER:-}")"
+secret_var="$(webhook_secret_var "$provider")"
+hook_path="$(webhook_path "$provider")"
+require_var PUBLIC_HOST "$secret_var"
 origin="https://${PUBLIC_HOST}"
 
 failures=0
@@ -26,16 +29,17 @@ else
 fi
 
 # 2. signed webhook from a non-group chat must be accepted by the signature check and ignored
-payload='{"event":"message","device_id":"smoke","payload":{"id":"smoke-'"$(date -u +%s)"'","chat_id":"5491100000000@s.whatsapp.net","from":"5491100000000@s.whatsapp.net","from_name":"smoke","body":"smoke test","timestamp":"2026-01-01T00:00:00Z","is_from_me":false}}'
+payload="$(webhook_payload "$provider" "$(date -u +%s)")"
 # The secret travels through the environment, never through argv (argv is world-readable in /proc).
-sig="$(printf '%s' "$payload" | SECRET="$GOWA_WEBHOOK_SECRET" python3 -c 'import hashlib, hmac, os, sys; print(hmac.new(os.environ["SECRET"].encode(), sys.stdin.buffer.read(), hashlib.sha256).hexdigest())')"
-if resp="$(curl -sS -m 15 -X POST "$origin/hooks/gowa/" \
+sig="$(WEBHOOK_SECRET="${!secret_var}" webhook_signature "$provider" "$payload")"
+webhook_curl_header_args "$provider" "$sig"
+if resp="$(curl -sS -m 15 -X POST "$origin$hook_path" \
   -H 'Content-Type: application/json' \
-  -H "X-Hub-Signature-256: sha256=$sig" \
+  ${WEBHOOK_CURL_HEADER_ARGS[@]+"${WEBHOOK_CURL_HEADER_ARGS[@]}"} \
   --data-binary "$payload" 2>&1)" && [[ "$resp" =~ \"status\"[[:space:]]*:[[:space:]]*\"ignored\" ]]; then
-  pass "signed POST $origin/hooks/gowa/ -> ignored"
+  pass "signed POST $origin$hook_path ($provider) -> ignored"
 else
-  fail "signed POST $origin/hooks/gowa/ (expected status ignored, got: ${resp:-nothing})"
+  fail "signed POST $origin$hook_path (expected status ignored, got: ${resp:-nothing})"
 fi
 
 # 3. systemd timers

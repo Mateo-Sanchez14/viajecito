@@ -10,7 +10,7 @@ The Pi publishes no ports. The `cloudflared` container dials out to Cloudflare a
 | `<host>` | `^/(api\|hooks\|media\|admin\|static)(/\|$)` | `http://api:8000` |
 | `<host>` | *(empty, catch-all)* | `http://web:3000` |
 
-The path-specific rule must come first. `/hooks/gowa/` (webhook) and `/api/*` go to the api, everything
+The path-specific rule must come first. `/hooks/waha/` and `/hooks/gowa/` (webhooks) and `/api/*` go to the api, everything
 else (pages, `/login`, `/_next/*`) goes to the web app.
 
 ## Option A: token tunnel (default, what `compose.pi.yml` runs)
@@ -19,7 +19,7 @@ Ingress is managed in the Cloudflare dashboard; the container only needs `TUNNEL
 
 1. Cloudflare Zero Trust > Networks > Tunnels > Create a tunnel > Cloudflared. Name it `viajecito`.
 2. Copy the token (the long string after `--token` in the install command) into `TUNNEL_TOKEN` in
-   `/srv/viajecito/pi.env` (host-only file; only the cloudflared container receives it). Do not run the install command it shows: compose runs the connector.
+   `/srv/viajecito/pi.env` (host-only file; only the cloudflared container receives it). Do not run the install command it shows: nothing is installed on the Pi or on your Mac, the `cloudflared` container is the connector.
 3. Public hostname tab > Add a public hostname, twice, in this order:
    1. Subdomain/domain = your host, Path = `^/(api|hooks|media|admin|static)(/|$)`, Service type HTTP,
       URL `api:8000`.

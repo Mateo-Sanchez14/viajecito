@@ -5,8 +5,9 @@
 # Secrets are split per container: api reads /srv/viajecito/api.env (app variables only), cloudflared
 # receives only TUNNEL_TOKEN (interpolated from pi.env), web receives no secrets.
 # API_ENV_FILE only exists so the file can be checked off the Pi (docker compose config); leave it unset.
-# No ports are published: cloudflared reaches api:8000 and web:3000 over the compose network,
-# so nothing can collide with the WAHA / notify services already running on the Pi.
+# No ports are published: cloudflared reaches api:8000 and web:3000 over the compose network, so nothing
+# can collide with the WAHA / notify services already running on the Pi. The api also joins WAHA's existing
+# network, only to talk to WAHA.
 name: viajecito
 
 x-logging: &default-logging
@@ -31,6 +32,13 @@ services:
       timeout: 5s
       retries: 5
       start_period: 60s
+    networks:
+      # default: cloudflared and web reach the api here. waha: WAHA posts webhooks to http://viajecito-api:8000
+      # and the api calls http://waha:3000 (external network of the WAHA stack, see deploy/README.md).
+      default: {}
+      waha:
+        aliases:
+          - viajecito-api
     restart: unless-stopped
     logging: *default-logging
 
@@ -67,3 +75,9 @@ services:
         condition: service_healthy
     restart: unless-stopped
     logging: *default-logging
+
+networks:
+  waha:
+    # Created by the WAHA compose project on the Pi (project "waha" -> waha_default); override in pi.env.
+    external: true
+    name: ${WAHA_NETWORK:-waha_default}
