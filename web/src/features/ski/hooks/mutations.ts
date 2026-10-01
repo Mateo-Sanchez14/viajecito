@@ -1,5 +1,13 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { setMyPass, skiKeys, type PassIn, type PersonRef, type SkiOverview } from "../api/ski";
+import {
+  setMyGear,
+  setMyPass,
+  skiKeys,
+  type GearItemIn,
+  type PassIn,
+  type PersonRef,
+  type SkiOverview,
+} from "../api/ski";
 import { applyMyPass } from "../lib/passes";
 
 /** Sets my lift pass optimistically: the overview flips at once and rolls back on failure. */
@@ -18,5 +26,14 @@ export function useSetMyPass(tripId: string, me: PersonRef) {
       if (context?.previous) queryClient.setQueryData(key, context.previous);
     },
     onSettled: () => queryClient.invalidateQueries({ queryKey: key }),
+  });
+}
+
+/** Replaces my gear plan; the roll-up in the overview is refetched on success. */
+export function useSetMyGear(tripId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (items: GearItemIn[]) => setMyGear(tripId, items),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: skiKeys.overview(tripId) }),
   });
 }
