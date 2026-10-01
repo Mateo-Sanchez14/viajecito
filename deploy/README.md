@@ -159,30 +159,48 @@ holds at least one snapshot. Run `SMOKE_SKIP_RESTIC=1` before the first backup (
 3. Run the first deploy (above; `sudo SMOKE_SKIP_RESTIC=1 /srv/viajecito/scripts/deploy.sh` until the first backup exists, then take one
    with `systemctl start viajecito-backup.service`); `smoke.sh` must pass.
 4. Configure the WAHA session webhook. The session may already carry other webhooks or settings used by
-   `notify`, and `PUT /api/sessions/<session>` **replaces the whole config**, so read it first and send it back
-   with only viajecito's webhook added. Run this on the Pi (the key is read from `api.env`, never typed on a
-   command line that lands in shell history):
+   `notify`, and `PUT /api/sessions/<session>` **replaces the whole config**, so the script below reads the
+   current session first, keeps `name` and all of `config`, and only appends viajecito's webhook (skipped if its
+   URL is already there; `config.webhooks: null` counts as `[]`). WAHA is published on the Pi at
+   `127.0.0.1:3000` (host only), so run it on the Pi. It needs `sudo` to read `api.env` (mode 600), parses that
+   file literally (no shell sourcing), keeps the API key and the existing webhooks' HMAC keys out of argv, shell
+   history and temp files, and never prints any secret. Without arguments it is a dry run that prints the
+   webhook URLs the session would have; pass `apply` to send the `PUT`.
    ```sh
-   set -a; . <(grep -E '^(WAHA_API_KEY|WAHA_SESSION|WAHA_WEBHOOK_HMAC_KEY)=' /srv/viajecito/api.env); set +a
-   curl -fsS -H "X-Api-Key: $WAHA_API_KEY" "http://127.0.0.1:3000/api/sessions/$WAHA_SESSION" > /tmp/waha-session.json
-   cat /tmp/waha-session.json   # review: note every existing webhook and setting
+   sudo python3 - <<'PY'
+   import json, re, sys, urllib.request
+   env = {}
+   for line in open("/srv/viajecito/api.env"):
+       m = re.match(r"\s*([A-Za-z_][A-Za-z0-9_]*)=(.*)$", line.rstrip("\r\n"))
+       if m:
+           env[m.group(1)] = m.group(2)
+   base, session = "http://127.0.0.1:3000", env["WAHA_SESSION"]
+   url = f"{base}/api/sessions/{session}"
+   hook = "http://viajecito-api:8000/hooks/waha/"
+   def call(method, data=None):
+       req = urllib.request.Request(url, data=data, method=method, headers={"X-Api-Key": env["WAHA_API_KEY"], "Content-Type": "application/json"})
+       return json.load(urllib.request.urlopen(req, timeout=30))
+   current = call("GET")
+   body = {"name": current["name"], "config": current.get("config") or {}}  # drops status, me, engine (read-only)
+   hooks = body["config"].get("webhooks") or []
+   if not any(h.get("url") == hook for h in hooks):
+       hooks.append({"url": hook, "events": ["message"], "hmac": {"key": env["WAHA_WEBHOOK_HMAC_KEY"]}})
+   body["config"]["webhooks"] = hooks
+   print("webhooks after update:", [h["url"] for h in hooks])
+   if "apply" in sys.argv[1:]:
+       call("PUT", json.dumps(body).encode())
+       print("session updated")
+   PY
    ```
-   Build the new body from that JSON: keep `name` and everything in `config` (proxy, debug, existing
-   `webhooks` entries with their `hmac`, `retries`, `customHeaders`...), and append:
-   ```json
-   {"url": "http://viajecito-api:8000/hooks/waha/", "events": ["message"], "hmac": {"key": "<WAHA_WEBHOOK_HMAC_KEY>"}}
-   ```
-   ```sh
-   curl -fsS -X PUT -H "X-Api-Key: $WAHA_API_KEY" -H 'Content-Type: application/json' \
-     --data @/tmp/waha-session-new.json "http://127.0.0.1:3000/api/sessions/$WAHA_SESSION"
-   shred -u /tmp/waha-session.json /tmp/waha-session-new.json
-   ```
-   Heads-up: if the session is not `STOPPED`, WAHA stops and restarts it to apply the new config, so there is a
-   short gap in `notify` delivery; do it at a quiet moment. The same shape is documented in WAHA's
+   Check the dry run lists every URL the session had plus `http://viajecito-api:8000/hooks/waha/`, then rerun
+   with `sudo python3 - apply <<'PY'` (same script). If your WAHA exposes other read-only fields in `config`
+   that the `PUT` rejects, remove them from `body` and retry. Heads-up: if the session is not `STOPPED`, WAHA
+   stops and restarts it to apply the new config, so `notify` has a short gap; do it at a quiet moment. The
+   request shapes are documented in WAHA's
    [session update](https://github.com/devlikeapro/waha-docs/blob/main/content/docs/how-to/sessions/api-session-update.md)
    and [webhooks/HMAC](https://github.com/devlikeapro/waha-docs/blob/main/content/docs/how-to/events/index.md) pages
    (WAHA's prose also mentions `PUT /api/sessions/{session}/config`; confirm against your WAHA version's
-   Swagger at `/` if the first form answers 404).
+   Swagger if the first form answers 404).
 5. Add the bot's number (the dedicated WAHA number) to the WhatsApp group.
 6. Create the crew with the real group id:
    `vdc exec api python manage.py bootstrap_crew --name "<crew>" --chat-id <id>@g.us --admin-phone <+E164>`.
