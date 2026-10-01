@@ -1,0 +1,69 @@
+# Production stack for the Raspberry Pi. Lives at /srv/viajecito/compose.pi.yml.
+# Needs Docker Compose >= 2.30 (env_file `format: raw`, added in v2.30.0).
+# Always pass the host env file so ${GHCR_OWNER} / ${IMAGE_TAG} / ${TUNNEL_TOKEN} resolve:
+#   docker compose --env-file /srv/viajecito/pi.env -f /srv/viajecito/compose.pi.yml <command>
+# Secrets are split per container: api reads /srv/viajecito/api.env (app variables only), cloudflared
+# receives only TUNNEL_TOKEN (interpolated from pi.env), web receives no secrets.
+# API_ENV_FILE only exists so the file can be checked off the Pi (docker compose config); leave it unset.
+# No ports are published: cloudflared reaches api:8000 and web:3000 over the compose network,
+# so nothing can collide with the WAHA / notify services already running on the Pi.
+name: viajecito
+
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  api:
+    image: ghcr.io/${GHCR_OWNER:?set GHCR_OWNER in pi.env}/viajecito-api:${IMAGE_TAG:-latest}
+    env_file:
+      # raw: values are passed literally (no interpolation, quotes kept), same as scripts/lib.sh load_env.
+      - path: ${API_ENV_FILE:-/srv/viajecito/api.env}
+        required: true
+        format: raw
+    volumes:
+      - /srv/viajecito/data:/data
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health', timeout=3)"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+    restart: unless-stopped
+    logging: *default-logging
+
+  web:
+    image: ghcr.io/${GHCR_OWNER:?set GHCR_OWNER in pi.env}/viajecito-web:${IMAGE_TAG:-latest}
+    environment:
+      API_INTERNAL_URL: http://api:8000
+      HOSTNAME: 0.0.0.0
+      PORT: "3000"
+    # The runner image is node:alpine, which ships busybox wget.
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:3000/login"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+    logging: *default-logging
+
+  cloudflared:
+    # Pinned to a release tag (latest release when written: 2026.9.3, 2026-09-24); bump deliberately.
+    image: cloudflare/cloudflared:2026.9.3
+    # Token tunnel: ingress rules live in the Cloudflare dashboard.
+    command: tunnel --no-autoupdate run
+    environment:
+      TUNNEL_TOKEN: ${TUNNEL_TOKEN:?set TUNNEL_TOKEN in pi.env}
+    depends_on:
+      api:
+        condition: service_healthy
+      web:
+        condition: service_healthy
+    restart: unless-stopped
+    logging: *default-logging
