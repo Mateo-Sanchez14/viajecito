@@ -259,10 +259,11 @@ call is deduplicated per request) before fetching. The api enforces auth on ever
   `register(plugin)`, `get(key)`, `all()`; core registers `generic` with modules
   `("proposals", "dates", "logistics", "itinerary", "today", "budget", "documents")`. Other apps register
   in `AppConfig.ready()`; `ski` registers type `ski` = generic modules + `"ski"`.
-- Authorization: `crews/use_cases/authz.py` `require_active_member(person_id, crew_id)`; Ninja helpers in
-  `shared/api_auth.py`: `member_of_crew(request, crew_id)` / `member_of_trip(request, trip_id)` return the
-  membership or raise → `404 {"code":"not_found"}` for non-members (never reveal existence), `401
-  unauthenticated` when anonymous. Every milestone endpoint goes through one of them.
+- Authorization: `crews/use_cases/authz.py` `require_active_member(person_id, crew_id, store)`; Ninja
+  helpers `crews.api_auth.member_of_crew(request, crew_id)` and `trips.api_auth.member_of_trip(request, trip_id)`
+  (returns `TripAccess(trip, membership)`) return the membership or raise → `404 {"code":"not_found"}` for
+  non-members (never reveal existence), `401 unauthenticated` when anonymous. (`shared` stays independent, so
+  these helpers cannot live in `shared/`.) Every milestone endpoint goes through one of them.
 - Endpoints (all `django_auth`, snake_case, errors `{code,message}`):
   `GET /api/crews/{crew_id}/trips` → `200 [TripSummaryOut]`;
   `POST /api/crews/{crew_id}/trips {name, type?, start_on?, end_on?, destination_label?, currency?}` →
