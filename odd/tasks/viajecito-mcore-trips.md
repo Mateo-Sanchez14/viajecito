@@ -27,7 +27,7 @@ api `uv run pytest`, ruff, lint-imports, `makemigrations --check`; web `pnpm lin
 ## Progress
 | Task | Status | Evidence |
 |---|---|---|
-| C1 | writer done (390 tests; commits 74e5688…0e43aa1); C1b (events + reminders registries, participants shape) running; verifier after C1b | `uv run pytest` 390 passed, ruff/lint-imports clean, fresh migrate ok, export idempotent (writer) |
-| C2 | writer done (142 tests; commits eee79e3…1209bcb); opus verifier running | `pnpm test` 142 passed, lint/typecheck/build/api:types:check green (writer) |
+| C1 | writer done incl. C1b (425 tests; commits 74e5688…df86aa1); opus verifier running | `uv run pytest` 390 passed, ruff/lint-imports clean, fresh migrate ok, export idempotent (writer) |
+| C2 | verifier opus: REQUEST CHANGES (types vs real contract, ski type, shared ApiError) → correction round running | `pnpm test` 142 passed, lint/typecheck/build/api:types:check green (writer) |
 | C3 | opus design writer running | — |
 | C4 | pending | — |
