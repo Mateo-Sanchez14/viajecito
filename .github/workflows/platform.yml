@@ -1,0 +1,38 @@
+name: platform
+
+on:
+  push:
+    branches: [main]
+    paths: ["deploy/**", "docker-compose.yml", "Makefile", ".github/**"]
+  pull_request:
+    paths: ["deploy/**", "docker-compose.yml", "Makefile", ".github/**"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: platform-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  fake-gowa:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: deploy/dev/fake_gowa
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10.2.0
+        with:
+          python-version: "3.13"
+          enable-cache: true
+          cache-dependency-glob: deploy/dev/fake_gowa/uv.lock
+      - run: uv sync --frozen
+      - run: uv run pytest
+
+  compose:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - run: cp .env.example .env
+      - run: docker compose config -q
