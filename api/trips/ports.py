@@ -1,3 +1,4 @@
+from collections.abc import Callable
 from datetime import date
 from typing import Any, Protocol
 
@@ -36,3 +37,21 @@ class TripStore(Protocol):
     def set_rsvp(self, trip_id: str, person_id: str, rsvp: str) -> ParticipantData:
         """Create or update the person's participation."""
         ...
+
+    def default_trip_id(self, crew_id: str) -> str | None: ...
+
+
+_default_factory: Callable[[], TripStore] | None = None
+
+
+def set_default_store(factory: Callable[[], TripStore]) -> None:
+    """Composition root hook: ``TripsConfig.ready()`` installs the Django store here, so use cases
+    that other apps call directly (``update_trip``...) need no adapter import."""
+    global _default_factory
+    _default_factory = factory
+
+
+def default_store() -> TripStore:
+    if _default_factory is None:
+        raise RuntimeError("no default trip store configured (is the trips app installed?)")
+    return _default_factory()

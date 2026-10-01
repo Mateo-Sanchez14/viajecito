@@ -1,4 +1,5 @@
 from datetime import date
+from decimal import Decimal
 from typing import Literal
 from uuid import UUID
 
@@ -27,6 +28,7 @@ class TripPatchIn(Schema):
     end_on: date | None = None
     destination_label: str | None = Field(None, max_length=200)
     currency: str | None = Field(None, max_length=8)
+    fx_rates: dict[str, Decimal] | None = None
 
 
 class ParticipantIn(Schema):
@@ -60,6 +62,7 @@ class TripOut(Schema):
     destination_label: str
     timezone: str
     currency: str
+    fx_rates: dict[str, str]
     modules: list[str]
     participants: list[ParticipantOut]
     my_rsvp: Rsvp

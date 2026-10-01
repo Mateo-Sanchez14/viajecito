@@ -46,3 +46,36 @@ def test_status_and_rsvp_choices_are_closed():
         domain.validate_status("cancelled")
     with pytest.raises(domain.InvalidTripInputError):
         domain.validate_rsvp("yes")
+
+
+@pytest.mark.parametrize(
+    ("raw", "expected"),
+    [
+        ({}, {}),
+        ({"ARS": "1150.00"}, {"ARS": "1150.00"}),
+        ({"CLP": 950}, {"CLP": "950"}),
+        ({"EUR": 0.92}, {"EUR": "0.92"}),
+    ],
+)
+def test_fx_rates_are_normalized_to_decimal_strings(raw, expected):
+    assert domain.validate_fx_rates(raw) == expected
+
+
+@pytest.mark.parametrize(
+    "raw",
+    [
+        {"ars": "1"},
+        {"AR": "1"},
+        {"ARSS": "1"},
+        {"ARS": "0"},
+        {"ARS": "-3"},
+        {"ARS": "abc"},
+        {"ARS": "NaN"},
+        {"ARS": "Infinity"},
+        {"ARS": None},
+        {f"A{c}{d}": "1" for c in "ABCDEF" for d in "ABC"},  # 18 keys
+    ],
+)
+def test_invalid_fx_rates_are_rejected(raw):
+    with pytest.raises(domain.InvalidTripInputError):
+        domain.validate_fx_rates(raw)

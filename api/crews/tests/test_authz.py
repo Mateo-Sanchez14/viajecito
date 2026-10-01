@@ -90,3 +90,15 @@ def test_anonymous_requests_are_unauthenticated(crew):
     request.auth = None
     with pytest.raises(AuthenticationError):
         member_of_crew(request, crew.pk)
+
+
+def test_active_member_ids_lists_only_active_members(crew, person):
+    from crews.use_cases.active_member_ids import active_member_ids
+
+    other = Person.objects.create_user("+5491155559999")
+    gone = Person.objects.create_user("+5491155558888")
+    join(crew, person)
+    join(crew, other)
+    join(crew, gone, status="removed")
+    assert sorted(active_member_ids(str(crew.pk))) == sorted([str(person.pk), str(other.pk)])
+    assert active_member_ids(str(uuid.uuid4())) == []

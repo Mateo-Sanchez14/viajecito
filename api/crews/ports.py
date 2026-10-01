@@ -1,3 +1,4 @@
+from collections.abc import Callable
 from datetime import datetime
 from typing import Protocol
 
@@ -23,6 +24,8 @@ class CrewStore(Protocol):
 
     def roster_last_synced_at(self, crew_id: str) -> datetime | None: ...
 
+    def active_member_ids(self, crew_id: str) -> list[str]: ...
+
     def chat_id_for_crew(self, crew_id: str) -> str | None: ...
 
     def upsert_roster_member(
@@ -46,3 +49,18 @@ class RosterSource(Protocol):
     def participants(self, chat_id: str) -> list[RosterEntry]:
         """The current members of a WhatsApp group. May raise when the gateway is down."""
         ...
+
+
+_default_factory: Callable[[], CrewStore] | None = None
+
+
+def set_default_store(factory: Callable[[], CrewStore]) -> None:
+    """Composition root hook: ``CrewsConfig.ready()`` installs the Django store here."""
+    global _default_factory
+    _default_factory = factory
+
+
+def default_store() -> CrewStore:
+    if _default_factory is None:
+        raise RuntimeError("no default crew store configured (is the crews app installed?)")
+    return _default_factory()

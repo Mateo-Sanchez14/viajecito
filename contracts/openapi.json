@@ -1075,6 +1075,13 @@
             "title": "Currency",
             "type": "string"
           },
+          "fx_rates": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "Fx Rates",
+            "type": "object"
+          },
           "modules": {
             "items": {
               "type": "string"
@@ -1111,6 +1118,7 @@
           "destination_label",
           "timezone",
           "currency",
+          "fx_rates",
           "modules",
           "participants",
           "my_rsvp"
@@ -1267,6 +1275,28 @@
               }
             ],
             "title": "Currency"
+          },
+          "fx_rates": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "anyOf": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fx Rates"
           }
         },
         "title": "TripPatchIn",
