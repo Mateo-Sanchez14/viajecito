@@ -233,3 +233,15 @@ call is deduplicated per request) before fetching. The api enforces auth on ever
   (`WHATSAPP_WEBHOOK=http://bot:8000/webhooks/gowa/,https://<host>/hooks/gowa/`, gastito first, brief Gowa
   restart); land the gastito change that ignores `/viaje`, `/v` and link-only messages; run
   `bootstrap_crew` with the real `chat_id`; send `/viaje ping` in the group.
+
+### M0c contract amendment (accepted after T10 verification, 2026-10-01)
+
+- Two env files on the Pi, both `chmod 600`: `/srv/viajecito/api.env` holds only what the api needs
+  (`DJANGO_SECRET_KEY`, `PUBLIC_ORIGIN`, `DATABASE_PATH`, `MEDIA_ROOT`, `STATIC_ROOT`, `OTP_*`,
+  `TRUST_CF_CONNECTING_IP`, `GOWA_*`); `/srv/viajecito/pi.env` holds host-only values (`GHCR_OWNER`,
+  `IMAGE_TAG`, `TUNNEL_TOKEN`, `BACKUP_RESTIC_REPOSITORY`, `BACKUP_RESTIC_PASSWORD`, `HEALTHCHECKS_URL`,
+  `PUBLIC_HOST`). `cloudflared` receives only `TUNNEL_TOKEN` and is pinned to a specific version. Compose
+  `env_file` entries use `format: raw`; values are unquoted and limited to `[A-Za-z0-9._~+/=:-]`.
+- Restic snapshots are grouped so retention works (stable backup path or `--group-by host,tags`);
+  `deploy/scripts/restic.sh` wraps the CLI with the host env. HMAC signatures in scripts are computed with
+  the secret in the environment, never on a command line.
