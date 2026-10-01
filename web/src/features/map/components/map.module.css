@@ -1,0 +1,70 @@
+.canvas {
+  height: clamp(320px, 58vh, 560px);
+  width: 100%;
+  isolation: isolate;
+  z-index: 0;
+}
+.marker {
+  background: transparent;
+  border: 0;
+}
+.pin {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 3px;
+  width: 44px;
+  min-height: 44px;
+}
+.number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 3px solid #fff;
+  border-radius: 50%;
+  background: var(--marker-color);
+  color: #fff;
+  font-family: var(--font-geist-sans), sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  box-shadow: 0 2px 8px #0003;
+}
+.label {
+  padding: 2px 6px;
+  border: 1px solid #e7e5e4;
+  border-radius: 6px;
+  background: #fff;
+  color: #1c1917;
+  white-space: nowrap;
+  font-family: var(--font-geist-sans), sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+}
+.canvas :global(.leaflet-control-zoom a) {
+  width: 44px;
+  height: 44px;
+  line-height: 44px;
+}
+.canvas :global(.leaflet-marker-icon:focus-visible) {
+  outline: 3px solid var(--foreground);
+  outline-offset: 5px;
+  border-radius: 50%;
+}
+.canvas :global(.leaflet-popup-content-wrapper) {
+  border-radius: 16px;
+  background: var(--surface);
+  color: var(--foreground);
+}
+.canvas :global(.leaflet-popup-tip) {
+  background: var(--surface);
+}
+.canvas :global(.leaflet-popup-content) {
+  margin: 16px;
+  font-family: var(--font-geist-sans), sans-serif;
+}
+.canvas :global(.leaflet-popup-content a) {
+  color: var(--foreground);
+}

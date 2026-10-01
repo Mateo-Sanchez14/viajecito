@@ -12,6 +12,7 @@ import push from "./push.json";
 import pwa from "./pwa.json";
 import ski from "./ski.json";
 import trips from "./trips.json";
+import map from "./map.json";
 
 export default mergeMessages(
   auth,
@@ -25,4 +26,5 @@ export default mergeMessages(
   pwa,
   ski,
   trips,
+  map,
 );
