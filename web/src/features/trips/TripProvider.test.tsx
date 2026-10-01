@@ -2,21 +2,23 @@ import { act, screen } from "@testing-library/react";
 import { createOpenApiHttp } from "openapi-msw";
 import { describe, expect, it, vi } from "vitest";
 import type { paths } from "@/shared/api/schema";
+import { MeProvider } from "@/features/auth/MeProvider";
 import { renderWithProviders } from "@/test/render";
 import { server } from "@/test/server";
-import { TRIP_ID, makeTrip } from "./fixtures";
+import { TRIP_ID, makeMe, makeTrip } from "./fixtures";
 import { TripProvider, useTripContext } from "./TripProvider";
 
 const http = createOpenApiHttp<paths>({ baseUrl: globalThis.location.origin });
 
 function Probe() {
-  const { trip, modules, participants, myRsvp, refetch } = useTripContext();
+  const { trip, modules, participants, myRsvp, me, refetch } = useTripContext();
   return (
     <div>
       <p data-testid="name">{trip.name}</p>
       <p data-testid="modules">{modules.join(",")}</p>
       <p data-testid="participants">{participants.length}</p>
       <p data-testid="rsvp">{myRsvp}</p>
+      <p data-testid="me">{me.person.display_name}</p>
       <button onClick={() => void refetch()}>refetch</button>
     </div>
   );
@@ -25,15 +27,18 @@ function Probe() {
 describe("TripProvider", () => {
   it("exposes the trip, its modules, participants and my RSVP", () => {
     renderWithProviders(
-      <TripProvider trip={makeTrip({ modules: ["dates", "budget"], my_rsvp: "maybe" })}>
-        <Probe />
-      </TripProvider>,
+      <MeProvider me={makeMe()}>
+        <TripProvider trip={makeTrip({ modules: ["dates", "budget"], my_rsvp: "maybe" })}>
+          <Probe />
+        </TripProvider>
+      </MeProvider>,
     );
 
     expect(screen.getByTestId("name")).toHaveTextContent("Bariloche 2027");
     expect(screen.getByTestId("modules")).toHaveTextContent("dates,budget");
     expect(screen.getByTestId("participants")).toHaveTextContent("2");
     expect(screen.getByTestId("rsvp")).toHaveTextContent("maybe");
+    expect(screen.getByTestId("me")).toHaveTextContent("Mateo");
   });
 
   it("refetches the trip from the api and updates the context", async () => {
@@ -44,9 +49,11 @@ describe("TripProvider", () => {
       }),
     );
     renderWithProviders(
-      <TripProvider trip={makeTrip()}>
-        <Probe />
-      </TripProvider>,
+      <MeProvider me={makeMe()}>
+        <TripProvider trip={makeTrip()}>
+          <Probe />
+        </TripProvider>
+      </MeProvider>,
     );
 
     await act(async () => {

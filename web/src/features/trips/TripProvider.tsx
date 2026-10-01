@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useMemo, type ReactNode } from "react";
+import { useMe, type Me } from "@/features/auth/MeProvider";
 import type { Participant, Rsvp, Trip } from "./api/trips";
 import { useTrip } from "./hooks/useTrip";
 
@@ -9,6 +10,7 @@ type TripContextValue = {
   modules: string[];
   participants: Participant[];
   myRsvp: Rsvp;
+  me: Me;
   refetch: () => Promise<void>;
 };
 
@@ -21,6 +23,7 @@ const TripContext = createContext<TripContextValue | null>(null);
 export function TripProvider({ trip: initialTrip, children }: { trip: Trip; children: ReactNode }) {
   const { data, refetch } = useTrip(initialTrip.id, initialTrip);
   const trip = data ?? initialTrip;
+  const me = useMe();
 
   const value = useMemo<TripContextValue>(
     () => ({
@@ -28,11 +31,12 @@ export function TripProvider({ trip: initialTrip, children }: { trip: Trip; chil
       modules: trip.modules,
       participants: trip.participants,
       myRsvp: trip.my_rsvp,
+      me,
       refetch: async () => {
         await refetch();
       },
     }),
-    [trip, refetch],
+    [trip, me, refetch],
   );
 
   return <TripContext.Provider value={value}>{children}</TripContext.Provider>;

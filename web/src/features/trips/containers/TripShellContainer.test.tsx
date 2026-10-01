@@ -1,9 +1,10 @@
 import { screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { MeProvider } from "@/features/auth/MeProvider";
 import { renderWithProviders } from "@/test/render";
 import messages from "../../../../messages/es-AR";
 import { TripProvider } from "../TripProvider";
-import { CREW_ID, TRIP_ID, formatDay, makeTrip } from "../fixtures";
+import { CREW_ID, TRIP_ID, formatDay, makeMe, makeTrip } from "../fixtures";
 import { TripShellContainer } from "./TripShellContainer";
 
 let pathname = "";
@@ -13,11 +14,13 @@ const base = `/crews/${CREW_ID}/trips/${TRIP_ID}`;
 
 function setup(modules = ["proposals", "budget"]) {
   return renderWithProviders(
-    <TripProvider trip={makeTrip({ modules })}>
-      <TripShellContainer>
-        <p>contenido</p>
-      </TripShellContainer>
-    </TripProvider>,
+    <MeProvider me={makeMe()}>
+      <TripProvider trip={makeTrip({ modules })}>
+        <TripShellContainer>
+          <p>contenido</p>
+        </TripShellContainer>
+      </TripProvider>
+    </MeProvider>,
   );
 }
 

@@ -67,6 +67,27 @@ describe("RsvpControl", () => {
     await waitFor(() => expect(pressed(t.out)).toBe("true"));
   });
 
+  it("disables the options while the answer is being saved", async () => {
+    let release: () => void = () => {};
+    const gate = new Promise<void>((resolve) => (release = resolve));
+    server.use(
+      csrf,
+      http.put("/api/trips/{trip_id}/participation", async () => {
+        await gate;
+        return HttpResponse.json(makeParticipant({ rsvp: "out" }));
+      }),
+      tripWith("out"),
+    );
+    setup("in");
+
+    fireEvent.click(screen.getByRole("button", { name: t.out }));
+
+    await waitFor(() => expect(screen.getByRole("button", { name: t.maybe })).toBeDisabled());
+    expect(screen.getByRole("button", { name: t.in })).toBeDisabled();
+    release();
+    await waitFor(() => expect(screen.getByRole("button", { name: t.maybe })).toBeEnabled());
+  });
+
   it("rolls back and shows an error when the api fails", async () => {
     server.use(
       csrf,
