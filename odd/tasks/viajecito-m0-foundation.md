@@ -161,3 +161,9 @@ All M0 code is built, verified and integrated locally (login e2e + bot smoke gre
 - [x] **T10b** (platform, delegated, commits 6f47faa, e8775e3; fake-gowa 26 tests; merged): fake Gowa `GET /group/participants` + seeding (`PUT /__groups/{id}`),
   `deploy/scripts/bot_smoke.sh` + `make bot-smoke` (replay `/viaje ping` → `pong` reply, duplicate → `duplicate`,
   `tick` runs), CI job.
+
+## Delivery record
+
+- 2026-10-01 — user decisions: public GitHub repo `Mateo-Sanchez14/viajecito`; M0 delivered by merging
+  `feat/m0-foundation` into `main` directly (no PR chain; verification by opus verifiers + checks + e2e +
+  bot smoke). `images.yml` builds the arm64 images on `main`.
