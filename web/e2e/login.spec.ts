@@ -1,11 +1,15 @@
 import { expect, test } from "@playwright/test";
 import messages from "../messages/es-AR";
 
-const phone = process.env.E2E_PHONE ?? "+54 9 11 5555 1234";
+// Not E2E_PHONE: auth.setup.ts logs that one in, and a second OTP request for the same phone would
+// invalidate its code and hit the 60 s rate limit. Must be a member too (see the Makefile `e2e`).
+const phone = process.env.E2E_LOGIN_PHONE ?? "+5491100000002";
 const fakeGowaUrl = process.env.FAKE_GOWA_URL ?? "http://localhost:4000";
 
 // A retry would re-request a code inside the api's 60 s per-phone rate limit and get a 429.
 test.describe.configure({ retries: 0 });
+// This spec exercises the login itself, so it starts anonymous.
+test.use({ storageState: { cookies: [], origins: [] } });
 
 /** Polls fake Gowa until the OTP message for `phone` exists and returns its 6-digit code. */
 async function readCode(

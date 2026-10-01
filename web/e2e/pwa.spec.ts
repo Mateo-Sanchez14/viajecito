@@ -1,39 +1,9 @@
 import AxeBuilder from "@axe-core/playwright";
-import { expect, test, type APIRequestContext, type Page } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 import messages from "../messages/es-AR";
 
-const phone = process.env.E2E_PHONE ?? "+54 9 11 5555 1234";
-const fakeGowaUrl = process.env.FAKE_GOWA_URL ?? "http://localhost:4000";
 // The service worker only exists in `next build` output: set this when E2E_BASE_URL points at one.
 const productionBuild = Boolean(process.env.E2E_PRODUCTION_BUILD);
-
-async function readCode(request: APIRequestContext, digits: string): Promise<string> {
-  let code: string | undefined;
-  await expect
-    .poll(
-      async () => {
-        const response = await request.get(`${fakeGowaUrl}/__sent/latest?phone=${digits}`);
-        if (!response.ok()) return undefined;
-        const { message } = (await response.json()) as { message?: string };
-        code = /\b(\d{6})\b/.exec(message ?? "")?.[1];
-        return code;
-      },
-      { timeout: 15_000 },
-    )
-    .toBeDefined();
-  return code as string;
-}
-
-async function login(page: Page, request: APIRequestContext) {
-  await request.delete(`${fakeGowaUrl}/__sent`);
-  await page.goto("/login");
-  await page.getByLabel(messages.auth.phone.label).fill(phone);
-  await page.getByRole("button", { name: messages.auth.phone.submit }).click();
-  await expect(page.getByLabel(messages.auth.code.label)).toBeVisible();
-  await page.getByLabel(messages.auth.code.label).fill(await readCode(request, phone.replace(/\D/g, "")));
-  await page.getByRole("button", { name: messages.auth.code.submit }).click();
-  await expect(page.getByText(messages.home.greeting.replace("{name}", "").trim())).toBeVisible();
-}
 
 async function expectNoSeriousViolations(page: Page) {
   const { violations } = await new AxeBuilder({ page }).analyze();
@@ -41,7 +11,10 @@ async function expectNoSeriousViolations(page: Page) {
   expect(serious.map((v) => `${v.id}: ${v.help}`)).toEqual([]);
 }
 
+// Public checks run anonymously.
 test.describe("web app manifest", () => {
+  test.use({ storageState: { cookies: [], origins: [] } });
+
   test("is served, valid and linked from the page head", async ({ page, request }) => {
     const response = await request.get("/manifest.webmanifest");
     expect(response.ok()).toBe(true);
@@ -74,6 +47,7 @@ test.describe("web app manifest", () => {
 });
 
 test.describe("service worker", () => {
+  test.use({ storageState: { cookies: [], origins: [] } });
   test.skip(!productionBuild, "The service worker is only built for production (set E2E_PRODUCTION_BUILD=1).");
 
   test("registers at the site scope and precaches the offline page", async ({ page }) => {
@@ -92,15 +66,19 @@ test.describe("service worker", () => {
 });
 
 test.describe("accessibility (axe: no serious or critical violations)", () => {
-  test("public routes", async ({ page }) => {
-    for (const path of ["/login", "/~offline"]) {
-      await page.goto(path);
-      await expectNoSeriousViolations(page);
-    }
+  test.describe("anonymous", () => {
+    test.use({ storageState: { cookies: [], origins: [] } });
+
+    test("public routes", async ({ page }) => {
+      for (const path of ["/login", "/~offline"]) {
+        await page.goto(path);
+        await expectNoSeriousViolations(page);
+      }
+    });
   });
 
-  test("signed-in routes", async ({ page, request }) => {
-    await login(page, request);
+  test("signed-in routes", async ({ page }) => {
+    // Signed in through the shared storage state.
     for (const path of ["/", "/me/notifications"]) {
       await page.goto(path);
       await expect(page.getByRole("heading", { level: 1 }).first()).toBeVisible();
