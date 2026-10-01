@@ -16,7 +16,9 @@ from crews.use_cases.sync_roster import (
     sync_roster,
 )
 from messaging.adapters.gowa_factory import build_gowa_client
+from messaging.adapters.provider import build_waha_client
 from messaging.gowa.parser import normalize_jid
+from messaging.waha.parser import normalize_jid as normalize_waha_jid
 from shared.clock import Clock, SystemClock
 
 logger = logging.getLogger(__name__)
@@ -45,6 +47,32 @@ class GowaRosterSource:
         ]
 
 
+class WahaRosterSource:
+    """The group's participants from WAHA, without the session's own account."""
+
+    def participants(self, chat_id: str) -> list[RosterEntry]:
+        client = build_waha_client()
+        bot = client.own_jids()
+        entries = []
+        for p in client.group_participants(chat_id):
+            if p.jid in bot or (p.phone_number and p.phone_number in bot):
+                continue
+            phone = normalize_waha_jid(p.phone_number)
+            entries.append(
+                RosterEntry(
+                    jid=phone or p.jid,
+                    phone=phone or None,
+                    lid=p.lid,
+                    display_name=p.display_name,
+                )
+            )
+        return entries
+
+
+def roster_source() -> GowaRosterSource | WahaRosterSource:
+    return WahaRosterSource() if settings.WHATSAPP_PROVIDER == "waha" else GowaRosterSource()
+
+
 class CrewsGateway:
     def __init__(self, clock: Clock | None = None) -> None:
         self._store = DjangoCrewStore()
@@ -63,7 +91,7 @@ class CrewsGateway:
         return roster_last_synced_at(crew_id, self._store)
 
     def sync_roster(self, crew_id: str) -> RosterSyncResult:
-        return sync_roster(crew_id, GowaRosterSource(), self._store, self._clock)
+        return sync_roster(crew_id, roster_source(), self._store, self._clock)
 
     def crews_needing_sync(self, before: datetime) -> list[str]:
         return crews_needing_sync(before, self._store)

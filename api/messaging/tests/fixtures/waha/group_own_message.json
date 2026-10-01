@@ -1,0 +1,14 @@
+{
+  "event": "message",
+  "session": "default",
+  "engine": "GOWS",
+  "payload": {
+    "id": "true_120363000000000000@g.us_3EB0CCCC0000000001",
+    "timestamp": 1760524380,
+    "from": "120363000000000000@g.us",
+    "fromMe": true,
+    "participant": "5491100000009@c.us",
+    "body": "pong",
+    "hasMedia": false
+  }
+}

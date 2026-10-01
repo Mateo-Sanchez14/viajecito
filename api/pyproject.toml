@@ -13,6 +13,7 @@ dependencies = [
     "httpx>=0.28",
     "selectolax>=0.3",
     "pillow>=11",
+    "pywebpush>=2.5.0",
 ]
 
 [dependency-groups]
@@ -36,7 +37,18 @@ package = false
 DJANGO_SETTINGS_MODULE = "config.settings.test"
 addopts = "--disable-socket --allow-unix-socket -ra"
 testpaths = [
-    "tests", "ops", "shared", "identity", "crews", "messaging", "trips", "linkpreview", "proposals",
+    "tests",
+    "ops",
+    "shared",
+    "identity",
+    "crews",
+    "messaging",
+    "trips",
+    "decisions",
+    "notifications",
+    "ski",
+    "linkpreview",
+    "proposals",
 ]
 python_files = ["test_*.py"]
 
@@ -53,14 +65,39 @@ select = ["E", "F", "I", "B", "UP"]
 
 [tool.ruff.lint.isort]
 known-first-party = [
-    "config", "shared", "ops", "identity", "crews", "messaging", "trips", "linkpreview", "proposals",
+    "config",
+    "shared",
+    "ops",
+    "identity",
+    "crews",
+    "messaging",
+    "trips",
+    "decisions",
+    "notifications",
+    "ski",
+    "linkpreview",
+    "proposals",
 ]
 
 [tool.importlinter]
 root_packages = [
-    "config", "shared", "ops", "identity", "crews", "messaging", "trips", "linkpreview", "proposals",
-    "django", "ninja", "httpx",
+    "config",
+    "shared",
+    "ops",
+    "identity",
+    "crews",
+    "messaging",
+    "trips",
+    "decisions",
+    "notifications",
+    "django",
+    "ninja",
+    "httpx",
+    "ski",
+    "linkpreview",
+    "proposals",
 ]
+
 include_external_packages = true
 
 [[tool.importlinter.contracts]]
@@ -68,7 +105,9 @@ name = "shared depends on no other project package"
 type = "forbidden"
 source_modules = ["shared"]
 forbidden_modules = [
-    "config", "ops", "identity", "crews", "messaging", "trips", "linkpreview", "proposals",
+    "config", "ops", "identity", "crews", "messaging", "trips", "decisions", "notifications", "ski",
+    "linkpreview",
+    "proposals",
 ]
 
 [[tool.importlinter.contracts]]
@@ -80,13 +119,20 @@ source_modules = [
     "messaging.use_cases", "messaging.ports", "messaging.domain", "messaging.router",
     "messaging.handlers",
     "trips.domain", "trips.use_cases", "trips.ports", "trips.plugins",
+    "decisions.domain", "decisions.use_cases", "decisions.ports",
     "messaging.reminders",
     "shared.phone", "shared.clock", "shared.events",
     "shared.timezones",
     "linkpreview.domain", "linkpreview.use_cases", "linkpreview.ports",
     "proposals.domain", "proposals.use_cases", "proposals.ports", "proposals.copy",
+    "notifications.domain",
+    "notifications.use_cases",
+    "notifications.ports",
+    "ski.domain",
+    "ski.use_cases",
+    "ski.ports",
 ]
-forbidden_modules = ["django", "ninja", "httpx"]
+forbidden_modules = ["django", "ninja", "httpx", "pywebpush", "requests"]
 
 [[tool.importlinter.contracts]]
 name = "messaging reaches other apps only through their use cases"
@@ -111,6 +157,28 @@ ignore_imports = [
 ]
 
 [[tool.importlinter.contracts]]
+name = "notifications reaches other apps only through their use cases"
+type = "forbidden"
+source_modules = ["notifications"]
+forbidden_modules = [
+    "identity.models", "identity.domain", "identity.ports", "identity.adapters", "identity.api",
+    "identity.schemas", "crews.models", "crews.domain", "crews.ports", "crews.adapters",
+    "crews.api", "crews.schemas",
+    "trips.models", "trips.domain", "trips.ports", "trips.adapters", "trips.api", "trips.schemas",
+    "messaging.models", "messaging.domain", "messaging.ports", "messaging.adapters",
+    "messaging.api", "messaging.schemas", "messaging.use_cases", "messaging.handlers",
+]
+# Only direct imports are checked. ``messaging.reminders`` (the registries) is the allowed seam.
+allow_indirect_imports = true
+ignore_imports = [
+    "notifications.tests.* -> crews.models",
+    "notifications.tests.* -> identity.models",
+    "notifications.tests.* -> trips.models",
+    "notifications.tests.* -> trips.domain",
+    "notifications.tests.* -> messaging.models",
+]
+
+[[tool.importlinter.contracts]]
 name = "crews does not depend on identity, messaging or trips"
 type = "forbidden"
 source_modules = ["crews"]
@@ -122,6 +190,51 @@ name = "trips never imports a trip-type plugin"
 type = "forbidden"
 source_modules = ["trips"]
 forbidden_modules = ["ski"]
+
+[[tool.importlinter.contracts]]
+name = "ski reaches other apps only through their use cases"
+type = "forbidden"
+source_modules = ["ski"]
+forbidden_modules = [
+    "identity.models", "identity.domain", "identity.ports", "identity.adapters", "identity.api",
+    "identity.schemas", "crews.models", "crews.domain", "crews.ports", "crews.adapters",
+    "crews.api", "crews.schemas",
+    "trips.models", "trips.domain", "trips.ports", "trips.adapters", "trips.api",
+    "trips.schemas",
+    "messaging.models", "messaging.domain", "messaging.ports", "messaging.adapters",
+    "messaging.api", "messaging.schemas",
+]
+allow_indirect_imports = true
+# Tests create their rows through the other apps' models.
+ignore_imports = [
+    "ski.tests.* -> crews.models",
+    "ski.tests.* -> identity.models",
+    "ski.tests.* -> trips.models",
+    "ski.tests.* -> messaging.domain",
+]
+
+[[tool.importlinter.contracts]]
+name = "decisions reaches other apps only through their use cases"
+type = "forbidden"
+source_modules = ["decisions"]
+forbidden_modules = [
+    "identity.models", "identity.domain", "identity.ports", "identity.adapters", "identity.api",
+    "identity.schemas", "crews.models", "crews.domain", "crews.ports", "crews.adapters",
+    "crews.schemas",
+    "trips.models", "trips.domain", "trips.ports", "trips.adapters", "trips.schemas",
+    "messaging.models", "messaging.adapters", "messaging.ports", "messaging.domain",
+    "messaging.use_cases",
+]
+allow_indirect_imports = true
+# ``crews.api_auth`` / ``trips.api_auth`` are the published authorization helpers; tests create
+# core rows and the gateway adapters are decisions' single bridge to the trips/crews use cases.
+ignore_imports = [
+    "decisions.tests.* -> crews.models",
+    "decisions.tests.* -> identity.models",
+    "decisions.tests.* -> trips.models",
+    "decisions.tests.* -> messaging.domain",
+    "decisions.tests.* -> messaging.models",
+]
 
 [[tool.importlinter.contracts]]
 name = "linkpreview is independent of the other milestone apps"

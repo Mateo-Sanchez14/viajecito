@@ -1,0 +1,117 @@
+{
+  "dates": {
+    "title": "Fechas",
+    "loading": "Cargando fechas…",
+    "windowLine": "Entre el {start} y el {end}",
+    "retry": "Reintentar",
+    "deadline": "Cerramos el {date}",
+    "open": {
+      "title": "¿Cuándo viajamos?",
+      "range": "Entre",
+      "from": "Desde",
+      "to": "Hasta",
+      "minDays": "Días de viaje (mínimo)",
+      "maxDays": "Máximo",
+      "maxDaysHint": "Si lo dejás vacío, es igual al mínimo",
+      "deadline": "Cerramos la votación el",
+      "deadlineHint": "Es opcional, pero ayuda a que todos marquen a tiempo",
+      "advanced": "Avanzado",
+      "maybeWeight": "Cuánto vale un “capaz”",
+      "maybeWeightHint": "De 0 (no cuenta) a 1 (vale como un “puedo”)",
+      "submit": "Abrir votación",
+      "submitting": "Abriendo…",
+      "edit": "Editar la votación",
+      "save": "Guardar cambios",
+      "saving": "Guardando…",
+      "cancel": "Cancelar",
+      "errors": {
+        "rangeRequired": "Elegí desde cuándo hasta cuándo",
+        "endBeforeStart": "El final no puede ser antes que el inicio",
+        "rangeTooLong": "El rango puede ser de hasta 180 días",
+        "minDaysInvalid": "Poné entre 1 y 60 días",
+        "maxDaysInvalid": "Poné entre 1 y 60 días, y no menos que el mínimo",
+        "minExceedsRange": "El viaje no entra en ese rango, ampliá las fechas o acortá los días",
+        "deadlinePast": "La fecha de cierre tiene que ser a futuro",
+        "weightInvalid": "Poné un número entre 0 y 1"
+      }
+    },
+    "grid": {
+      "label": "Tus días disponibles",
+      "legend": {
+        "yes": "Puedo",
+        "maybe": "Capaz",
+        "no": "No puedo",
+        "clear": "Borrar",
+        "empty": "Sin marcar"
+      },
+      "paint": "Pintar",
+      "paintHint": "Con “Pintar” activado, arrastrá el dedo sobre los días para marcarlos de una",
+      "paintValue": "Qué pintar",
+      "tapHint": "Tocá un día para cambiar su estado: puedo, capaz, no puedo",
+      "cellLabel": "{day}: {answer}",
+      "saving": "Guardando…"
+    },
+    "heatmap": {
+      "title": "El grupo",
+      "cellLabel": "{day}: {yes} pueden, {maybe} capaz",
+      "detailTitle": "{day}",
+      "yes": "Pueden",
+      "maybe": "Capaz",
+      "no": "No pueden",
+      "nobody": "Nadie marcó este día"
+    },
+    "best": {
+      "title": "Las mejores fechas",
+      "line": "{start} al {end} · {full} pueden",
+      "close": "Cerrar con estas fechas",
+      "noData": "Cuando marquen sus días, acá aparecen las mejores opciones",
+      "days": "{count} días",
+      "blocked": "{count} no pueden",
+      "none": "Nadie se complica",
+      "weekend": "{count} de fin de semana",
+      "missing": "Faltan {count}"
+    },
+    "missing": {
+      "title": "Falta que marquen",
+      "none": "Ya marcaron todos"
+    },
+    "closed": {
+      "title": "Fechas cerradas",
+      "line": "{start} al {end}",
+      "reopen": "Reabrir votación",
+      "closedBy": "Las cerró {name}"
+    },
+    "empty": {
+      "title": "Todavía no votamos fechas",
+      "description": "Abrí la votación y cada uno marca los días que puede",
+      "tripDates": "El viaje ya tiene fechas: {range}",
+      "voteOther": "Votar otras fechas"
+    },
+    "confirm": {
+      "close": "¿Cerramos con {start} al {end}?",
+      "overwrite": "El viaje ya tiene fechas, las vamos a reemplazar",
+      "closeAction": "Cerrar votación",
+      "reopen": "¿Reabrimos la votación?",
+      "reopenDescription": "Las fechas del viaje no cambian hasta que volvamos a cerrar",
+      "reopenAction": "Reabrir",
+      "cancel": "Cancelar"
+    },
+    "overview": {
+      "voted": "Votaron {n} de {total}",
+      "best": "mejor: {range}",
+      "empty": "Todavía no se votó, abrí la votación",
+      "fixed": "Fechas fijadas"
+    },
+    "errors": {
+      "decision_already_open": "Ya hay una votación abierta",
+      "decision_closed": "La votación ya está cerrada",
+      "decision_open": "La votación ya está abierta",
+      "invalid_window": "Revisá el rango de fechas",
+      "date_out_of_range": "Ese día está fuera del rango",
+      "invalid_request": "Revisá los datos e intentá de nuevo",
+      "no_window": "Todavía no hay fechas para cerrar",
+      "not_found": "No encontramos esta votación",
+      "unknown": "Algo salió mal, probá de nuevo"
+    }
+  }
+}

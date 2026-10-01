@@ -8,4 +8,7 @@ PROJECT_APPS = [
     "trips",
     "linkpreview",
     "proposals",
+    "decisions",
+    "notifications",
+    "ski",
 ]

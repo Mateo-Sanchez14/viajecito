@@ -46,3 +46,9 @@ next-env.d.ts
 # playwright
 /test-results/
 /playwright-report/
+
+# serwist (generated service worker)
+/public/sw.js
+/public/sw.js.map
+/public/swe-worker-*.js
+/public/workbox-*.js

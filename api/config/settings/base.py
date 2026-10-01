@@ -4,6 +4,7 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 from environs import Env
+from marshmallow.validate import OneOf
 
 from config.settings.apps import PROJECT_APPS
 
@@ -19,7 +20,12 @@ DEBUG = env.bool("DJANGO_DEBUG", False)
 
 PUBLIC_ORIGIN = env.str("PUBLIC_ORIGIN", "http://localhost:3000")
 _origin = urlparse(PUBLIC_ORIGIN)
-ALLOWED_HOSTS = sorted({"localhost", "127.0.0.1", "[::1]", "api", _origin.hostname or "localhost"})
+ALLOWED_HOSTS = sorted(
+    {"localhost", "127.0.0.1", "[::1]", "api", _origin.hostname or "localhost"}
+    | {
+        host.strip() for host in env.list("EXTRA_ALLOWED_HOSTS", []) if host.strip()
+    }  # e.g. the Docker alias other services call
+)
 CSRF_TRUSTED_ORIGINS = [PUBLIC_ORIGIN]
 
 INSTALLED_APPS = [
@@ -128,6 +134,13 @@ GOWA_DEVICE_ID = env.str("GOWA_DEVICE_ID", "")  # optional, sent as X-Device-Id
 # Reminder mentions always render as @<digits>; this flag only controls whether the mentioned JIDs
 # are also passed to Gowa (its ``mentions`` field is unconfirmed, hence off by default).
 GOWA_MENTIONS_ENABLED = env.bool("GOWA_MENTIONS_ENABLED", False)
+
+# Which WhatsApp gateway the sender, replier, OTP delivery and roster sync talk to.
+WHATSAPP_PROVIDER = env.str("WHATSAPP_PROVIDER", "gowa", validate=OneOf(["gowa", "waha"]))
+WAHA_BASE_URL = env.str("WAHA_BASE_URL", "http://localhost:3000")
+WAHA_API_KEY = env.str("WAHA_API_KEY", "")  # sent as X-Api-Key
+WAHA_SESSION = env.str("WAHA_SESSION", "default")
+WAHA_WEBHOOK_HMAC_KEY = env.str("WAHA_WEBHOOK_HMAC_KEY", "")  # empty fails closed
 
 # Inbound processing. False: process on a worker thread after the webhook commits; True: inline.
 MESSAGING_PROCESS_SYNC = env.bool("MESSAGING_PROCESS_SYNC", False)

@@ -100,6 +100,18 @@ describe("TripOverview", () => {
     ]);
   });
 
+  it("hides the list item of a card that renders nothing, so no empty grid cell remains", () => {
+    setup(makeTrip({ modules: [] }), [
+      { key: "empty", order: 1, Component: () => null },
+      { key: "full", order: 2, Component: () => <p>full card</p> },
+    ]);
+
+    const items = within(screen.getByRole("list", { name: messages.trips.overview.modules })).getAllByRole("listitem");
+    const empty = items.find((li) => li.childElementCount === 0 && li.textContent === "");
+    expect(empty).toHaveClass("empty:hidden");
+    expect(items.find((li) => li.textContent === "full card")).toBeDefined();
+  });
+
   it("includes the RSVP control", () => {
     setup();
 

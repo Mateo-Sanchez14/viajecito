@@ -10,6 +10,7 @@ from django.core.management import call_command
 
 from crews.models import Crew, CrewMembership, WhatsAppGroupLink
 from identity.models import Person, WhatsAppIdentity
+from messaging import reminders
 from messaging.models import InboundMessage, JobLock, OutboundMessage
 
 BASE = "http://gowa.test"
@@ -77,7 +78,10 @@ def queued_outbound(age_seconds=120, **fields) -> OutboundMessage:
 @pytest.mark.django_db
 def test_prints_a_one_line_json_summary(crew, gowa):
     WhatsAppGroupLink.objects.filter(crew=crew).update(last_synced_at=NOW)
-    summary = tick()
+    # Milestones register rules, channels and jobs in ready(); isolate them so the
+    # summary stays stable regardless of which apps are installed.
+    with reminders.isolated():
+        summary = tick()
     assert summary == {
         "requeued": 0,
         "swept_failed": 0,

@@ -2,7 +2,7 @@
 
 E2E_PHONE ?= +5491155551234
 export DATA_DIR ?= ./data
-.PHONY: help up down logs ps api-test web-test test lint api-schema api-types api-types-check fake-gowa-test replay deploy bootstrap-dev-crew e2e e2e-keep bot-smoke
+.PHONY: help up down logs ps api-test web-test test lint api-schema api-types api-types-check fake-gowa-test replay deploy bootstrap-dev-crew e2e e2e-keep bot-smoke replay-waha
 
 help: ## Show this help
 	@awk 'BEGIN {FS = ":.*## "} /^[a-zA-Z0-9_-]+:.*## / {printf "  \033[36m%-18s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -69,6 +69,9 @@ bot-smoke: ## Dev stack + fake Gowa: replay /viaje ping, expect pong, duplicate 
 
 replay: ## Replay a recorded Gowa webhook against the local api (make replay FIXTURE=<path>)
 	cd api && uv run python manage.py replay_gowa ../$(FIXTURE)
+
+replay-waha: ## Replay a recorded WAHA webhook against the local api (make replay-waha FIXTURE=<path>)
+	cd api && uv run python manage.py replay_waha ../$(FIXTURE)
 
 deploy: ## Print the Pi deployment pointer (deploys run on the Pi)
 	@echo "Run deploy/scripts/deploy.sh on the Pi; see deploy/README.md"

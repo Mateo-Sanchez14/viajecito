@@ -49,4 +49,34 @@ assert_eq "newest kept" "yes" "$([[ -e "$tmp/b/db-2026-01-10T000000Z.sqlite3" ]]
 prune_local_snapshots "$tmp/empty-does-not-exist" 7
 assert_eq "empty dir ok" "0" "$?"
 
+# Webhook probe helpers: the provider decides path, secret variable, signature and headers.
+assert_eq "gowa path" "/hooks/gowa/" "$(webhook_path gowa)"
+assert_eq "waha path" "/hooks/waha/" "$(webhook_path waha)"
+assert_eq "default provider is gowa" "gowa" "$(provider_of "")"
+assert_eq "provider passthrough" "waha" "$(provider_of waha)"
+assert_eq "gowa secret var" "GOWA_WEBHOOK_SECRET" "$(webhook_secret_var gowa)"
+assert_eq "waha secret var" "WAHA_WEBHOOK_HMAC_KEY" "$(webhook_secret_var waha)"
+body='{"event":"message","payload":{"id":"x"}}'
+expected_waha="$(printf '%s' "$body" | python3 -c 'import hashlib,hmac,sys; print(hmac.new(b"k3y", sys.stdin.buffer.read(), hashlib.sha512).hexdigest())')"
+expected_gowa="$(printf '%s' "$body" | python3 -c 'import hashlib,hmac,sys; print(hmac.new(b"k3y", sys.stdin.buffer.read(), hashlib.sha256).hexdigest())')"
+assert_eq "waha sha512 signature" "$expected_waha" "$(WEBHOOK_SECRET=k3y webhook_signature waha "$body")"
+assert_eq "gowa sha256 signature" "$expected_gowa" "$(WEBHOOK_SECRET=k3y webhook_signature gowa "$body")"
+# The curl args are consumed exactly as smoke.sh does (webhook_curl_header_args), so count and values are asserted.
+webhook_curl_header_args waha "$expected_waha"
+assert_eq "waha curl arg count" "4" "${#WEBHOOK_CURL_HEADER_ARGS[@]}"
+assert_eq "waha curl arg 0" "-H" "${WEBHOOK_CURL_HEADER_ARGS[0]}"
+assert_eq "waha curl arg 1" "X-Webhook-Hmac: $expected_waha" "${WEBHOOK_CURL_HEADER_ARGS[1]}"
+assert_eq "waha curl arg 2" "-H" "${WEBHOOK_CURL_HEADER_ARGS[2]}"
+assert_eq "waha curl arg 3" "X-Webhook-Hmac-Algorithm: sha512" "${WEBHOOK_CURL_HEADER_ARGS[3]}"
+webhook_curl_header_args gowa "$expected_gowa"
+assert_eq "gowa curl arg count" "2" "${#WEBHOOK_CURL_HEADER_ARGS[@]}"
+assert_eq "gowa curl arg 0" "-H" "${WEBHOOK_CURL_HEADER_ARGS[0]}"
+assert_eq "gowa curl arg 1" "X-Hub-Signature-256: sha256=$expected_gowa" "${WEBHOOK_CURL_HEADER_ARGS[1]}"
+assert_eq "waha header lines end with newline" "2" "$(webhook_headers waha abc | wc -l | tr -d ' ')"
+assert_eq "gowa header lines end with newline" "1" "$(webhook_headers gowa abc | wc -l | tr -d ' ')"
+waha_payload="$(webhook_payload waha 123)"
+assert_eq "waha payload is a non-group message" "message|c.us|False" "$(printf '%s' "$waha_payload" | python3 -c 'import json,sys; d=json.load(sys.stdin); p=d["payload"]; print(d["event"], p["from"].split("@")[1], p["fromMe"], sep="|")')"
+assert_eq "waha payload id" "smoke-123" "$(printf '%s' "$waha_payload" | python3 -c 'import json,sys; print(json.load(sys.stdin)["payload"]["id"])')"
+assert_eq "gowa payload id" "smoke-123" "$(webhook_payload gowa 123 | python3 -c 'import json,sys; print(json.load(sys.stdin)["payload"]["id"])')"
+
 exit "$fails"

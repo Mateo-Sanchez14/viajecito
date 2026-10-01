@@ -1,0 +1,13 @@
+{
+  "event": "message",
+  "session": "default",
+  "engine": "GOWS",
+  "payload": {
+    "id": "false_5491100000001@c.us_3EB0DDDD0000000001",
+    "timestamp": 1760524440,
+    "from": "5491100000001@c.us",
+    "fromMe": false,
+    "body": "hola bot",
+    "hasMedia": false
+  }
+}

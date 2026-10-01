@@ -66,3 +66,67 @@ prune_local_snapshots() {
     rm -f -- "${files[i]}"
   done
 }
+
+# provider_of VALUE: normalize WHATSAPP_PROVIDER (empty means the api default, gowa).
+provider_of() { printf '%s' "${1:-gowa}"; }
+
+# webhook_path PROVIDER: public path of the provider's webhook endpoint.
+webhook_path() {
+  case "$1" in
+    gowa) printf '/hooks/gowa/' ;;
+    waha) printf '/hooks/waha/' ;;
+    *) die "unknown WHATSAPP_PROVIDER: $1" ;;
+  esac
+}
+
+# webhook_secret_var PROVIDER: name of the api.env variable holding the signing secret.
+webhook_secret_var() {
+  case "$1" in
+    gowa) printf 'GOWA_WEBHOOK_SECRET' ;;
+    waha) printf 'WAHA_WEBHOOK_HMAC_KEY' ;;
+    *) die "unknown WHATSAPP_PROVIDER: $1" ;;
+  esac
+}
+
+# webhook_payload PROVIDER TOKEN: a message event from a NON-group chat, so the api must answer "ignored".
+webhook_payload() {
+  local provider="$1" token="$2"
+  case "$provider" in
+    gowa) printf '%s' '{"event":"message","device_id":"smoke","payload":{"id":"smoke-'"$token"'","chat_id":"5491100000000@s.whatsapp.net","from":"5491100000000@s.whatsapp.net","from_name":"smoke","body":"smoke test","timestamp":"2026-01-01T00:00:00Z","is_from_me":false}}' ;;
+    waha) printf '%s' '{"event":"message","session":"smoke","payload":{"id":"smoke-'"$token"'","timestamp":1767225600,"from":"5491100000000@c.us","fromMe":false,"body":"smoke test","hasMedia":false}}' ;;
+    *) die "unknown WHATSAPP_PROVIDER: $provider" ;;
+  esac
+}
+
+# webhook_signature PROVIDER BODY: hex HMAC of BODY. The secret comes from $WEBHOOK_SECRET in the
+# environment, never from argv (argv is world-readable in /proc). waha = SHA-512, gowa = SHA-256.
+webhook_signature() {
+  local algo
+  case "$1" in
+    gowa) algo=sha256 ;;
+    waha) algo=sha512 ;;
+    *) die "unknown WHATSAPP_PROVIDER: $1" ;;
+  esac
+  printf '%s' "$2" | ALGO="$algo" python3 -c 'import hashlib, hmac, os, sys; print(hmac.new(os.environ["WEBHOOK_SECRET"].encode(), sys.stdin.buffer.read(), getattr(hashlib, os.environ["ALGO"])).hexdigest())'
+}
+
+# webhook_headers PROVIDER SIGNATURE: the signature headers, one per line (every line newline-terminated).
+webhook_headers() {
+  case "$1" in
+    gowa) printf 'X-Hub-Signature-256: sha256=%s\n' "$2" ;;
+    waha) printf 'X-Webhook-Hmac: %s\nX-Webhook-Hmac-Algorithm: sha512\n' "$2" ;;
+    *) die "unknown WHATSAPP_PROVIDER: $1" ;;
+  esac
+}
+
+# webhook_curl_header_args PROVIDER SIGNATURE: fill the global array WEBHOOK_CURL_HEADER_ARGS with
+# (-H "Name: value")... for curl. Reads to EOF and keeps an unterminated last line, so no header is dropped.
+# Expand it as ${WEBHOOK_CURL_HEADER_ARGS[@]+"${WEBHOOK_CURL_HEADER_ARGS[@]}"} (safe for empty arrays on bash 3.2).
+webhook_curl_header_args() {
+  local h
+  WEBHOOK_CURL_HEADER_ARGS=()
+  while IFS= read -r h || [[ -n "$h" ]]; do
+    [[ -n "$h" ]] && WEBHOOK_CURL_HEADER_ARGS+=(-H "$h")
+  done < <(webhook_headers "$1" "$2")
+  return 0
+}

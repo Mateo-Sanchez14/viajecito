@@ -19,11 +19,11 @@ Trip type `ski` with resorts (CL + AR), snow reports from Open-Meteo behind a pr
 - Models: writers sonnet, verifiers opus (user decision). Delivery: merge to `main` + push per milestone.
 
 ## Tasks
-- [ ] **A1 api** — delegated (writer sonnet, worktree `m5-api`; verifier opus; one correction round).
-- [ ] **A2 web** — delegated (writer sonnet, worktree `m5-web`; verifier opus; one correction round).
+- [x] **A1 api** — done: verifier REQUEST CHANGES (cross-crew reporter leak) → fixed; 921 tests; merged c4888d7. — delegated (writer sonnet, worktree `m5-api`; verifier opus; one correction round).
+- [x] **A2 web** — done; merged 79687ac (types regenerated). — delegated (writer sonnet, worktree `m5-web`; verifier opus; one correction round).
   Builds against the contract's API table; generates types from a draft added to `contracts/openapi.json`
   in its branch; the orchestrator regenerates from the real api at integration.
-- [ ] **A3 integrate** — inline: merge api then web, regenerate contract/types, env parsing for the
+- [x] **A3 integrate** — merged into main; web 450 tests after M6; e2e/bot-smoke pending the shared push. — inline: merge api then web, regenerate contract/types, env parsing for the
   contract's settings, full checks, `make e2e` + `make bot-smoke`, merge to `main`, push.
 
 ## Acceptance (from the contract)
@@ -34,6 +34,6 @@ Trip type `ski` with resorts (CL + AR), snow reports from Open-Meteo behind a pr
 ## Progress
 | Task | Status | Evidence |
 |---|---|---|
-| A1 | pending | — |
-| A2 | pending | — |
+| A1 | writer running (sonnet, launched 2026-10-01 after M-core bc1bece) | — |
+| A2 | **done** (verifier REQUEST CHANGES → corrected against the real api export d90be2a: unions from request schemas, strings for defaulted fields, resort-less pass rule, consistent errors; 220 tests; 12 commits) — merge after A1 | writer: lint/typecheck/test/build/api:types:check green at 17bd947 |
 | A3 | pending | — |
