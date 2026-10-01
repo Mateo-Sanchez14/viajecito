@@ -10,9 +10,8 @@ import type { TripCreate } from "../api/trips";
 import { useCreateTrip } from "../hooks/mutations";
 import { tripPath } from "../lib/paths";
 
-// Trip types come from the api plugin registry; core only registers "generic" until a
-// milestone adds more (a /api/trip-types endpoint would replace this list).
-const TRIP_TYPES = ["generic"] as const;
+// These match the registered api trip types; a trip-types endpoint could replace this list.
+const TRIP_TYPES = ["generic", "ski"] as const;
 const CURRENCY = /^[A-Z]{3}$/;
 
 type Field = "name" | "dates" | "currency";
