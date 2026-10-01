@@ -1,7 +1,11 @@
 import uuid
 
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.db import models
+from django.utils import timezone
+
+from shared.phone import InvalidPhoneError, normalize_phone
 
 
 class Crew(models.Model):
@@ -57,6 +61,19 @@ class CrewMembership(models.Model):
     def __str__(self) -> str:
         return f"{self.person_id}@{self.crew_id} ({self.role}, {self.status})"
 
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        if self.status == self.Status.REMOVED:
+            # Removing a member withdraws invites issued before the removal, so a stale invite can
+            # neither make the phone eligible nor reactivate the membership. (Bulk ``update()``
+            # calls bypass this; use ``save()``.)
+            Invite.objects.filter(
+                crew_id=self.crew_id,
+                phone=self.person.phone,
+                accepted_at__isnull=True,
+                cancelled_at__isnull=True,
+            ).update(cancelled_at=timezone.now())
+
 
 class Invite(models.Model):
     """A phone number invited to a crew; accepting it happens on first successful login."""
@@ -67,7 +84,19 @@ class Invite(models.Model):
         settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL, related_name="+"
     )
     accepted_at = models.DateTimeField(null=True, blank=True)
+    cancelled_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self) -> str:
         return f"{self.phone} -> {self.crew_id}"
+
+    def clean(self) -> None:
+        super().clean()
+        try:
+            self.phone = normalize_phone(self.phone)
+        except InvalidPhoneError as exc:
+            raise ValidationError({"phone": "Enter a valid phone number."}) from exc
+
+    def save(self, *args, **kwargs):
+        self.phone = normalize_phone(self.phone)
+        super().save(*args, **kwargs)

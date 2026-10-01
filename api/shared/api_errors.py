@@ -5,7 +5,7 @@ from http import HTTPStatus
 from django.http import HttpRequest, HttpResponse
 from ninja import NinjaAPI
 from ninja.errors import AuthenticationError, HttpError, ValidationError
-from ninja.utils import check_csrf
+from ninja.security import APIKeyCookie
 
 
 class ApiError(Exception):
@@ -19,10 +19,17 @@ class ApiError(Exception):
         self.headers = headers or {}
 
 
-def enforce_csrf(request: HttpRequest) -> None:
-    """Ninja only checks CSRF for cookie-authenticated routes; call this on anonymous POSTs."""
-    if check_csrf(request) is not None:
-        raise ApiError(HTTPStatus.FORBIDDEN, "csrf_failed", "CSRF token missing or incorrect")
+class CsrfCookie(APIKeyCookie):
+    """Auth scheme that only enforces CSRF (Ninja checks it before parsing the body).
+
+    Ninja skips Django's CSRF middleware for every view and checks CSRF only inside cookie
+    auth classes, so anonymous unsafe routes use this to get the same protection.
+    """
+
+    param_name = "csrftoken"
+
+    def authenticate(self, request: HttpRequest, key: str | None) -> bool:
+        return True
 
 
 def _respond(api: NinjaAPI, request: HttpRequest, error: ApiError) -> HttpResponse:
