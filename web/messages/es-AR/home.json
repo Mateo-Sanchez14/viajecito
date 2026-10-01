@@ -2,12 +2,7 @@
   "home": {
     "greeting": "Hola, {name}",
     "crews": {
-      "title": "Tus grupos",
-      "empty": "Todavía no estás en ningún grupo",
-      "role": {
-        "admin": "Admin",
-        "member": "Miembro"
-      }
+      "empty": "Todavía no estás en ningún grupo"
     }
   }
 }

@@ -84,12 +84,20 @@ Spanish and tests read their expectations from the messages.
 
 ### Adding a milestone section
 
-1. Add `messages/es-AR/<feature>.json` with a `<feature>` namespace (put the section label in
-   `trips.sections.<module>` through your own file only if your namespace owns it; otherwise ask core) and
-   append one import line plus the argument to `messages/es-AR/index.ts`.
+1. Add `messages/es-AR/<feature>.json` with a `<feature>` namespace and append one import line plus the
+   argument to `messages/es-AR/index.ts`. Section labels (`trips.sections.<module>`) are core-owned and
+   already exist for every known module (`proposals`, `dates`, `logistics`, `itinerary`, `today`,
+   `budget`, `documents`, `ski`); a module without copy shows its key.
 2. Create `src/features/<capability>/{api,hooks,containers}` and read the current trip with
    `useTripContext()` (from `@/features/trips/TripProvider`); never refetch it yourself.
 3. Add the static page `src/app/(app)/crews/[crewId]/trips/[tripId]/<module>/page.tsx`; a static segment
    wins over `[module]`, so the placeholder disappears by itself. Use `params: Promise<...>` for any
    nested dynamic segment.
 4. The nav entry already exists once the api lists the module in `trip.modules`.
+
+### Trip types
+
+Trip types come from the api's plugin registry (`trips/plugins.py`). Core registers only `generic`, so
+`CreateTripForm` offers only that (the `<Select>` stays so a milestone can extend `TRIP_TYPES` and add
+`trips.types.<key>` copy once its api registers the type). A `/api/trip-types` endpoint that lets the web
+read the registry instead of hardcoding it is a future core request.

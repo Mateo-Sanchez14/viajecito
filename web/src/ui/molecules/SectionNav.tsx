@@ -10,12 +10,13 @@ export type SectionNavItem = {
 type SectionNavProps = {
   label: string;
   items: SectionNavItem[];
+  className?: string;
 };
 
 /** Horizontal tab-like navigation; scrolls sideways on narrow screens. */
-export function SectionNav({ label, items }: SectionNavProps) {
+export function SectionNav({ label, items, className = "" }: SectionNavProps) {
   return (
-    <nav aria-label={label} className="-mx-6 overflow-x-auto px-6">
+    <nav aria-label={label} className={`w-full overflow-x-auto ${className}`}>
       <ul className="flex w-max min-w-full gap-1 border-b border-border">
         {items.map((item) => (
           <li key={item.key}>

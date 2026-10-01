@@ -27,6 +27,14 @@ describe("ConfirmDialog", () => {
     expect(screen.getByText("No se puede deshacer")).toBeInTheDocument();
   });
 
+  it("describes the dialog with its description", () => {
+    setup();
+
+    expect(screen.getByRole("dialog", { name: "Sure?" })).toHaveAccessibleDescription(
+      "No se puede deshacer",
+    );
+  });
+
   it("calls onConfirm when confirming", () => {
     const { onConfirm, onCancel } = setup();
 

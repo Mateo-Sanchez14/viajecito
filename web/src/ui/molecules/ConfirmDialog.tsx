@@ -29,6 +29,7 @@ export function ConfirmDialog({
   const dialogRef = useRef<HTMLDialogElement>(null);
   const cancelRef = useRef<HTMLButtonElement>(null);
   const titleId = useId();
+  const descriptionId = useId();
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -45,6 +46,7 @@ export function ConfirmDialog({
     <dialog
       ref={dialogRef}
       aria-labelledby={titleId}
+      aria-describedby={description ? descriptionId : undefined}
       onCancel={(event) => {
         event.preventDefault();
         onCancel();
@@ -55,7 +57,11 @@ export function ConfirmDialog({
         <h2 id={titleId} className="text-lg font-semibold">
           {title}
         </h2>
-        {description && <p className="text-sm text-muted">{description}</p>}
+        {description && (
+          <p id={descriptionId} className="text-sm text-muted">
+            {description}
+          </p>
+        )}
         <div className="flex justify-end gap-2">
           <Button ref={cancelRef} variant="link" onClick={onCancel}>
             {cancelLabel}

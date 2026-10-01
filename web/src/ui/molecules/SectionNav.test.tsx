@@ -20,6 +20,14 @@ describe("SectionNav", () => {
     );
   });
 
+  it("scrolls horizontally and accepts extra classes without assuming page padding", () => {
+    render(<SectionNav label="Secciones" items={items} className="extra" />);
+
+    const nav = screen.getByRole("navigation", { name: "Secciones" });
+    expect(nav).toHaveClass("overflow-x-auto", "extra");
+    expect(nav.className).not.toMatch(/-mx-|px-/);
+  });
+
   it("marks only the active item as the current page", () => {
     render(<SectionNav label="Secciones" items={items} />);
 
