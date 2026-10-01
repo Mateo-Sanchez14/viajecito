@@ -33,8 +33,8 @@ export function makeTrip(overrides: Partial<Schemas["TripOut"]> = {}): Schemas["
 }
 
 export function makeSummary(overrides: Partial<Schemas["TripSummaryOut"]> = {}): Schemas["TripSummaryOut"] {
-  const { id, crew_id, name, type, status, start_on, end_on, destination_label } = makeTrip();
-  return { id, crew_id, name, type, status, start_on, end_on, destination_label, ...overrides };
+  const { id, name, type, status, start_on, end_on, destination_label } = makeTrip();
+  return { id, name, type, status, start_on, end_on, destination_label, ...overrides };
 }
 
 export function makeMe(overrides: Partial<Schemas["MeOut"]> = {}): Schemas["MeOut"] {

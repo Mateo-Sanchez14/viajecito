@@ -36,10 +36,11 @@ describe("trips api", () => {
       }),
     );
 
-    const trip = await createTrip(CREW_ID, { name: "Bariloche 2027", type: "generic" });
+    const payload = { name: "Bariloche 2027", type: "generic", destination_label: "", currency: "USD" };
+    const trip = await createTrip(CREW_ID, payload);
 
     expect(trip.id).toBe(TRIP_ID);
-    expect(seen).toEqual({ body: { name: "Bariloche 2027", type: "generic" }, csrf: "tok" });
+    expect(seen).toEqual({ body: payload, csrf: "tok" });
   });
 
   it("gets one trip", async () => {

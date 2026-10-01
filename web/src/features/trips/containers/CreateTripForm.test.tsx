@@ -84,6 +84,38 @@ describe("CreateTripForm", () => {
     });
   });
 
+  it("sends explicit nulls, an empty destination and the USD default when left blank", async () => {
+    let body: unknown;
+    server.use(
+      http.get("/api/auth/csrf", ({ response }) => response(200).json({ csrf_token: "tok" })),
+      http.post("/api/crews/{crew_id}/trips", async ({ request, response }) => {
+        body = await request.json();
+        return response(201).json(makeTrip());
+      }),
+    );
+    renderWithProviders(<CreateTripForm crewId={CREW_ID} />);
+    fill(t.name, "Solo nombre");
+    fill(t.currency, "");
+
+    submit();
+
+    await waitFor(() => expect(push).toHaveBeenCalled());
+    expect(body).toEqual({
+      name: "Solo nombre",
+      type: "generic",
+      start_on: null,
+      end_on: null,
+      destination_label: "",
+      currency: "USD",
+    });
+  });
+
+  it("only offers the generic trip type", () => {
+    renderWithProviders(<CreateTripForm crewId={CREW_ID} />);
+
+    expect(screen.getAllByRole("option").map((o) => o.getAttribute("value"))).toEqual(["generic"]);
+  });
+
   it("shows an error and stays put when the api fails", async () => {
     server.use(
       http.get("/api/auth/csrf", ({ response }) => response(200).json({ csrf_token: "tok" })),

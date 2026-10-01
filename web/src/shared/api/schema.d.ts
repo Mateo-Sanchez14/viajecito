@@ -127,7 +127,10 @@ export interface paths {
         /** List Trips */
         get: operations["trips_api_list_trips"];
         put?: never;
-        /** Create Trip */
+        /**
+         * Create Trip
+         * @description 400 codes: `invalid_request`. 404: `not_found` (not a member of the crew).
+         */
         post: operations["trips_api_create_trip"];
         delete?: never;
         options?: never;
@@ -149,8 +152,11 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        /** Patch Trip */
-        patch: operations["trips_api_patch_trip"];
+        /**
+         * Update Trip
+         * @description Any active member of the crew may update. 400 codes: `invalid_request`.
+         */
+        patch: operations["trips_api_update_trip"];
         trace?: never;
     };
     "/api/trips/{trip_id}/participation": {
@@ -161,7 +167,10 @@ export interface paths {
             cookie?: never;
         };
         get?: never;
-        /** Set Participation */
+        /**
+         * Set Participation
+         * @description Sets the caller's own RSVP, creating their participation when missing.
+         */
         put: operations["trips_api_set_participation"];
         post?: never;
         delete?: never;
@@ -277,21 +286,6 @@ export interface components {
             /** Crews */
             crews: components["schemas"]["CrewSummaryOut"][];
         };
-        /** ParticipantOut */
-        ParticipantOut: {
-            /**
-             * Person Id
-             * Format: uuid
-             */
-            person_id: string;
-            /** Display Name */
-            display_name: string;
-            /**
-             * Rsvp
-             * @enum {string}
-             */
-            rsvp: "in" | "maybe" | "out" | "pending";
-        };
         /** TripSummaryOut */
         TripSummaryOut: {
             /**
@@ -299,11 +293,6 @@ export interface components {
              * Format: uuid
              */
             id: string;
-            /**
-             * Crew Id
-             * Format: uuid
-             */
-            crew_id: string;
             /** Name */
             name: string;
             /** Type */
@@ -319,6 +308,21 @@ export interface components {
             end_on: string | null;
             /** Destination Label */
             destination_label: string;
+        };
+        /** ParticipantOut */
+        ParticipantOut: {
+            /**
+             * Person Id
+             * Format: uuid
+             */
+            person_id: string;
+            /** Display Name */
+            display_name: string;
+            /**
+             * Rsvp
+             * @enum {string}
+             */
+            rsvp: "in" | "maybe" | "out" | "pending";
         };
         /** TripOut */
         TripOut: {
@@ -365,23 +369,37 @@ export interface components {
         TripCreateIn: {
             /** Name */
             name: string;
-            /** Type */
-            type?: string | null;
+            /**
+             * Type
+             * @default generic
+             */
+            type: string;
             /** Start On */
             start_on?: string | null;
             /** End On */
             end_on?: string | null;
-            /** Destination Label */
-            destination_label?: string | null;
-            /** Currency */
-            currency?: string | null;
+            /**
+             * Destination Label
+             * @default
+             */
+            destination_label: string;
+            /**
+             * Currency
+             * @default USD
+             */
+            currency: string;
         };
-        /** TripPatchIn */
+        /**
+         * TripPatchIn
+         * @description Every field optional; only the ones sent are applied (``null`` clears a date).
+         */
         TripPatchIn: {
             /** Name */
             name?: string | null;
             /** Type */
             type?: string | null;
+            /** Status */
+            status?: ("idea" | "planning" | "booked" | "ongoing" | "done") | null;
             /** Start On */
             start_on?: string | null;
             /** End On */
@@ -390,11 +408,9 @@ export interface components {
             destination_label?: string | null;
             /** Currency */
             currency?: string | null;
-            /** Status */
-            status?: ("idea" | "planning" | "booked" | "ongoing" | "done") | null;
         };
-        /** ParticipationIn */
-        ParticipationIn: {
+        /** ParticipantIn */
+        ParticipantIn: {
             /**
              * Rsvp
              * @enum {string}
@@ -708,6 +724,15 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorOut"];
                 };
             };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
             /** @description Not Found */
             404: {
                 headers: {
@@ -759,7 +784,7 @@ export interface operations {
             };
         };
     };
-    trips_api_patch_trip: {
+    trips_api_update_trip: {
         parameters: {
             query?: never;
             header?: never;
@@ -801,6 +826,15 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorOut"];
                 };
             };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
             /** @description Not Found */
             404: {
                 headers: {
@@ -823,7 +857,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["ParticipationIn"];
+                "application/json": components["schemas"]["ParticipantIn"];
             };
         };
         responses: {
@@ -847,6 +881,15 @@ export interface operations {
             };
             /** @description Unauthorized */
             401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };

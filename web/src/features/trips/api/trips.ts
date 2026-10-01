@@ -9,7 +9,7 @@ export type TripSummary = Schemas["TripSummaryOut"];
 export type Participant = Schemas["ParticipantOut"];
 export type TripCreate = Schemas["TripCreateIn"];
 export type TripPatch = Schemas["TripPatchIn"];
-export type Rsvp = Schemas["ParticipationIn"]["rsvp"];
+export type Rsvp = Schemas["ParticipantOut"]["rsvp"];
 export type TripStatus = Trip["status"];
 
 export const tripKeys = {

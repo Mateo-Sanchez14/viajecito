@@ -10,7 +10,9 @@ import type { TripCreate } from "../api/trips";
 import { useCreateTrip } from "../hooks/mutations";
 import { tripPath } from "../lib/paths";
 
-const TRIP_TYPES = ["generic", "ski"] as const;
+// Trip types come from the api plugin registry; core only registers "generic" until a
+// milestone adds more (a /api/trip-types endpoint would replace this list).
+const TRIP_TYPES = ["generic"] as const;
 const CURRENCY = /^[A-Z]{3}$/;
 
 type Field = "name" | "dates" | "currency";
@@ -47,11 +49,14 @@ export function CreateTripForm({ crewId }: { crewId: string }) {
     setErrors(found);
     if (Object.keys(found).length > 0) return;
 
-    const body: TripCreate = { name: name.trim(), type };
-    if (startOn) body.start_on = startOn;
-    if (endOn) body.end_on = endOn;
-    if (destination.trim()) body.destination_label = destination.trim();
-    if (currency.trim()) body.currency = currency.trim().toUpperCase();
+    const body: TripCreate = {
+      name: name.trim(),
+      type,
+      start_on: startOn || null,
+      end_on: endOn || null,
+      destination_label: destination.trim(),
+      currency: currency.trim().toUpperCase() || "USD",
+    };
 
     create.mutate(body, {
       onSuccess: (trip) => router.push(tripPath(crewId, trip.id)),

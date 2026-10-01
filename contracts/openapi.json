@@ -3,7 +3,7 @@
   "info": {
     "title": "viajecito",
     "version": "0.1.0",
-    "description": "DRAFT: the trips paths and schemas (TripSummaryOut, TripOut, ParticipantOut, TripCreateIn, TripPatchIn, ParticipationIn) are a web-side draft from the AGENTS.md core contract; the api export replaces them at integration."
+    "description": ""
   },
   "paths": {
     "/api/health": {
@@ -283,8 +283,8 @@
             "name": "crew_id",
             "schema": {
               "format": "uuid",
-              "type": "string",
-              "title": "Crew Id"
+              "title": "Crew Id",
+              "type": "string"
             },
             "required": true
           }
@@ -343,8 +343,8 @@
             "name": "crew_id",
             "schema": {
               "format": "uuid",
-              "type": "string",
-              "title": "Crew Id"
+              "title": "Crew Id",
+              "type": "string"
             },
             "required": true
           }
@@ -380,6 +380,16 @@
               }
             }
           },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
           "404": {
             "description": "Not Found",
             "content": {
@@ -391,6 +401,7 @@
             }
           }
         },
+        "description": "400 codes: `invalid_request`. 404: `not_found` (not a member of the crew).",
         "tags": [
           "trips"
         ],
@@ -407,9 +418,6 @@
         "security": [
           {
             "SessionAuth": []
-          },
-          {
-            "CsrfCookie": []
           }
         ]
       }
@@ -424,8 +432,8 @@
             "name": "trip_id",
             "schema": {
               "format": "uuid",
-              "type": "string",
-              "title": "Trip Id"
+              "title": "Trip Id",
+              "type": "string"
             },
             "required": true
           }
@@ -472,16 +480,16 @@
         ]
       },
       "patch": {
-        "operationId": "trips_api_patch_trip",
-        "summary": "Patch Trip",
+        "operationId": "trips_api_update_trip",
+        "summary": "Update Trip",
         "parameters": [
           {
             "in": "path",
             "name": "trip_id",
             "schema": {
               "format": "uuid",
-              "type": "string",
-              "title": "Trip Id"
+              "title": "Trip Id",
+              "type": "string"
             },
             "required": true
           }
@@ -517,6 +525,16 @@
               }
             }
           },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
           "404": {
             "description": "Not Found",
             "content": {
@@ -528,6 +546,7 @@
             }
           }
         },
+        "description": "Any active member of the crew may update. 400 codes: `invalid_request`.",
         "tags": [
           "trips"
         ],
@@ -544,9 +563,6 @@
         "security": [
           {
             "SessionAuth": []
-          },
-          {
-            "CsrfCookie": []
           }
         ]
       }
@@ -561,8 +577,8 @@
             "name": "trip_id",
             "schema": {
               "format": "uuid",
-              "type": "string",
-              "title": "Trip Id"
+              "title": "Trip Id",
+              "type": "string"
             },
             "required": true
           }
@@ -598,6 +614,16 @@
               }
             }
           },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
           "404": {
             "description": "Not Found",
             "content": {
@@ -609,6 +635,7 @@
             }
           }
         },
+        "description": "Sets the caller's own RSVP, creating their participation when missing.",
         "tags": [
           "trips"
         ],
@@ -616,7 +643,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ParticipationIn"
+                "$ref": "#/components/schemas/ParticipantIn"
               }
             }
           },
@@ -625,9 +652,6 @@
         "security": [
           {
             "SessionAuth": []
-          },
-          {
-            "CsrfCookie": []
           }
         ]
       }
@@ -887,47 +911,12 @@
         "title": "MeOut",
         "type": "object"
       },
-      "ParticipantOut": {
-        "properties": {
-          "person_id": {
-            "format": "uuid",
-            "type": "string",
-            "title": "Person Id"
-          },
-          "display_name": {
-            "title": "Display Name",
-            "type": "string"
-          },
-          "rsvp": {
-            "enum": [
-              "in",
-              "maybe",
-              "out",
-              "pending"
-            ],
-            "title": "Rsvp",
-            "type": "string"
-          }
-        },
-        "required": [
-          "person_id",
-          "display_name",
-          "rsvp"
-        ],
-        "title": "ParticipantOut",
-        "type": "object"
-      },
       "TripSummaryOut": {
         "properties": {
           "id": {
             "format": "uuid",
-            "type": "string",
-            "title": "Id"
-          },
-          "crew_id": {
-            "format": "uuid",
-            "type": "string",
-            "title": "Crew Id"
+            "title": "Id",
+            "type": "string"
           },
           "name": {
             "title": "Name",
@@ -979,7 +968,6 @@
         },
         "required": [
           "id",
-          "crew_id",
           "name",
           "type",
           "status",
@@ -990,17 +978,47 @@
         "title": "TripSummaryOut",
         "type": "object"
       },
+      "ParticipantOut": {
+        "properties": {
+          "person_id": {
+            "format": "uuid",
+            "title": "Person Id",
+            "type": "string"
+          },
+          "display_name": {
+            "title": "Display Name",
+            "type": "string"
+          },
+          "rsvp": {
+            "enum": [
+              "in",
+              "maybe",
+              "out",
+              "pending"
+            ],
+            "title": "Rsvp",
+            "type": "string"
+          }
+        },
+        "required": [
+          "person_id",
+          "display_name",
+          "rsvp"
+        ],
+        "title": "ParticipantOut",
+        "type": "object"
+      },
       "TripOut": {
         "properties": {
           "id": {
             "format": "uuid",
-            "type": "string",
-            "title": "Id"
+            "title": "Id",
+            "type": "string"
           },
           "crew_id": {
             "format": "uuid",
-            "type": "string",
-            "title": "Crew Id"
+            "title": "Crew Id",
+            "type": "string"
           },
           "name": {
             "title": "Name",
@@ -1103,19 +1121,16 @@
       "TripCreateIn": {
         "properties": {
           "name": {
+            "maxLength": 120,
+            "minLength": 1,
             "title": "Name",
             "type": "string"
           },
           "type": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Type"
+            "default": "generic",
+            "maxLength": 32,
+            "title": "Type",
+            "type": "string"
           },
           "start_on": {
             "anyOf": [
@@ -1142,26 +1157,16 @@
             "title": "End On"
           },
           "destination_label": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Destination Label"
+            "default": "",
+            "maxLength": 200,
+            "title": "Destination Label",
+            "type": "string"
           },
           "currency": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Currency"
+            "default": "USD",
+            "maxLength": 8,
+            "title": "Currency",
+            "type": "string"
           }
         },
         "required": [
@@ -1171,10 +1176,12 @@
         "type": "object"
       },
       "TripPatchIn": {
+        "description": "Every field optional; only the ones sent are applied (``null`` clears a date).",
         "properties": {
           "name": {
             "anyOf": [
               {
+                "maxLength": 120,
                 "type": "string"
               },
               {
@@ -1186,6 +1193,7 @@
           "type": {
             "anyOf": [
               {
+                "maxLength": 32,
                 "type": "string"
               },
               {
@@ -1193,52 +1201,6 @@
               }
             ],
             "title": "Type"
-          },
-          "start_on": {
-            "anyOf": [
-              {
-                "format": "date",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Start On"
-          },
-          "end_on": {
-            "anyOf": [
-              {
-                "format": "date",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "End On"
-          },
-          "destination_label": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Destination Label"
-          },
-          "currency": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Currency"
           },
           "status": {
             "anyOf": [
@@ -1257,13 +1219,60 @@
               }
             ],
             "title": "Status"
+          },
+          "start_on": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start On"
+          },
+          "end_on": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "End On"
+          },
+          "destination_label": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Destination Label"
+          },
+          "currency": {
+            "anyOf": [
+              {
+                "maxLength": 8,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Currency"
           }
         },
-        "required": [],
         "title": "TripPatchIn",
         "type": "object"
       },
-      "ParticipationIn": {
+      "ParticipantIn": {
         "properties": {
           "rsvp": {
             "enum": [
@@ -1279,7 +1288,7 @@
         "required": [
           "rsvp"
         ],
-        "title": "ParticipationIn",
+        "title": "ParticipantIn",
         "type": "object"
       }
     },
