@@ -12,6 +12,8 @@ import push from "./push.json";
 import pwa from "./pwa.json";
 import ski from "./ski.json";
 import trips from "./trips.json";
+import itinerary from "./itinerary.json";
+import today from "./today.json";
 
 export default mergeMessages(
   auth,
@@ -25,4 +27,6 @@ export default mergeMessages(
   pwa,
   ski,
   trips,
+  itinerary,
+  today,
 );

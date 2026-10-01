@@ -1,0 +1,65 @@
+{
+  "itinerary": {
+    "title": "Itinerario",
+    "loading": "Cargando itinerario…",
+    "timezone": "Horarios de {timezone}",
+    "overview": "{n} cosas en la bandeja",
+    "tray": {
+      "title": "Sin día",
+      "help": "Lo que eligieron y todavía no tiene día"
+    },
+    "outOfRange": { "title": "Fuera de las fechas" },
+    "day": {
+      "untitled": "Día {n}",
+      "edit": "Editar día",
+      "title": "Título del día",
+      "notes": "Notas del día",
+      "save": "Guardar día"
+    },
+    "entry": {
+      "add": "Agregar",
+      "formTitle": "Agregar actividad",
+      "editTitle": "Editar actividad",
+      "title": "Título",
+      "day": "Día",
+      "kindLabel": "Tipo",
+      "kind": {
+        "activity": "Actividad",
+        "transport": "Traslado",
+        "lodging": "Alojamiento",
+        "meal": "Comida",
+        "meeting": "Encuentro",
+        "ski": "Ski",
+        "other": "Otro"
+      },
+      "meetingPoint": "Punto de encuentro",
+      "moveUp": "Subir {title}",
+      "moveDown": "Bajar {title}",
+      "time": "Hora",
+      "endTime": "Hasta",
+      "location": "Dónde",
+      "lat": "Latitud",
+      "lng": "Longitud",
+      "notes": "Notas",
+      "save": "Guardar actividad",
+      "edit": "Editar {title}",
+      "delete": "Eliminar {title}",
+      "cancel": "Cancelar",
+      "unscheduled": "Sin horario"
+    },
+    "empty": "Armá el día a día o elegí propuestas para llenar la bandeja",
+    "errors": {
+      "unknown": "No pudimos guardar. Probá de nuevo",
+      "load": "No pudimos cargar el itinerario",
+      "invalid_request": "Revisá los datos",
+      "invalid_times": "Revisá los horarios",
+      "day_out_of_range": "Ese día está fuera del viaje",
+      "cannot_reorder_timed": "Para moverlo, cambiale la hora",
+      "at_edge": "Ya está en el extremo de la lista",
+      "not_found": "No encontramos esa actividad",
+      "unauthenticated": "Volvé a iniciar sesión",
+      "csrf_failed": "Recargá y probá de nuevo",
+      "forbidden": "No tenés permiso"
+    }
+  }
+}

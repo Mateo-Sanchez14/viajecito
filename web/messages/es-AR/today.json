@@ -1,0 +1,53 @@
+{
+  "today": {
+    "title": "Hoy",
+    "loading": "Cargando el plan…",
+    "timeline": "Plan de hoy",
+    "now": "Ahora",
+    "next": "Después",
+    "meetingPoint": "Punto de encuentro",
+    "map": "Ver mapa",
+    "countdown": "Faltan {days} días",
+    "countdownOne": "¡Mañana arrancamos!",
+    "after": "El viaje terminó",
+    "undated": "Todavía no hay fechas",
+    "empty": "Hoy no hay nada armado",
+    "offline": "Sin conexión: mostrando lo último que bajamos",
+    "loadError": "No pudimos cargar el plan. Probá de nuevo",
+    "refreshError": "No pudimos actualizar: mostrando lo último que bajamos",
+    "timezone": "{date} · {time} · {timezone}",
+    "documents": {
+      "title": "Documentos a mano",
+      "error": "No pudimos cargar los documentos",
+      "empty": "Todavía no hay documentos"
+    },
+    "snow": {
+      "title": "Nieve",
+      "stale": "Dato de hace {hours} h",
+      "base": "Base: {cm} cm",
+      "new": "Nuevos: {cm} cm",
+      "empty": "Todavía no hay reportes",
+      "error": "No pudimos cargar la nieve"
+    },
+    "notes": {
+      "title": "Notas",
+      "placeholder": "Anotá algo rápido…",
+      "save": "Guardar nota",
+      "pin": "Fijar",
+      "unpin": "Desfijar",
+      "delete": "Eliminar nota",
+      "pinned": "Nota fijada",
+      "empty": "Todavía no hay notas",
+      "loadError": "No pudimos cargar las notas",
+      "errors": {
+        "unknown": "No pudimos guardar la nota",
+        "invalid_request": "La nota debe tener entre 1 y 1000 caracteres",
+        "too_many_pinned": "Ya hay 5 notas fijadas",
+        "forbidden": "Solo puede eliminarla quien la escribió",
+        "not_found": "No encontramos esa nota",
+        "csrf_failed": "Recargá y probá de nuevo",
+        "unauthenticated": "Volvé a iniciar sesión"
+      }
+    }
+  }
+}
