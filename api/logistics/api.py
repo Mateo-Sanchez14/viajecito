@@ -112,3 +112,7 @@ def delete(request, task_id: UUID):
     authorize(request, task_id)
     DjangoTaskStore().delete(str(task_id))
     return Status(204, None)
+
+
+# The packing transport registers on the same router after its common helpers exist.
+from logistics import packing_api  # noqa: E402,F401

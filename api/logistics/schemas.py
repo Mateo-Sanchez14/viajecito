@@ -49,3 +49,59 @@ class TaskOut(Schema):
     overdue: bool
     created_at: datetime
     updated_at: datetime
+
+
+class PackingEntryOut(Schema):
+    id: UUID
+    section: str
+    item_key: str | None
+    label: str
+    quantity: int | None
+    packed: bool
+    position: int
+
+
+class PackingTemplateOut(Schema):
+    key: str
+    label: str
+
+
+class PackingSectionOut(Schema):
+    key: str
+    label: str
+    entries: list[PackingEntryOut]
+
+
+class PackingProgressOut(Schema):
+    packed: int
+    total: int
+
+
+class PackingListOut(Schema):
+    templates_available: list[PackingTemplateOut]
+    applied: list[str]
+    sections: list[PackingSectionOut]
+    progress: PackingProgressOut
+
+
+class PackingApplyIn(Schema):
+    template_key: str
+
+
+class PackingEntryIn(Schema):
+    label: str = Field(min_length=1, max_length=120)
+    section: str = Field(default="custom", min_length=1, max_length=32)
+    quantity: int | None = Field(default=None, ge=1, le=32767)
+
+
+class PackingPatchIn(Schema):
+    label: str = Field(default=None, min_length=1, max_length=120)
+    quantity: int | None = Field(default=None, ge=1, le=32767)
+    packed: bool = False
+    position: int = Field(default=0, ge=0)
+
+
+class PackingSummaryOut(Schema):
+    person: PersonRefOut
+    packed: int
+    total: int

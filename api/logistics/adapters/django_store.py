@@ -1,3 +1,5 @@
+from datetime import date
+
 from django.db import transaction
 from django.db.models import F
 
@@ -73,9 +75,15 @@ class DjangoTaskStore:
         return sorted(
             (task_data(r) for r in rows),
             key=lambda d: (
-                d["status"] == "done",
+                {"open": 0, "blocked": 1, "done": 2}[d["status"]],
                 d["due_on"] is None,
-                d["due_on"] or __import__("datetime").date.max,
+                d["due_on"] or date.max,
                 d["number"],
             ),
         )
+
+    def booking_for(self, proposal_id):
+        row = (
+            Task.objects.select_for_update().filter(proposal_id=proposal_id, kind="booking").first()
+        )
+        return task_data(row) if row else None

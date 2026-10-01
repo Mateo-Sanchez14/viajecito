@@ -78,3 +78,11 @@ def test_order_repeatable_filters_and_foreign_task(trip, ana, beto, stranger, as
     assert (
         send(client, "patch", f"/api/tasks/{one['id']}", {"status": "blocked"}).status_code == 400
     )
+
+
+def test_open_first_even_when_blocked_earlier(trip, ana, as_person):
+    client = as_person(ana)
+    blocked = create(client, trip, due_on="2020-01-01").json()
+    send(client, "patch", f"/api/tasks/{blocked['id']}", {"status": "blocked"})
+    opened = create(client, trip).json()
+    assert client.get(f"/api/trips/{trip.pk}/tasks").json()[0]["id"] == opened["id"]

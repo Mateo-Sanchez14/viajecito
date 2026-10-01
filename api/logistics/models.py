@@ -59,3 +59,37 @@ class Task(Timestamped):
             models.Index(fields=["trip", "status"]),
             models.Index(fields=["status", "due_on"]),
         ]
+
+
+class PackingEntry(Timestamped):
+    trip = models.ForeignKey("trips.Trip", on_delete=models.CASCADE)
+    person = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    section = models.CharField(max_length=32, default="custom")
+    item_key = models.CharField(max_length=64, null=True)
+    label = models.CharField(max_length=120)
+    quantity = models.PositiveSmallIntegerField(null=True)
+    packed = models.BooleanField(default=False)
+    position = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["trip", "person", "item_key"],
+                condition=models.Q(item_key__isnull=False),
+                name="unique_packing_item",
+            )
+        ]
+        indexes = [models.Index(fields=["trip", "person"])]
+
+
+class PackingApplication(Timestamped):
+    trip = models.ForeignKey("trips.Trip", on_delete=models.CASCADE)
+    person = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    template_key = models.CharField(max_length=32)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["trip", "person", "template_key"], name="unique_packing_application"
+            )
+        ]
