@@ -1,9 +1,10 @@
 """Ports of the messaging app: what the use cases need from the outside world."""
 
 from dataclasses import dataclass
+from datetime import datetime
 from typing import Protocol
 
-from messaging.domain import GroupMessage
+from messaging.domain import GroupMessage, InboundRecord
 
 
 class GatewayError(Exception):
@@ -64,4 +65,37 @@ class GroupLinks(Protocol):
 class ProcessScheduler(Protocol):
     def schedule(self, inbound_id: int) -> None:
         """Arrange for ``process_inbound(inbound_id)`` to run soon, off the request path."""
+        ...
+
+
+class ProcessStore(Protocol):
+    def claim(self, inbound_id: int, now: datetime) -> InboundRecord | None:
+        """Move a ``received`` row to ``processing`` (counting an attempt); ``None`` if not due."""
+        ...
+
+    def finish(
+        self,
+        inbound_id: int,
+        *,
+        status: str,
+        outcome: dict,
+        error: str,
+        person_id: str | None,
+        now: datetime,
+    ) -> None: ...
+
+
+class SenderResolver(Protocol):
+    def person_id_for(self, jid: str, lid: str) -> str | None: ...
+
+
+class RosterSync(Protocol):
+    def crew_id_for_chat(self, chat_id: str) -> str | None: ...
+
+    def sync_roster(self, crew_id: str) -> object: ...
+
+
+class Replier(Protocol):
+    def reply(self, *, chat_id: str, body: str, reply_to: str, inbound_id: int) -> str:
+        """Send a threaded reply in the group and return its send status."""
         ...

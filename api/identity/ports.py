@@ -59,3 +59,9 @@ class InviteAcceptor(Protocol):
 
 class CrewLister(Protocol):
     def crews_for(self, person_id: str) -> list[CrewSummary]: ...
+
+
+class IdentityDirectory(Protocol):
+    def person_id_by_jid(self, jid: str) -> str | None: ...
+
+    def person_id_by_lid(self, lid: str) -> str | None: ...

@@ -66,7 +66,8 @@ type = "forbidden"
 source_modules = [
     "identity.domain", "identity.use_cases", "identity.ports",
     "crews.domain", "crews.use_cases", "crews.ports",
-    "messaging.use_cases", "messaging.ports", "messaging.domain",
+    "messaging.use_cases", "messaging.ports", "messaging.domain", "messaging.router",
+    "messaging.handlers",
     "shared.phone", "shared.clock",
 ]
 forbidden_modules = ["django", "ninja", "httpx"]
@@ -86,6 +87,7 @@ allow_indirect_imports = true
 # to its Django adapter (same shape as ``identity.adapters.crews_gateway``). Tests create rows.
 ignore_imports = [
     "messaging.adapters.crews_gateway -> crews.adapters.django_store",
+    "messaging.adapters.identity_gateway -> identity.adapters.django_repos",
     "messaging.tests.* -> crews.models",
     "messaging.tests.* -> identity.models",
 ]

@@ -2,9 +2,14 @@
 
 from django.conf import settings
 
+from messaging import router
 from messaging.adapters.crews_gateway import CrewsGateway
+from messaging.adapters.identity_gateway import IdentityGateway
 from messaging.adapters.inbound_store import DjangoInboundStore
+from messaging.adapters.replier import GroupReplier
 from messaging.adapters.scheduler import ExecutorProcessScheduler
+from messaging.use_cases.process_inbound import process_inbound
+from shared.clock import SystemClock
 
 
 def inbound_store() -> DjangoInboundStore:
@@ -15,8 +20,16 @@ def crews_gateway() -> CrewsGateway:
     return CrewsGateway()
 
 
-def run_process_inbound(inbound_id: int) -> None:
-    raise NotImplementedError  # replaced when processing lands
+def run_process_inbound(inbound_id: int) -> str:
+    return process_inbound(
+        inbound_id,
+        store=inbound_store(),
+        senders=IdentityGateway(),
+        roster=crews_gateway(),
+        replier=GroupReplier(),
+        handlers=router.DEFAULT_HANDLERS,
+        clock=SystemClock(),
+    )
 
 
 def process_scheduler() -> ExecutorProcessScheduler:
