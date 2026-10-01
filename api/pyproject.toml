@@ -50,7 +50,8 @@ known-first-party = ["config", "shared", "ops", "identity", "crews", "messaging"
 
 [tool.importlinter]
 root_packages = [
-    "config", "shared", "ops", "identity", "crews", "messaging", "django", "ninja", "httpx",
+    "config", "shared", "ops", "identity", "crews", "messaging", "trips", "django", "ninja",
+    "httpx",
 ]
 include_external_packages = true
 
@@ -58,7 +59,7 @@ include_external_packages = true
 name = "shared depends on no other project package"
 type = "forbidden"
 source_modules = ["shared"]
-forbidden_modules = ["config", "ops", "identity", "crews", "messaging"]
+forbidden_modules = ["config", "ops", "identity", "crews", "messaging", "trips"]
 
 [[tool.importlinter.contracts]]
 name = "domain, use cases and ports import no framework or HTTP code"
@@ -68,6 +69,7 @@ source_modules = [
     "crews.domain", "crews.use_cases", "crews.ports",
     "messaging.use_cases", "messaging.ports", "messaging.domain", "messaging.router",
     "messaging.handlers",
+    "trips.domain", "trips.use_cases", "trips.ports", "trips.plugins",
     "shared.phone", "shared.clock",
 ]
 forbidden_modules = ["django", "ninja", "httpx"]
@@ -93,8 +95,14 @@ ignore_imports = [
 ]
 
 [[tool.importlinter.contracts]]
-name = "crews does not depend on identity or messaging"
+name = "crews does not depend on identity, messaging or trips"
 type = "forbidden"
 source_modules = ["crews"]
-forbidden_modules = ["identity", "messaging"]
+forbidden_modules = ["identity", "messaging", "trips"]
 ignore_imports = ["crews.tests.* -> identity.models"]  # tests create the user model
+
+[[tool.importlinter.contracts]]
+name = "trips never imports a trip-type plugin"
+type = "forbidden"
+source_modules = ["trips"]
+forbidden_modules = ["ski"]
