@@ -196,3 +196,18 @@ def test_own_jid_reads_the_session_me(client):
 def test_own_jids_is_empty_when_unavailable(client):
     respx.get(f"{BASE}/api/sessions/default").mock(return_value=httpx.Response(500))
     assert client.own_jids() == set()
+
+
+@respx.mock
+def test_jids_are_percent_encoded_in_paths(client):
+    groups = respx.get(url__startswith=f"{BASE}/api/default/groups/").mock(
+        return_value=httpx.Response(200, json=[{"id": "1@lid", "role": "participant"}])
+    )
+    lids = respx.get(url__startswith=f"{BASE}/api/default/lids/").mock(
+        return_value=httpx.Response(200, json={"pn": "5491100000001@c.us"})
+    )
+    client.group_participants(GROUP)
+    assert groups.calls.last.request.url.raw_path.startswith(
+        b"/api/default/groups/120363000000000000%40g.us/participants/v2"
+    )
+    assert lids.calls.last.request.url.raw_path == b"/api/default/lids/1%40lid"

@@ -6,6 +6,7 @@ Endpoints (WAHA docs): ``POST /api/sendText``, ``GET /api/{session}/groups/{id}/
 
 from collections.abc import Sequence
 from typing import Any
+from urllib.parse import quote
 
 import httpx
 
@@ -19,6 +20,11 @@ def to_chat_id(jid: str) -> str:
     """WAHA addresses people as ``<digits>@c.us``; groups keep ``@g.us``."""
     user, sep, server = normalize_jid(jid).partition("@")
     return f"{user}@c.us" if sep and server == USER_SERVER else normalize_jid(jid)
+
+
+def _seg(value: str) -> str:
+    """One URL path segment: ``@`` and friends are percent-encoded."""
+    return quote(value, safe="")
 
 
 def _phone_jid(raw: Any) -> str:
@@ -80,7 +86,9 @@ class WahaClient:
         return stanza_id(message_id)  # the ledger keys cards by the bare stanza id
 
     def group_participants(self, chat_id: str) -> list[Participant]:
-        response = self._request("GET", f"/api/{self._session}/groups/{chat_id}/participants/v2")
+        response = self._request(
+            "GET", f"/api/{_seg(self._session)}/groups/{_seg(chat_id)}/participants/v2"
+        )
         try:
             items = [item for item in response.json() if item.get("role") != "left"]
             return [self._participant(item) for item in items]
@@ -90,7 +98,7 @@ class WahaClient:
     def own_jids(self) -> set[str]:
         """JIDs of the session's own account (best effort; empty when WAHA does not say)."""
         try:
-            me = self._request("GET", f"/api/sessions/{self._session}").json().get("me") or {}
+            me = self._request("GET", f"/api/sessions/{_seg(self._session)}").json().get("me") or {}
             raw = (me.get("id"), me.get("lid"))
         except (GatewayError, ValueError, AttributeError):
             return set()
@@ -107,7 +115,7 @@ class WahaClient:
     def _phone_of(self, lid: str) -> str:
         """Phone JID behind a LID (``GET /api/{session}/lids/{lid}``); '' when unknown."""
         try:
-            data = self._request("GET", f"/api/{self._session}/lids/{lid}").json()
+            data = self._request("GET", f"/api/{_seg(self._session)}/lids/{_seg(lid)}").json()
             return _phone_jid(data.get("pn") or data.get("phoneNumber"))
         except (GatewayError, ValueError, AttributeError):
             return ""
