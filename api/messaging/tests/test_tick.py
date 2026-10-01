@@ -85,6 +85,8 @@ def test_prints_a_one_line_json_summary(crew, gowa):
         "dispatched": 0,
         "dispatch_failed": 0,
         "rosters_synced": 0,
+        "reminders_queued": 0,
+        "reminder_errors": 0,
         "errors": 0,
     }
 

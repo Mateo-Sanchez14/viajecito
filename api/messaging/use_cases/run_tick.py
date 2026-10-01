@@ -1,4 +1,8 @@
-"""One pass of the periodic ``tick`` job: unstick, reprocess, redeliver and refresh rosters."""
+"""One pass of the periodic ``tick`` job.
+
+Unsticks and reprocesses inbound rows, queues reminders, redelivers outbound rows and refreshes
+rosters.
+"""
 
 import logging
 from collections.abc import Callable
@@ -7,6 +11,7 @@ from datetime import datetime, timedelta
 
 from messaging.ports import JobLocks, OutboundQueue, RosterSyncSource, TickInbound
 from messaging.use_cases.dispatch_queued import DispatchResult
+from messaging.use_cases.queue_reminders import RemindersResult
 from shared.clock import Clock
 
 logger = logging.getLogger(__name__)
@@ -32,6 +37,7 @@ def run_tick(
     rosters: RosterSyncSource,
     process: Callable[[int], str],
     dispatch: Callable[[datetime], DispatchResult],
+    reminders: Callable[[datetime], RemindersResult] | None = None,
     clock: Clock,
     config: TickConfig,
     owner: str,
@@ -59,6 +65,14 @@ def run_tick(
             except Exception:  # one bad row must not stop the pass
                 logger.exception("tick: processing inbound %s crashed", inbound_id)
                 errors += 1
+        reminders_queued = reminder_errors = 0
+        if reminders is not None and clock.now() < deadline:
+            try:
+                outcome = reminders(now)
+                reminders_queued, reminder_errors = outcome.queued, outcome.errors
+            except Exception:  # e.g. database trouble: the next tick tries again
+                logger.exception("tick: reminders phase crashed")
+                reminder_errors += 1
         dispatched = dispatch(deadline)
         synced = 0
         for crew_id in rosters.crews_needing_sync(now - timedelta(hours=config.roster_sync_hours)):
@@ -77,6 +91,8 @@ def run_tick(
             "dispatched": dispatched.sent,
             "dispatch_failed": dispatched.failed,
             "rosters_synced": synced,
+            "reminders_queued": reminders_queued,
+            "reminder_errors": reminder_errors,
             "errors": errors,
         }
     finally:

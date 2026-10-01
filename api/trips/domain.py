@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from datetime import date
 
 TRIP_STATUSES = ("idea", "planning", "booked", "ongoing", "done")
+ACTIVE_STATUSES = ("planning", "booked", "ongoing")  # trips that still need reminders
 RSVP_VALUES = ("in", "maybe", "out", "pending")
 DEFAULT_TRIP_TYPE = "generic"
 DEFAULT_CURRENCY = "USD"

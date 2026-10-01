@@ -223,9 +223,17 @@ import raises. Never edit `config/api.py`.
 the chain runs by ascending order (stable for ties), registering the same `(order, handler)` twice is a
 no-op. Orders: commands 10 (registered by `MessagingConfig`), quoted card 20, link capture 30, fallback 100.
 
-**Adding an app.** Append it to `PROJECT_APPS` in `config/settings/apps.py` (one per line), to
-`root_packages` and the `known-first-party`/`testpaths` lists in `pyproject.toml`, expose `api.router`
-(and optionally `PREFIX`), and register plugins/handlers in `ready()`.
+**Adding an app.** Checklist:
+
+1. Append the app to `PROJECT_APPS` in `config/settings/apps.py` (one per line), and to `root_packages`,
+   `known-first-party` and `testpaths` in `pyproject.toml`.
+2. Expose `api.router` (and optionally `PREFIX`); `config/api.py` mounts it. Guard every endpoint with
+   `crews.api_auth.member_of_crew(request, crew_id)` or `trips.api_auth.member_of_trip(request, trip_id)`.
+3. From `AppConfig.ready()` register what you contribute: a trip type (`trips.plugins.register`), inbound
+   bot handlers (`messaging.router.register_handler(order, handler)`), reminder rules
+   (`messaging.reminders.register_reminder_rule(key, rule)`) and event subscribers
+   (`shared.events.subscribe(event_name, callback)`, see *Domain events*).
+4. Never edit core files (`config/api.py`, `messaging/router.py`, `trips`); a core change goes in a request.
 
 ## Domain events
 
@@ -238,3 +246,20 @@ from `AppConfig.ready()`.
 - **Payload**: keyword arguments with ids and plain values only (never model instances).
 - **Inside a transaction** use `shared.events_django.publish_after_commit(...)`: it defers through
   `transaction.on_commit` (dropped on rollback) and publishes immediately outside an atomic block.
+
+## Reminder rules and the tick `reminders` phase
+
+`messaging/reminders.py` is a registry of reminder rules: `register_reminder_rule(key, rule)`,
+`registered_rules()`, `clear()`. A rule is `rule(ctx: ReminderContext) -> Iterable[ReminderDraft]` and
+returns the reminders that are due *now*; milestones register theirs from `AppConfig.ready()`.
+
+- `ReminderContext` (frozen): `now` (aware UTC), `trip_id`, `crew_id`, `chat_id` (the crew's group),
+  `trip_timezone`, `trip_start_on`, `trip_end_on`, `quiet_hours=(22, 9)`.
+- `ReminderDraft` (frozen): `to_jid`, `body`, `dedupe_key`, `subject_type`, `subject_id`, `kind="reminder"`.
+- Rules must be idempotent: a reminder always carries the same `dedupe_key`. The tick persists each draft
+  as `OutboundMessage(status="queued", dedupe_key=...)` and the unique key ignores duplicates, so re-runs
+  are safe. Re-registering the same `(key, rule)` is a no-op; a different rule under a used key raises.
+- The `tick` phase visits every trip with status `planning|booked|ongoing` whose crew has a linked chat,
+  runs every rule inside try/except (logged and counted, never fatal), and drops drafts produced while the
+  trip's local time is in quiet hours (22:00-09:00 in `trip_timezone`); a later tick produces them again.
+  The tick summary gains `reminders_queued` and `reminder_errors`.

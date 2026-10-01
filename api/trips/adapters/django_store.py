@@ -4,7 +4,7 @@ from typing import Any
 from django.db import transaction
 
 from crews.models import Crew, CrewMembership
-from trips.domain import ParticipantData, TripData
+from trips.domain import ACTIVE_STATUSES, ParticipantData, TripData
 from trips.models import Participation, Trip
 
 
@@ -60,6 +60,10 @@ class DjangoTripStore:
 
     def list_for_crew(self, crew_id: str) -> list[TripData]:
         return [trip_data(t) for t in Trip.objects.filter(crew_id=crew_id)]
+
+    def list_active(self) -> list[TripData]:
+        trips = Trip.objects.filter(status__in=ACTIVE_STATUSES).order_by("created_at", "pk")
+        return [trip_data(t) for t in trips]
 
     def get(self, trip_id: str) -> TripData | None:
         trip = Trip.objects.filter(pk=trip_id).first()

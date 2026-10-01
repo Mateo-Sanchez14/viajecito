@@ -8,8 +8,11 @@ from django.conf import settings
 
 from messaging.adapters import wiring
 from messaging.adapters.gowa_factory import build_gowa_client
+from messaging.adapters.ledger import DjangoOutboundLedger
 from messaging.adapters.tick_store import DjangoJobLocks, DjangoOutboundQueue, DjangoTickInbound
+from messaging.adapters.trips_gateway import TripsGateway
 from messaging.use_cases.dispatch_queued import dispatch_queued
+from messaging.use_cases.queue_reminders import queue_reminders
 from messaging.use_cases.run_tick import TickConfig, run_tick
 from shared.clock import SystemClock
 
@@ -40,6 +43,9 @@ def run_default_tick() -> dict[str, int] | None:
             deadline=deadline,
         )
 
+    def reminders(now):
+        return queue_reminders(trips=TripsGateway(), ledger=DjangoOutboundLedger(), now=now)
+
     return run_tick(
         locks=DjangoJobLocks(),
         inbound=DjangoTickInbound(),
@@ -47,6 +53,7 @@ def run_default_tick() -> dict[str, int] | None:
         rosters=wiring.crews_gateway(),
         process=lambda inbound_id: process_one(inbound_id),
         dispatch=dispatch,
+        reminders=reminders,
         clock=clock,
         config=config,
         owner=f"{socket.gethostname()}:{os.getpid()}",
