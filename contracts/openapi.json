@@ -3,7 +3,7 @@
   "info": {
     "title": "viajecito",
     "version": "0.1.0",
-    "description": ""
+    "description": "DRAFT M1 (feat/m1-web): proposals paths/schemas are a draft written from docs/contracts/m1-proposals.md; the orchestrator replaces this file with the real api export at integration."
   },
   "paths": {
     "/api/health": {
@@ -649,6 +649,960 @@
           },
           "required": true
         },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ]
+      }
+    },
+    "/api/trips/{trip_id}/proposals": {
+      "get": {
+        "operationId": "proposals_api_list_proposals",
+        "summary": "List Proposals",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "trip_id",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true
+          },
+          {
+            "in": "query",
+            "name": "category",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "lodging",
+                  "transport",
+                  "activity",
+                  "food",
+                  "gear",
+                  "destination",
+                  "other"
+                ]
+              }
+            },
+            "required": false
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "proposed",
+                  "discussing",
+                  "chosen",
+                  "booked",
+                  "discarded"
+                ]
+              }
+            },
+            "required": false
+          },
+          {
+            "in": "query",
+            "name": "include_discarded",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            },
+            "required": false
+          },
+          {
+            "in": "query",
+            "name": "sort",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "score",
+                "recent"
+              ],
+              "default": "recent"
+            },
+            "required": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ProposalSummaryOut"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "proposals"
+        ],
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ]
+      },
+      "post": {
+        "operationId": "proposals_api_create_proposal",
+        "summary": "Create Proposal",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "trip_id",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProposalOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DuplicateProposalOut"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "proposals"
+        ],
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "description": "400 codes: invalid_request, invalid_url, ignored_url, invalid_dates. 409: duplicate_proposal (+ proposal_id).",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProposalCreateIn"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/trips/{trip_id}/proposals/summary": {
+      "get": {
+        "operationId": "proposals_api_proposals_summary",
+        "summary": "Proposals Summary",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "trip_id",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProposalsSummaryOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "proposals"
+        ],
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ]
+      }
+    },
+    "/api/proposals/{proposal_id}": {
+      "get": {
+        "operationId": "proposals_api_get_proposal",
+        "summary": "Get Proposal",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "proposal_id",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProposalOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "proposals"
+        ],
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ]
+      },
+      "patch": {
+        "operationId": "proposals_api_update_proposal",
+        "summary": "Update Proposal",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "proposal_id",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProposalOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "proposals"
+        ],
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProposalPatchIn"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/proposals/{proposal_id}/transition": {
+      "post": {
+        "operationId": "proposals_api_transition_proposal",
+        "summary": "Transition Proposal",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "proposal_id",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProposalOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "proposals"
+        ],
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TransitionIn"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/proposals/{proposal_id}/vote": {
+      "put": {
+        "operationId": "proposals_api_cast_vote",
+        "summary": "Cast Vote",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "proposal_id",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VoteTallyOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "proposals"
+        ],
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VoteIn"
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "proposals_api_remove_vote",
+        "summary": "Remove Vote",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "proposal_id",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VoteTallyOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "proposals"
+        ],
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ]
+      }
+    },
+    "/api/proposals/{proposal_id}/comments": {
+      "get": {
+        "operationId": "proposals_api_list_comments",
+        "summary": "List Comments",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "proposal_id",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CommentOut"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "proposals"
+        ],
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ]
+      },
+      "post": {
+        "operationId": "proposals_api_add_comment",
+        "summary": "Add Comment",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "proposal_id",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommentOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "proposals"
+        ],
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CommentIn"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/comments/{comment_id}": {
+      "delete": {
+        "operationId": "proposals_api_delete_comment",
+        "summary": "Delete Comment",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "comment_id",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "proposals"
+        ],
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ]
+      }
+    },
+    "/api/proposals/{proposal_id}/refresh_preview": {
+      "post": {
+        "operationId": "proposals_api_refresh_preview",
+        "summary": "Refresh Preview",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "proposal_id",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RefreshPreviewOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "proposals"
+        ],
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ]
+      }
+    },
+    "/api/proposals/{proposal_id}/thumbnail": {
+      "get": {
+        "operationId": "proposals_api_thumbnail",
+        "summary": "Thumbnail",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "proposal_id",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "image/webp": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "proposals"
+        ],
         "security": [
           {
             "SessionAuth": []
@@ -1320,6 +2274,922 @@
         ],
         "title": "ParticipantIn",
         "type": "object"
+      },
+      "LinkPreviewOut": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string"
+          },
+          "final_url": {
+            "type": "string"
+          },
+          "site_name": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "image_url": {
+            "type": "string"
+          },
+          "has_thumbnail": {
+            "type": "boolean"
+          },
+          "price_amount": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "price_currency": {
+            "type": "string"
+          },
+          "lat": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "lng": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "fetch_status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "ok",
+              "partial",
+              "blocked",
+              "failed"
+            ]
+          },
+          "fetched_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "url",
+          "final_url",
+          "site_name",
+          "title",
+          "description",
+          "image_url",
+          "has_thumbnail",
+          "price_amount",
+          "price_currency",
+          "lat",
+          "lng",
+          "fetch_status",
+          "fetched_at"
+        ]
+      },
+      "VoteTallyOut": {
+        "type": "object",
+        "properties": {
+          "up": {
+            "type": "integer"
+          },
+          "neutral": {
+            "type": "integer"
+          },
+          "down": {
+            "type": "integer"
+          },
+          "score": {
+            "type": "integer"
+          },
+          "my_vote": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "enum": [
+                  -1,
+                  0,
+                  1
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "majority": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "up",
+          "neutral",
+          "down",
+          "score",
+          "my_vote",
+          "majority"
+        ]
+      },
+      "PersonRefOut": {
+        "type": "object",
+        "properties": {
+          "person_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "display_name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "person_id",
+          "display_name"
+        ]
+      },
+      "VoteOut": {
+        "type": "object",
+        "properties": {
+          "person": {
+            "$ref": "#/components/schemas/PersonRefOut"
+          },
+          "value": {
+            "type": "integer",
+            "enum": [
+              -1,
+              0,
+              1
+            ]
+          }
+        },
+        "required": [
+          "person",
+          "value"
+        ]
+      },
+      "ProposalSummaryOut": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "trip_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "lodging",
+              "transport",
+              "activity",
+              "food",
+              "gear",
+              "destination",
+              "other"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "proposed",
+              "discussing",
+              "chosen",
+              "booked",
+              "discarded"
+            ]
+          },
+          "title": {
+            "type": "string"
+          },
+          "note": {
+            "type": "string"
+          },
+          "author": {
+            "$ref": "#/components/schemas/PersonRefOut"
+          },
+          "est_price": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "currency": {
+            "type": "string"
+          },
+          "price_basis": {
+            "type": "string",
+            "enum": [
+              "total",
+              "per_person",
+              "per_night"
+            ]
+          },
+          "starts_on": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "ends_on": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "booking_ref": {
+            "type": "string"
+          },
+          "preview": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LinkPreviewOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "tally": {
+            "$ref": "#/components/schemas/VoteTallyOut"
+          },
+          "comment_count": {
+            "type": "integer"
+          },
+          "allowed_transitions": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "proposed",
+                "discussing",
+                "chosen",
+                "booked",
+                "discarded"
+              ]
+            }
+          },
+          "web_path": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "trip_id",
+          "category",
+          "status",
+          "title",
+          "note",
+          "author",
+          "est_price",
+          "currency",
+          "price_basis",
+          "starts_on",
+          "ends_on",
+          "booking_ref",
+          "preview",
+          "tally",
+          "comment_count",
+          "allowed_transitions",
+          "web_path",
+          "created_at",
+          "updated_at"
+        ]
+      },
+      "ProposalOut": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "trip_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "lodging",
+              "transport",
+              "activity",
+              "food",
+              "gear",
+              "destination",
+              "other"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "proposed",
+              "discussing",
+              "chosen",
+              "booked",
+              "discarded"
+            ]
+          },
+          "title": {
+            "type": "string"
+          },
+          "note": {
+            "type": "string"
+          },
+          "author": {
+            "$ref": "#/components/schemas/PersonRefOut"
+          },
+          "est_price": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "currency": {
+            "type": "string"
+          },
+          "price_basis": {
+            "type": "string",
+            "enum": [
+              "total",
+              "per_person",
+              "per_night"
+            ]
+          },
+          "starts_on": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "ends_on": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "booking_ref": {
+            "type": "string"
+          },
+          "preview": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LinkPreviewOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "tally": {
+            "$ref": "#/components/schemas/VoteTallyOut"
+          },
+          "comment_count": {
+            "type": "integer"
+          },
+          "allowed_transitions": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "proposed",
+                "discussing",
+                "chosen",
+                "booked",
+                "discarded"
+              ]
+            }
+          },
+          "web_path": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "votes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VoteOut"
+            }
+          },
+          "chosen_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "booked_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "discarded_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "whatsapp",
+              "web"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "trip_id",
+          "category",
+          "status",
+          "title",
+          "note",
+          "author",
+          "est_price",
+          "currency",
+          "price_basis",
+          "starts_on",
+          "ends_on",
+          "booking_ref",
+          "preview",
+          "tally",
+          "comment_count",
+          "allowed_transitions",
+          "web_path",
+          "created_at",
+          "updated_at",
+          "votes",
+          "chosen_at",
+          "booked_at",
+          "discarded_at",
+          "source"
+        ]
+      },
+      "CommentOut": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "proposal_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "author": {
+            "$ref": "#/components/schemas/PersonRefOut"
+          },
+          "body": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "whatsapp",
+              "web"
+            ]
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "can_delete": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "proposal_id",
+          "author",
+          "body",
+          "source",
+          "created_at",
+          "can_delete"
+        ]
+      },
+      "ProposalsSummaryOut": {
+        "type": "object",
+        "properties": {
+          "counts": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "integer"
+            }
+          },
+          "top": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProposalSummaryOut"
+            }
+          }
+        },
+        "required": [
+          "counts",
+          "top"
+        ]
+      },
+      "ProposalCreateIn": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 300
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "category": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "lodging",
+                  "transport",
+                  "activity",
+                  "food",
+                  "gear",
+                  "destination",
+                  "other"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "est_price": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "currency": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 3
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "price_basis": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "total",
+                  "per_person",
+                  "per_night"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "starts_on": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "ends_on": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": []
+      },
+      "ProposalPatchIn": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 300
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "category": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "lodging",
+                  "transport",
+                  "activity",
+                  "food",
+                  "gear",
+                  "destination",
+                  "other"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "est_price": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "currency": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 3
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "price_basis": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "total",
+                  "per_person",
+                  "per_night"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "starts_on": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "ends_on": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "booking_ref": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 120
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [],
+        "description": "Every field optional; only the ones sent are applied (est_price null clears)."
+      },
+      "TransitionIn": {
+        "type": "object",
+        "properties": {
+          "to": {
+            "type": "string",
+            "enum": [
+              "proposed",
+              "discussing",
+              "chosen",
+              "booked",
+              "discarded"
+            ]
+          },
+          "booking_ref": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 120
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "to"
+        ]
+      },
+      "VoteIn": {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "integer",
+            "enum": [
+              -1,
+              0,
+              1
+            ]
+          }
+        },
+        "required": [
+          "value"
+        ]
+      },
+      "CommentIn": {
+        "type": "object",
+        "properties": {
+          "body": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          }
+        },
+        "required": [
+          "body"
+        ]
+      },
+      "RefreshPreviewOut": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "queued"
+            ]
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "DuplicateProposalOut": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "proposal_id": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "code",
+          "message",
+          "proposal_id"
+        ]
       }
     },
     "securitySchemes": {

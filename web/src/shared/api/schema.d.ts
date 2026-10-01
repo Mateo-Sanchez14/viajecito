@@ -179,6 +179,166 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/trips/{trip_id}/proposals": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Proposals */
+        get: operations["proposals_api_list_proposals"];
+        put?: never;
+        /**
+         * Create Proposal
+         * @description 400 codes: invalid_request, invalid_url, ignored_url, invalid_dates. 409: duplicate_proposal (+ proposal_id).
+         */
+        post: operations["proposals_api_create_proposal"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/trips/{trip_id}/proposals/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Proposals Summary */
+        get: operations["proposals_api_proposals_summary"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/proposals/{proposal_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Proposal */
+        get: operations["proposals_api_get_proposal"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update Proposal */
+        patch: operations["proposals_api_update_proposal"];
+        trace?: never;
+    };
+    "/api/proposals/{proposal_id}/transition": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Transition Proposal */
+        post: operations["proposals_api_transition_proposal"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/proposals/{proposal_id}/vote": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Cast Vote */
+        put: operations["proposals_api_cast_vote"];
+        post?: never;
+        /** Remove Vote */
+        delete: operations["proposals_api_remove_vote"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/proposals/{proposal_id}/comments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Comments */
+        get: operations["proposals_api_list_comments"];
+        put?: never;
+        /** Add Comment */
+        post: operations["proposals_api_add_comment"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/comments/{comment_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete Comment */
+        delete: operations["proposals_api_delete_comment"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/proposals/{proposal_id}/refresh_preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Refresh Preview */
+        post: operations["proposals_api_refresh_preview"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/proposals/{proposal_id}/thumbnail": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Thumbnail */
+        get: operations["proposals_api_thumbnail"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -424,6 +584,168 @@ export interface components {
              * @enum {string}
              */
             rsvp: "in" | "maybe" | "out" | "pending";
+        };
+        LinkPreviewOut: {
+            url: string;
+            final_url: string;
+            site_name: string;
+            title: string;
+            description: string;
+            image_url: string;
+            has_thumbnail: boolean;
+            price_amount: string | null;
+            price_currency: string;
+            lat: number | null;
+            lng: number | null;
+            /** @enum {string} */
+            fetch_status: "pending" | "ok" | "partial" | "blocked" | "failed";
+            fetched_at: string | null;
+        };
+        VoteTallyOut: {
+            up: number;
+            neutral: number;
+            down: number;
+            score: number;
+            my_vote: (-1 | 0 | 1) | null;
+            majority: boolean;
+        };
+        PersonRefOut: {
+            /** Format: uuid */
+            person_id: string;
+            display_name: string;
+        };
+        VoteOut: {
+            person: components["schemas"]["PersonRefOut"];
+            /** @enum {integer} */
+            value: -1 | 0 | 1;
+        };
+        ProposalSummaryOut: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            trip_id: string;
+            /** @enum {string} */
+            category: "lodging" | "transport" | "activity" | "food" | "gear" | "destination" | "other";
+            /** @enum {string} */
+            status: "proposed" | "discussing" | "chosen" | "booked" | "discarded";
+            title: string;
+            note: string;
+            author: components["schemas"]["PersonRefOut"];
+            est_price: string | null;
+            currency: string;
+            /** @enum {string} */
+            price_basis: "total" | "per_person" | "per_night";
+            starts_on: string | null;
+            ends_on: string | null;
+            booking_ref: string;
+            preview: components["schemas"]["LinkPreviewOut"] | null;
+            tally: components["schemas"]["VoteTallyOut"];
+            comment_count: number;
+            allowed_transitions: ("proposed" | "discussing" | "chosen" | "booked" | "discarded")[];
+            web_path: string;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            updated_at: string;
+        };
+        ProposalOut: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            trip_id: string;
+            /** @enum {string} */
+            category: "lodging" | "transport" | "activity" | "food" | "gear" | "destination" | "other";
+            /** @enum {string} */
+            status: "proposed" | "discussing" | "chosen" | "booked" | "discarded";
+            title: string;
+            note: string;
+            author: components["schemas"]["PersonRefOut"];
+            est_price: string | null;
+            currency: string;
+            /** @enum {string} */
+            price_basis: "total" | "per_person" | "per_night";
+            starts_on: string | null;
+            ends_on: string | null;
+            booking_ref: string;
+            preview: components["schemas"]["LinkPreviewOut"] | null;
+            tally: components["schemas"]["VoteTallyOut"];
+            comment_count: number;
+            allowed_transitions: ("proposed" | "discussing" | "chosen" | "booked" | "discarded")[];
+            web_path: string;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            updated_at: string;
+            votes: components["schemas"]["VoteOut"][];
+            chosen_at: string | null;
+            booked_at: string | null;
+            discarded_at: string | null;
+            /** @enum {string} */
+            source: "whatsapp" | "web";
+        };
+        CommentOut: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            proposal_id: string;
+            author: components["schemas"]["PersonRefOut"];
+            body: string;
+            /** @enum {string} */
+            source: "whatsapp" | "web";
+            /** Format: date-time */
+            created_at: string;
+            can_delete: boolean;
+        };
+        ProposalsSummaryOut: {
+            counts: {
+                [key: string]: number;
+            };
+            top: components["schemas"]["ProposalSummaryOut"][];
+        };
+        ProposalCreateIn: {
+            url?: string | null;
+            title?: string | null;
+            category?: ("lodging" | "transport" | "activity" | "food" | "gear" | "destination" | "other") | null;
+            note?: string | null;
+            est_price?: string | null;
+            currency?: string | null;
+            price_basis?: ("total" | "per_person" | "per_night") | null;
+            starts_on?: string | null;
+            ends_on?: string | null;
+        };
+        /** @description Every field optional; only the ones sent are applied (est_price null clears). */
+        ProposalPatchIn: {
+            title?: string | null;
+            note?: string | null;
+            category?: ("lodging" | "transport" | "activity" | "food" | "gear" | "destination" | "other") | null;
+            est_price?: string | null;
+            currency?: string | null;
+            price_basis?: ("total" | "per_person" | "per_night") | null;
+            starts_on?: string | null;
+            ends_on?: string | null;
+            booking_ref?: string | null;
+        };
+        TransitionIn: {
+            /** @enum {string} */
+            to: "proposed" | "discussing" | "chosen" | "booked" | "discarded";
+            booking_ref?: string | null;
+        };
+        VoteIn: {
+            /** @enum {integer} */
+            value: -1 | 0 | 1;
+        };
+        CommentIn: {
+            body: string;
+        };
+        RefreshPreviewOut: {
+            /** @enum {string} */
+            status: "queued";
+        };
+        DuplicateProposalOut: {
+            code: string;
+            message: string;
+            /** Format: uuid */
+            proposal_id: string;
         };
     };
     responses: never;
@@ -898,6 +1220,648 @@ export interface operations {
             };
             /** @description Forbidden */
             403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    proposals_api_list_proposals: {
+        parameters: {
+            query?: {
+                category?: ("lodging" | "transport" | "activity" | "food" | "gear" | "destination" | "other")[];
+                status?: ("proposed" | "discussing" | "chosen" | "booked" | "discarded")[];
+                include_discarded?: boolean;
+                sort?: "score" | "recent";
+            };
+            header?: never;
+            path: {
+                trip_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProposalSummaryOut"][];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    proposals_api_create_proposal: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                trip_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProposalCreateIn"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProposalOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DuplicateProposalOut"];
+                };
+            };
+        };
+    };
+    proposals_api_proposals_summary: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                trip_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProposalsSummaryOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    proposals_api_get_proposal: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                proposal_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProposalOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    proposals_api_update_proposal: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                proposal_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProposalPatchIn"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProposalOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    proposals_api_transition_proposal: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                proposal_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TransitionIn"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProposalOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    proposals_api_cast_vote: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                proposal_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VoteIn"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VoteTallyOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    proposals_api_remove_vote: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                proposal_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VoteTallyOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    proposals_api_list_comments: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                proposal_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CommentOut"][];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    proposals_api_add_comment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                proposal_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CommentIn"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CommentOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    proposals_api_delete_comment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                comment_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    proposals_api_refresh_preview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                proposal_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RefreshPreviewOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    proposals_api_thumbnail: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                proposal_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "image/webp": string;
+                };
+            };
+            /** @description Unauthorized */
+            401: {
                 headers: {
                     [name: string]: unknown;
                 };
