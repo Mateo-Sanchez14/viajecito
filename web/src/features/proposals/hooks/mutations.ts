@@ -91,7 +91,11 @@ export function useVote(id: string) {
     onError: (_error, _next, context) => {
       context?.snapshot.forEach(([key, data]) => queryClient.setQueryData(key, data));
     },
-    onSettled: () => invalidateAll(queryClient),
+    // Not awaited: the vote is done (or rolled back) as soon as the api answers; the refetch
+    // only reconciles in the background.
+    onSettled: () => {
+      void invalidateAll(queryClient);
+    },
   });
 }
 

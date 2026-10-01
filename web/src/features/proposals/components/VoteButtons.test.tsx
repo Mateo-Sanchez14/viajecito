@@ -75,7 +75,7 @@ describe("VoteButtons", () => {
     await waitFor(() => expect(screen.getByRole("button", { name: label(t.vote.up, 3) })).toBeEnabled());
   });
 
-  it("rolls back and shows an error when the api fails", async () => {
+  it("rolls back on failure before any refetch could have repaired it", async () => {
     server.use(
       csrf,
       http.put("/api/proposals/{proposal_id}/vote", () =>
@@ -83,12 +83,25 @@ describe("VoteButtons", () => {
       ),
     );
     setup();
+    const first = await up();
 
-    fireEvent.click(await up());
+    // From here on the api holds every GET, so only the rollback itself can restore the tally.
+    let releaseGet: () => void = () => {};
+    const getGate = new Promise<void>((resolve) => (releaseGet = resolve));
+    server.use(
+      http.get("/api/proposals/{proposal_id}", async ({ response }) => {
+        await getGate;
+        return response(200).json(makeProposal({ tally: serverTally }));
+      }),
+    );
+    fireEvent.click(first);
 
     expect(await screen.findByRole("alert")).toHaveTextContent(messages.errors.unexpected.title);
-    const rolledBack = await screen.findByRole("button", { name: label(t.vote.up, 2) });
+    const rolledBack = screen.getByRole("button", { name: label(t.vote.up, 2) });
     expect(pressed(rolledBack)).toBe("false");
+    expect(screen.getByRole("button", { name: label(t.vote.down, 1) })).toBeInTheDocument();
+    releaseGet();
+    await waitFor(() => expect(screen.getByRole("button", { name: label(t.vote.up, 2) })).toBeEnabled());
   });
 
   it("says why when the proposal is closed (409 proposal_closed)", async () => {
