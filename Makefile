@@ -2,7 +2,7 @@
 
 E2E_PHONE ?= +5491155551234
 export DATA_DIR ?= ./data
-.PHONY: help up down logs ps api-test web-test test lint api-schema api-types api-types-check fake-gowa-test replay deploy bootstrap-dev-crew e2e e2e-keep
+.PHONY: help up down logs ps api-test web-test test lint api-schema api-types api-types-check fake-gowa-test replay deploy bootstrap-dev-crew e2e e2e-keep bot-smoke
 
 help: ## Show this help
 	@awk 'BEGIN {FS = ":.*## "} /^[a-zA-Z0-9_-]+:.*## / {printf "  \033[36m%-18s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -63,6 +63,9 @@ e2e-keep: ## Run the e2e like `e2e` but leave the stack running for debugging
 	$(E2E_RUN)
 
 FIXTURE ?= api/messaging/tests/fixtures/gowa/group_command_ping.json
+
+bot-smoke: ## Dev stack + fake Gowa: replay /viaje ping, expect pong, duplicate on replay, tick (own data dir, torn down after)
+	./deploy/scripts/bot_smoke.sh
 
 replay: ## Replay a recorded Gowa webhook against the local api (make replay FIXTURE=<path>)
 	cd api && uv run python manage.py replay_gowa ../$(FIXTURE)
