@@ -1,0 +1,54 @@
+[project]
+name = "viajecito-api"
+version = "0.1.0"
+description = "viajecito backend (Django + Ninja)"
+requires-python = ">=3.13"
+dependencies = [
+    "django>=5.2,<6",
+    "django-ninja>=1.4,<2",
+    "gunicorn>=23",
+    "whitenoise>=6.9",
+    "environs>=14",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8",
+    "pytest-django>=4.11",
+    "pytest-socket>=0.7",
+    "ruff>=0.12",
+    "import-linter>=2.3",
+    "factory-boy>=3.3",
+    "time-machine>=2.16",
+    "respx>=0.22",
+    "httpx>=0.28",
+]
+
+[tool.uv]
+package = false
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings.test"
+addopts = "--disable-socket --allow-unix-socket -ra"
+testpaths = ["tests", "ops", "shared"]
+python_files = ["test_*.py"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+extend-exclude = ["data"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["config", "shared", "ops"]
+
+[tool.importlinter]
+root_packages = ["config", "shared", "ops"]
+
+[[tool.importlinter.contracts]]
+name = "shared depends on no other project package"
+type = "forbidden"
+source_modules = ["shared"]
+forbidden_modules = ["config", "ops"]
