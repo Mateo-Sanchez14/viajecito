@@ -149,3 +149,16 @@ def test_plain_chat_creates_nothing_and_sends_nothing(trip, ana, gowa):
     assert Proposal.objects.count() == 0
     assert sent_bodies(gowa) == []
     assert InboundMessage.objects.get().outcome == {"reason": "no_handler"}
+
+
+def test_the_static_fetcher_serves_the_dev_stack_and_e2e_without_network(trip, ana, gowa, settings):
+    settings.LINKPREVIEW_FETCHER = "static"
+    post(gowa_fixture("group_link.json"))
+    proposal = Proposal.objects.get()
+    assert proposal.title == "Cabañas del Sur, San Martín de los Andes"
+    assert (str(proposal.est_price), proposal.currency) == ("120.00", "USD")
+    assert proposal.link_preview.thumb_file
+    message = sent_bodies(gowa)[0]["message"]
+    assert message.startswith(
+        "🏠 *Cabañas del Sur, San Martín de los Andes*\nAlojamiento · 120 USD"
+    )
