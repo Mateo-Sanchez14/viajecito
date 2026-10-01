@@ -41,3 +41,7 @@ key `itinerary:digest:<trip_id>:<local_date>` verbatim. Registered digest sectio
 supply snow/other contributions without parallel-app imports. Replies and drafts
 are limited to 4000 characters and retain the Today link; no person-phone fallback
 is used. No new environment settings are introduced.
+
+After/undated bot replies intentionally omit pinned notes: those modes provide only
+their short status and the Today link. Virtual-day generation includes the final
+trip day without incrementing beyond it, including Python's final calendar date.

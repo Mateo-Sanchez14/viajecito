@@ -39,7 +39,7 @@ def render_today(trip, snapshot, url, sections=(), tomorrow=False):
         )
     if not snapshot.entries and snapshot.mode in ("during", "before"):
         lines.append(copy.NO_PLAN.format(url=url))
-    if snapshot.pinned_notes:
+    if snapshot.pinned_notes and snapshot.mode in ("before", "during"):
         lines.append(copy.PINNED_HEADER)
         lines.extend(n.body for n in snapshot.pinned_notes)
     lines.extend(sections)

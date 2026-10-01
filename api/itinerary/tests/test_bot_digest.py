@@ -122,3 +122,21 @@ def test_morning_tick_respects_quiet_hours_and_queues_once(trip, crew):
         assert run(13).queued == 0
         assert OutboundMessage.objects.count() == 1
         assert OutboundMessage.objects.get().dedupe_key == f"itinerary:digest:{trip.id}:2026-10-01"
+
+
+@pytest.mark.parametrize("mode", ["after", "undated"])
+def test_after_and_undated_bot_replies_are_short_without_pinned_notes(trip, mode):
+    from itinerary.copy import es_ar
+    from itinerary.domain.render import render_today
+
+    snapshot = SimpleNamespace(
+        mode=mode,
+        pinned_notes=[SimpleNamespace(body="Private pinned note")],
+        entries=[],
+        next_meeting_point=None,
+    )
+    url = f"https://viajecito.test/crews/{trip.crew_id}/trips/{trip.id}/today"
+    expected = (es_ar.HOY_AFTER if mode == "after" else es_ar.HOY_UNDATED).format(trip=trip.name)
+    rendered = render_today(trip, snapshot, url)
+    assert rendered == expected + "\n" + es_ar.LINK_LINE.format(url=url)
+    assert "Private pinned note" not in rendered

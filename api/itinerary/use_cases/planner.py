@@ -28,6 +28,8 @@ def itinerary(trip):
         day = trip.start_on
         while day <= trip.end_on:
             dates.append(day)
+            if day == trip.end_on:
+                break
             day += timedelta(days=1)
     days = []
     for day in dates:

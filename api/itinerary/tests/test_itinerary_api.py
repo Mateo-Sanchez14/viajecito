@@ -195,3 +195,12 @@ def test_member_and_outsider_note_authorization(trip, ana, outsider, client_as):
     assert send(other, "patch", f"/api/notes/{n['id']}", {"body": "Attack"}).status_code == 404
     assert send(other, "delete", f"/api/notes/{n['id']}").status_code == 404
     assert send(c, "delete", f"/api/notes/{n['id']}").status_code == 204
+
+
+def test_inclusive_final_calendar_day_does_not_overflow(trip, ana, client_as):
+    trip.start_on = trip.end_on = date.max
+    trip.save()
+    response = client_as(ana).get(path(trip))
+    assert response.status_code == 200
+    assert [day["date"] for day in response.json()["days"]] == ["9999-12-31"]
+    assert response.json()["days"][0]["entries"] == []
