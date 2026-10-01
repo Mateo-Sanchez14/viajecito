@@ -6,10 +6,7 @@ OTP_CODE = (
 )
 
 PONG = "pong"
-HELP = (
-    "Comandos de viajecito:\n"
-    "/viaje ping — ver si estoy vivo\n"
-    "/viaje ayuda — esta lista\n"
-    "Pronto: tirá un link acá y lo guardo como propuesta."
-)
+HELP_INTRO = "Comandos de viajecito:"
+PING_HELP = "/viaje ping — ver si estoy vivo"
+AYUDA_HELP = "/viaje ayuda — esta lista"
 UNKNOWN_COMMAND = "No entendí ese comando. Mandá /viaje ayuda."

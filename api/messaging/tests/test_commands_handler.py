@@ -2,11 +2,12 @@ import pytest
 
 from messaging.copy import es_ar
 from messaging.domain import InboundRecord
-from messaging.handlers.commands import handle, parse_command
-from messaging.handlers.types import HandlerContext
+from messaging.handlers import commands
+from messaging.handlers.commands import handle, help_text, parse_command, register_subcommand
+from messaging.handlers.types import Handled, HandlerContext
 
 
-def ctx(body: str, replies: list[str]) -> HandlerContext:
+def ctx(body: str, replies: list[str], **extra) -> HandlerContext:
     record = InboundRecord(
         id=7,
         chat_id="120363000000000000@g.us",
@@ -23,6 +24,7 @@ def ctx(body: str, replies: list[str]) -> HandlerContext:
         person_id="p1",
         crew_id="c1",
         reply=lambda text: replies.append(text) or "sent",
+        **extra,
     )
 
 
@@ -68,7 +70,7 @@ def test_ayuda_and_bare_command_reply_help():
     replies: list[str] = []
     handle(ctx("/viaje ayuda", replies))
     handle(ctx("/viaje", replies))
-    assert replies == [es_ar.HELP, es_ar.HELP]
+    assert replies == [help_text(), help_text()]
 
 
 def test_unknown_subcommand_replies_with_the_hint():
@@ -82,3 +84,80 @@ def test_plain_text_is_not_handled_and_stays_silent():
     replies: list[str] = []
     assert handle(ctx("hola equipo", replies)) is None
     assert replies == []
+
+
+# --- subcommand registry (R-3) ---------------------------------------------------------------
+
+
+@pytest.fixture
+def registry(monkeypatch):
+    """An isolated registry holding only the core subcommands."""
+    monkeypatch.setattr(commands, "_SUBCOMMANDS", {})
+    monkeypatch.setattr(commands, "_ALIASES", {})
+    commands.register_core_subcommands()
+
+
+def tareas(context, args):
+    context.reply(f"tareas:{args}")
+    return Handled("logistics.tareas", {"args": args})
+
+
+def test_a_registered_subcommand_receives_ctx_and_the_original_args(registry):
+    replies: list[str] = []
+    register_subcommand("tareas", tareas, help_line="/viaje tareas — pendientes")
+    handled = handle(ctx("/viaje  TAREAS  Pedir Hotel  X ", replies))
+    assert replies == ["tareas:Pedir Hotel  X"]  # args: original casing, stripped
+    assert handled == Handled("logistics.tareas", {"args": "Pedir Hotel  X"})
+
+
+def test_names_and_aliases_match_accent_and_case_insensitively(registry):
+    replies: list[str] = []
+    register_subcommand("listo", tareas, aliases=("hecho", "Terminádo"))
+    for text in ("/v LISTO 1", "/viaje hecho 1", "/v TERMINADO 1"):
+        handle(ctx(text, replies))
+    assert replies == ["tareas:1"] * 3
+
+
+def test_an_unclaimed_subcommand_returns_none(registry):
+    register_subcommand("hoy", lambda context, args: None)
+    assert handle(ctx("/viaje hoy", [])) is None
+
+
+def test_throttled_chats_never_reach_the_subcommand(registry):
+    called: list[str] = []
+    register_subcommand("hoy", lambda context, args: called.append(args))
+    handled = handle(ctx("/viaje hoy", [], reply_allowed=lambda: False))
+    assert called == [] and handled.detail == {
+        "command": "hoy",
+        "reply": "throttled",
+        "throttled": True,
+    }
+
+
+def test_ping_and_ayuda_are_registered_subcommands(registry):
+    assert {"ping", "ayuda"} <= set(commands._SUBCOMMANDS)
+
+
+def test_help_composes_the_intro_and_every_help_line_sorted_by_name(registry):
+    register_subcommand("tareas", tareas, help_line="/viaje tareas — pendientes")
+    register_subcommand("fechas", tareas, aliases=("fecha",), help_line="/viaje fechas — votar")
+    register_subcommand("quiet", tareas)  # no help line: not listed
+    lines = help_text().splitlines()
+    assert lines[0] == es_ar.HELP_INTRO
+    assert lines[1:] == [
+        es_ar.AYUDA_HELP,
+        "/viaje fechas — votar",
+        es_ar.PING_HELP,
+        "/viaje tareas — pendientes",
+    ]
+
+
+def test_registering_twice_is_idempotent_and_a_clash_is_rejected(registry):
+    register_subcommand("hoy", tareas)
+    register_subcommand("hoy", tareas)
+    with pytest.raises(ValueError):
+        register_subcommand("hoy", lambda context, args: None)
+    with pytest.raises(ValueError):
+        register_subcommand("otra", tareas, aliases=("hoy",))
+    with pytest.raises(ValueError):
+        register_subcommand("PING", tareas)
