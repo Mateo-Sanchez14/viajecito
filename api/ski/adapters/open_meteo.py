@@ -11,7 +11,13 @@ from decimal import ROUND_HALF_UP, Decimal
 from typing import Any
 from zoneinfo import ZoneInfo
 
-from ski.ports import ProviderError, SnowReading
+import httpx
+
+from ski.ports import ProviderError, ResortRef, SnowReading
+
+BASE_URL = "https://api.open-meteo.com/v1/forecast"  # fixed host: never built from user input
+TIMEOUT = httpx.Timeout(10.0, connect=5.0)  # 5 s connect, 10 s for everything else
+MAX_RESPONSE_BYTES = 512 * 1024
 
 RAW_MAX_BYTES = 32 * 1024
 _TENTH = Decimal("0.1")
@@ -132,3 +138,44 @@ def _trim_raw(payload: dict, window: slice) -> dict:
     if len(json.dumps(raw)) > RAW_MAX_BYTES:
         raw = {"elevation": payload.get("elevation"), "truncated": True}
     return raw
+
+
+class OpenMeteoProvider:
+    """``SnowReportProvider`` backed by the free Open-Meteo forecast API. One call per fetch,
+    no retries (the refresh job owns backoff)."""
+
+    def fetch(self, resort: ResortRef, now: datetime) -> SnowReading:
+        params = {
+            "latitude": str(resort.lat),
+            "longitude": str(resort.lng),
+            "elevation": str(round((resort.base_elev_m + resort.summit_elev_m) / 2)),
+            "hourly": "snowfall,snow_depth,temperature_2m",
+            "daily": "snowfall_sum",
+            "past_days": "1",
+            "forecast_days": "4",  # today + the 3 days the 72 h forecast sums
+            "timezone": resort.timezone,
+        }
+        body = self._get(params)
+        try:
+            payload = json.loads(body)
+        except ValueError as exc:
+            raise ProviderError("malformed") from exc
+        return parse_forecast(payload, timezone=resort.timezone, now=now)
+
+    @staticmethod
+    def _get(params: dict[str, str]) -> bytes:
+        try:
+            with httpx.Client(timeout=TIMEOUT) as client:
+                with client.stream("GET", BASE_URL, params=params) as response:
+                    if response.status_code != 200:
+                        raise ProviderError(f"http_{response.status_code}")
+                    body = bytearray()
+                    for chunk in response.iter_bytes():
+                        body += chunk
+                        if len(body) > MAX_RESPONSE_BYTES:
+                            raise ProviderError("too_large")
+                    return bytes(body)
+        except httpx.TimeoutException as exc:
+            raise ProviderError("timeout") from exc
+        except httpx.HTTPError as exc:
+            raise ProviderError("network") from exc
