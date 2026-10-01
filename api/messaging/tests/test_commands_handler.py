@@ -76,7 +76,8 @@ def test_ayuda_and_bare_command_reply_help():
 def test_unknown_subcommand_replies_with_the_hint():
     replies: list[str] = []
     handled = handle(ctx("/viaje bailar", replies))
-    assert replies == [es_ar.UNKNOWN_COMMAND]
+    assert replies == [f"{es_ar.UNKNOWN_COMMAND}\n{help_text()}"]
+    assert replies[0].splitlines()[0] == es_ar.UNKNOWN_COMMAND  # the hint leads the help
     assert handled.detail["command"] == "unknown"
 
 

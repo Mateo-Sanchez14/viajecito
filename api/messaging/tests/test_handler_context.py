@@ -193,3 +193,57 @@ def test_quoted_subject_is_none_for_foreign_other_chat_or_missing_quotes(seen, g
     wiring.run_process_inbound(inbound("/viaje probe", replied_to="WAOTHER"))
     wiring.run_process_inbound(inbound("/viaje probe"))
     assert seen["quoted"] == [None, None, None]
+
+
+# --- failed cards are retried ---------------------------------------------------------------
+
+
+def stored_card(status: str, attempts: int, **extra) -> OutboundMessage:
+    return OutboundMessage.objects.create(
+        to_jid=CHAT,
+        kind="card",
+        body="card body",
+        dedupe_key="card:proposal:one",
+        status=status,
+        attempts=attempts,
+        subject_type="proposal",
+        subject_id="P1",
+        **extra,
+    )
+
+
+@time_machine.travel(NOW, tick=False)
+def test_a_failed_card_is_retried_on_the_same_row(seen, gowa):
+    row = stored_card("failed", 1, error="gowa responded with HTTP 500")
+    wiring.run_process_inbound(inbound("/viaje probe one"))
+    assert seen["cards"] == [SentCard("sent", "WA-CARD")]
+    row.refresh_from_db()
+    assert (row.status, row.gowa_message_id, row.attempts) == ("sent", "WA-CARD", 2)
+    assert OutboundMessage.objects.filter(kind="card").count() == 1
+    assert json.loads(gowa.send.calls.last.request.content)["message"] == "card body"
+
+
+@time_machine.travel(NOW, tick=False)
+def test_a_retry_that_fails_again_is_reported_and_counted(seen, gowa):
+    gowa.send.mock(return_value=httpx.Response(500))
+    row = stored_card("failed", 1)
+    wiring.run_process_inbound(inbound("/viaje probe one"))
+    assert seen["cards"] == [SentCard("failed", None)]
+    row.refresh_from_db()
+    assert (row.status, row.attempts) == ("failed", 2)
+
+
+@time_machine.travel(NOW, tick=False)
+def test_a_card_that_used_up_its_attempts_stays_a_duplicate(seen, gowa):
+    stored_card("failed", 3)
+    wiring.run_process_inbound(inbound("/viaje probe one"))
+    assert seen["cards"] == [SentCard("duplicate", None)] and gowa.send.call_count == 0
+
+
+@pytest.mark.parametrize("status", ["sent", "queued", "sending"])
+@time_machine.travel(NOW, tick=False)
+def test_sent_queued_and_sending_cards_are_duplicates(seen, gowa, status):
+    stored_card(status, 1, gowa_message_id="WA-OLD" if status == "sent" else "")
+    wiring.run_process_inbound(inbound("/viaje probe one"))
+    expected = SentCard("duplicate", "WA-OLD" if status == "sent" else None)
+    assert seen["cards"] == [expected] and gowa.send.call_count == 0

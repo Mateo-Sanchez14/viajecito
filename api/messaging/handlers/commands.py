@@ -117,5 +117,6 @@ def handle(ctx: HandlerContext) -> Handled | None:
     if not ctx.reply_allowed():  # flood protection: say nothing, but record that we heard it
         return Handled("commands", {"command": command, "reply": "throttled", "throttled": True})
     if subcommand is None:
-        return Handled("commands", {"command": command, "reply": ctx.reply(es_ar.UNKNOWN_COMMAND)})
+        hint = f"{es_ar.UNKNOWN_COMMAND}\n{help_text()}"  # the hint leads the full help
+        return Handled("commands", {"command": command, "reply": ctx.reply(hint)})
     return subcommand.handler(ctx, args)

@@ -201,7 +201,7 @@ def test_unknown_command_gets_the_hint(crew, ana, gowa):
     row_id = inbound("group_command_ping.json")
     InboundMessage.objects.filter(pk=row_id).update(body="/viaje bailar")
     wiring.run_process_inbound(row_id)
-    assert OutboundMessage.objects.get().body == es_ar.UNKNOWN_COMMAND
+    assert OutboundMessage.objects.get().body == f"{es_ar.UNKNOWN_COMMAND}\n{commands.help_text()}"
 
 
 @pytest.mark.django_db

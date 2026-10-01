@@ -514,3 +514,118 @@ def test_tick_jobs_are_skipped_once_the_deadline_is_reached():
         owner="t",
     )
     assert ran == ["slow"] and summary["jobs_run"] == 1
+
+
+# --- malformed mention tokens ---------------------------------------------------------------
+
+
+def test_malformed_mention_tokens_are_left_alone_and_unknown_ids_vanish():
+    from messaging.ports import PersonRef
+    from messaging.use_cases.queue_reminders import render_mentions
+
+    people = {"p1": PersonRef(name="Ana", phone="+5491155551234")}
+    body = "a {@} b {@{y}} c {@not-a-uuid} d {@p1} e {y} f {@p1"
+    text, jids = render_mentions(body, (), people, mentions_enabled=True)
+    assert text == "a {@} b {@{y}} c  d @5491155551234 e {y} f {@p1"
+    assert jids == ["5491155551234@s.whatsapp.net"]
+
+
+@pytest.mark.django_db
+@time_machine.travel(JULY_NOON, tick=False)
+def test_a_reminder_with_malformed_tokens_still_queues(registry, synced, gowa):
+    reminders.register_reminder_rule(
+        "fake", lambda ctx: [draft(synced, body="x {@} {@{y}} {@nope} y")]
+    )
+    summary = tick()
+    assert (summary["reminders_queued"], summary["errors"]) == (1, 0)
+    assert OutboundMessage.objects.get().body == "x {@} {@{y}}  y"
+
+
+# --- deadline -------------------------------------------------------------------------------
+
+
+class _Chats:
+    def chat_id_for_crew(self, crew_id):
+        return CHAT
+
+
+class _Nobody:
+    def people(self, ids):
+        return {}
+
+
+def _run(clock, deadline, margin=timedelta(seconds=5)):
+    from contextlib import nullcontext
+
+    from messaging.adapters.ledger import DjangoOutboundLedger
+    from messaging.use_cases.queue_reminders import queue_reminders
+
+    return queue_reminders(
+        chats=_Chats(),
+        people=_Nobody(),
+        ledger=DjangoOutboundLedger(),
+        atomic=nullcontext,
+        now=clock.now(),
+        clock=clock,
+        deadline=deadline,
+        margin=margin,
+    )
+
+
+@pytest.mark.django_db
+def test_no_new_draft_starts_near_the_deadline_and_the_skipped_work_is_counted(registry, synced):
+    from shared.clock import FrozenClock
+
+    clock = FrozenClock(JULY_NOON)
+    deadline = JULY_NOON + timedelta(seconds=30)
+
+    def slow_channel(d):
+        clock.advance(timedelta(seconds=26))  # leaves 4 s: inside the 5 s margin
+
+    reminders.register_reminder_rule(
+        "fake", lambda ctx: [draft(synced, "1"), draft(synced, "2"), draft(synced, "3")]
+    )
+    reminders.register_reminder_rule("later", lambda ctx: [draft(synced, "x")])
+    reminders.register_channel("slow", slow_channel)
+    result = _run(clock, deadline)
+    assert (result.queued, result.deadline_skipped, result.errors) == (1, 3, 0)
+    # two drafts of the first rule plus the second rule that never started
+    assert list(OutboundMessage.objects.values_list("dedupe_key", flat=True)) == ["k:1"]
+    # the next pass (fresh deadline) queues the rest and keeps the row that exists
+    clock2 = FrozenClock(JULY_NOON)
+    reminders.register_channel("quick", lambda d: None)
+    fresh = _run(clock2, JULY_NOON + timedelta(seconds=105))
+    assert fresh.deadline_skipped == 0
+    assert sorted(OutboundMessage.objects.values_list("dedupe_key", flat=True)) == [
+        "k:1",
+        "k:2",
+        "k:3",
+        "k:x",
+    ]
+
+
+@pytest.mark.django_db
+def test_channels_are_not_started_past_the_deadline(registry, synced):
+    from shared.clock import FrozenClock
+
+    clock = FrozenClock(JULY_NOON)
+    called = []
+
+    def first(d):
+        called.append("first")
+        clock.advance(timedelta(seconds=40))
+
+    reminders.register_reminder_rule("fake", lambda ctx: [draft(synced)])
+    reminders.register_channel("first", first)
+    reminders.register_channel("second", lambda d: called.append("second"))
+    reminders.register_channel("third", lambda d: called.append("third"))
+    result = _run(clock, JULY_NOON + timedelta(seconds=30))
+    assert called == ["first"]
+    assert (result.queued, result.deadline_skipped) == (1, 2)  # the row stays queued
+
+
+@pytest.mark.django_db
+@time_machine.travel(JULY_NOON, tick=False)
+def test_the_tick_reports_reminders_deadline_skipped(registry, synced, gowa):
+    reminders.register_reminder_rule("fake", lambda ctx: [draft(synced)])
+    assert tick()["reminders_deadline_skipped"] == 0

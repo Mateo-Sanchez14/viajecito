@@ -5,10 +5,11 @@ import re
 from collections.abc import Callable, Mapping
 from contextlib import AbstractContextManager
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from messaging import reminders
 from messaging.ports import ChatDirectory, OutboundLedger, PersonDirectory, PersonRef
+from shared.clock import Clock
 from shared.phone import phone_to_jid
 
 logger = logging.getLogger(__name__)
@@ -21,6 +22,7 @@ class RemindersResult:
     queued: int = 0
     quiet: int = 0
     errors: int = 0
+    deadline_skipped: int = 0  # drafts, channels and whole rules not started before the deadline
 
 
 def render_mentions(
@@ -55,6 +57,9 @@ def queue_reminders(
     ledger: OutboundLedger,
     atomic: Callable[[], AbstractContextManager],
     now: datetime,
+    clock: Clock,
+    deadline: datetime,
+    margin: timedelta = timedelta(seconds=5),
     mentions_enabled: bool = False,
 ) -> RemindersResult:
     """Run every rule and queue its drafts as ``OutboundMessage(kind="reminder")`` rows.
@@ -64,17 +69,33 @@ def queue_reminders(
     rows only, the rule's ``on_queued`` runs in the same transaction as the row (a failure rolls
     the row back, so the next tick retries), then every channel runs outside it. Failures are
     logged and counted.
+
+    Nothing new is started once ``clock.now() >= deadline - margin`` (a slow channel must not
+    outlive the tick lock); the skipped work is counted. Rows already queued stay for the next
+    pass, but a channel skipped for a queued row is not retried: its row is no longer new.
     """
-    queued = quiet = errors = 0
+
+    def out_of_time() -> bool:
+        return clock.now() >= deadline - margin
+
+    queued = quiet = errors = skipped = 0
     ctx = reminders.ReminderContext(now=now)
-    for rule in reminders.registered_rules():
+    rules = reminders.registered_rules()
+    channels = reminders.registered_channels()
+    for rule_index, rule in enumerate(rules):
+        if out_of_time():
+            skipped += len(rules) - rule_index
+            break
         try:
             drafts = list(rule.fn(ctx))
         except Exception:
             logger.exception("reminder rule %s failed", rule.key)
             errors += 1
             continue
-        for draft in drafts:
+        for draft_index, draft in enumerate(drafts):
+            if out_of_time():
+                skipped += len(drafts) - draft_index
+                break
             try:
                 if draft.respect_quiet_hours and reminders.is_quiet_time(now, draft.timezone):
                     quiet += 1
@@ -109,10 +130,13 @@ def queue_reminders(
             if not entry.created:
                 continue
             queued += 1
-            for name, deliver in reminders.registered_channels():
+            for channel_index, (name, deliver) in enumerate(channels):
+                if out_of_time():
+                    skipped += len(channels) - channel_index
+                    break
                 try:
                     deliver(draft)
                 except Exception:
                     logger.exception("reminder channel %s failed for rule %s", name, rule.key)
                     errors += 1
-    return RemindersResult(queued=queued, quiet=quiet, errors=errors)
+    return RemindersResult(queued=queued, quiet=quiet, errors=errors, deadline_skipped=skipped)

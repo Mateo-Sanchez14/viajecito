@@ -38,7 +38,7 @@ def run_tick(
     rosters: RosterSyncSource,
     process: Callable[[int], str],
     dispatch: Callable[[datetime], DispatchResult],
-    reminders: Callable[[datetime], RemindersResult] | None = None,
+    reminders: Callable[[datetime, datetime], RemindersResult] | None = None,
     jobs: Sequence[tuple[str, TickJob]] = (),
     clock: Clock,
     config: TickConfig,
@@ -67,11 +67,12 @@ def run_tick(
             except Exception:  # one bad row must not stop the pass
                 logger.exception("tick: processing inbound %s crashed", inbound_id)
                 errors += 1
-        reminders_queued = reminders_quiet = 0
+        reminders_queued = reminders_quiet = reminders_skipped = 0
         if reminders is not None and clock.now() < deadline:
             try:
-                outcome = reminders(now)
+                outcome = reminders(now, deadline)
                 reminders_queued, reminders_quiet = outcome.queued, outcome.quiet
+                reminders_skipped = outcome.deadline_skipped
                 errors += outcome.errors
             except Exception:  # e.g. database trouble: the next tick tries again
                 logger.exception("tick: reminders phase crashed")
@@ -109,6 +110,7 @@ def run_tick(
             "rosters_synced": synced,
             "reminders_queued": reminders_queued,
             "reminders_quiet": reminders_quiet,
+            "reminders_deadline_skipped": reminders_skipped,
             "jobs_run": jobs_run,
             **job_counters,
             "errors": errors,

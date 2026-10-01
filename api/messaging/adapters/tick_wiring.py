@@ -64,13 +64,15 @@ def run_default_tick() -> dict[str, int] | None:
             mentions_enabled=settings.GOWA_MENTIONS_ENABLED,
         )
 
-    def queue_due_reminders(now):
+    def queue_due_reminders(now, deadline):
         return queue_reminders(
             chats=wiring.crews_gateway(),
             people=IdentityGateway(),
             ledger=TickReminderLedger(now),
             atomic=transaction.atomic,
             now=now,
+            clock=clock,
+            deadline=deadline,
             mentions_enabled=settings.GOWA_MENTIONS_ENABLED,
         )
 
