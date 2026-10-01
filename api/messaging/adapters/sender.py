@@ -1,9 +1,7 @@
 """Default wiring of the outbound pipeline: Django ledger + Gowa client from settings."""
 
-from django.conf import settings
-
+from messaging.adapters.gowa_factory import build_gowa_client
 from messaging.adapters.ledger import DjangoOutboundLedger
-from messaging.gowa.client import GowaClient
 from messaging.use_cases.send_message import SendResult, send_message
 
 
@@ -18,12 +16,10 @@ class GowaMessageSender:
         *,
         dedupe_key: str | None = None,
         reply_to: str | None = None,
+        subject_type: str = "",
+        subject_id: str = "",
     ) -> SendResult:
-        gateway = GowaClient(
-            settings.GOWA_BASE_URL,
-            settings.GOWA_BASIC_AUTH_USER,
-            settings.GOWA_BASIC_AUTH_PASS,
-        )
+        gateway = build_gowa_client()
         return send_message(
             ledger=DjangoOutboundLedger(),
             gateway=gateway,
@@ -32,4 +28,6 @@ class GowaMessageSender:
             kind=kind,
             dedupe_key=dedupe_key,
             reply_to=reply_to,
+            subject_type=subject_type,
+            subject_id=subject_id,
         )

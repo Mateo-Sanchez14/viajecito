@@ -30,3 +30,13 @@ def validate_group_chat_id(chat_id: str) -> str:
     if not cleaned.endswith(GROUP_CHAT_SUFFIX) or len(cleaned) <= len(GROUP_CHAT_SUFFIX):
         raise InvalidCrewInputError(f"chat id must end with {GROUP_CHAT_SUFFIX}")
     return cleaned
+
+
+@dataclass(frozen=True)
+class RosterEntry:
+    """One WhatsApp group participant as reported by the gateway."""
+
+    jid: str  # may be an ``@lid`` address when the gateway hides the phone
+    phone: str | None  # phone number or phone JID, when known
+    lid: str | None
+    display_name: str

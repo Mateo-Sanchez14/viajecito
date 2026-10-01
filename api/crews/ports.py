@@ -1,6 +1,7 @@
+from datetime import datetime
 from typing import Protocol
 
-from crews.domain import CrewSummary
+from crews.domain import CrewSummary, RosterEntry
 
 
 class CrewStore(Protocol):
@@ -17,3 +18,27 @@ class CrewStore(Protocol):
     def summaries_for(self, person_id: str) -> list[CrewSummary]: ...
 
     def accept_pending_invites(self, person_id: str, phone: str) -> int: ...
+
+    def chat_id_for_crew(self, crew_id: str) -> str | None: ...
+
+    def upsert_roster_member(
+        self, crew_id: str, *, phone: str, lid: str | None, display_name: str
+    ) -> bool:
+        """Ensure the person, their WhatsApp identity and a ``group_sync`` membership exist.
+
+        Never changes an existing membership (role, status, source). Returns whether the
+        membership was created.
+        """
+        ...
+
+    def mark_roster_synced(self, crew_id: str, when: datetime) -> None: ...
+
+    def crews_needing_sync(self, before: datetime) -> list[str]:
+        """Crews whose roster was never synced or was last synced before ``before``."""
+        ...
+
+
+class RosterSource(Protocol):
+    def participants(self, chat_id: str) -> list[RosterEntry]:
+        """The current members of a WhatsApp group. May raise when the gateway is down."""
+        ...

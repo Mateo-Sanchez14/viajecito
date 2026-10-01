@@ -10,6 +10,17 @@ class GatewayError(Exception):
     """The WhatsApp gateway could not deliver the message."""
 
 
+@dataclass(frozen=True)
+class Participant:
+    """A WhatsApp group member as reported by Gowa."""
+
+    jid: str
+    phone_number: str | None  # absent when Gowa only knows the LID
+    lid: str | None
+    display_name: str
+    is_admin: bool
+
+
 class TextGateway(Protocol):
     def send_text(self, to_jid: str, body: str, reply_to: str | None = None) -> str:
         """Send a text message and return the gateway message id. Raises ``GatewayError``."""
