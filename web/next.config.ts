@@ -7,8 +7,10 @@ const apiInternalUrl = process.env.API_INTERNAL_URL ?? "http://localhost:8000";
 
 const nextConfig: NextConfig = {
   output: "standalone",
-  // Dev convenience: in production the tunnel routes /api/* to the api directly.
+  // Dev convenience only. Production relies on the tunnel splitting /api/* to the api,
+  // so the rewrite (baked at build time) is not registered there.
   async rewrites() {
+    if (process.env.NODE_ENV === "production") return [];
     return [
       {
         source: "/api/:path*",

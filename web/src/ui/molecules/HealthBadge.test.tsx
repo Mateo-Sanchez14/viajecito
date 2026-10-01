@@ -2,9 +2,9 @@ import { screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { renderWithProviders } from "@/test/render";
 import messages from "../../../messages/es-AR.json";
+import { HealthBadge } from "./HealthBadge";
 
 const { health } = messages.ops;
-import { HealthBadge } from "./HealthBadge";
 
 describe("HealthBadge", () => {
   it("shows the ok copy, version and passing checks", () => {

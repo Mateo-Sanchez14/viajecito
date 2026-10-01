@@ -8,12 +8,15 @@ Next.js (App Router, TypeScript, Tailwind v4) front end. Single locale `es-AR` v
 | Script | What it does |
 |---|---|
 | `pnpm dev` | Dev server on `0.0.0.0:3000` (proxies `/api/*` to `API_INTERNAL_URL`) |
-| `pnpm build` / `pnpm start` | Production build (`output: "standalone"`; run it with `node .next/standalone/server.js`) |
+| `pnpm build` / `pnpm start` | Production build (`output: "standalone"`); `start` runs `node .next/standalone/server.js` |
 | `pnpm lint` / `pnpm typecheck` | ESLint / `tsc --noEmit` |
 | `pnpm test` / `pnpm test:watch` | Vitest + Testing Library + MSW (no network) |
 | `pnpm test:e2e` | Playwright against `E2E_BASE_URL` (default `http://localhost:3000`); run `pnpm exec playwright install chromium` once |
 | `pnpm api:types` | Regenerate `src/shared/api/schema.d.ts` from `../contracts/openapi.json` |
 | `pnpm api:types:check` | Fail if the committed schema types drift from the contract |
+
+When running the standalone server locally, `.next/static` and `public/` must sit next to it
+(copy them into `.next/standalone/.next/static` and `.next/standalone/public`, as the Dockerfile does).
 
 ## Environment
 

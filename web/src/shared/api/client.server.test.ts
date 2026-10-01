@@ -2,7 +2,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createOpenApiHttp } from "openapi-msw";
 import { server } from "@/test/server";
-import { createServerClient } from "./client";
+import { createServerClient } from "./client.server";
 import type { paths } from "./schema";
 
 const http = createOpenApiHttp<paths>({ baseUrl: "http://api.internal:8000" });
