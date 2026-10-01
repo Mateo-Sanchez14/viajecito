@@ -5,6 +5,8 @@ from datetime import datetime
 from decimal import Decimal
 from typing import Any, Protocol
 
+from ski.domain import ManualReportInput, ReportData, TripInfo, TripResortData
+
 
 class ProviderError(Exception):
     """A snow provider could not deliver a reading. ``reason`` is a short code
@@ -81,3 +83,21 @@ class SnowRefreshStore(Protocol):
     def prune_provider_reports(self, before: datetime) -> int:
         """Delete provider-sourced (never manual) reports observed before ``before``."""
         ...
+
+
+class SkiStore(Protocol):
+    """Persistence needed by the use cases behind the ski API and the bot."""
+
+    def trip_info(self, trip_id: str) -> TripInfo | None: ...
+
+    def trip_resorts(self, trip_id: str) -> list[TripResortData]: ...
+
+    def latest_reports(self, resort_ids: list[str]) -> dict[str, ReportData]:
+        """The newest report (by ``observed_at``) of each resort that has one."""
+        ...
+
+    def count_manual_reports(self, resort_id: str, since: datetime) -> int: ...
+
+    def add_manual_report(
+        self, resort_id: str, reporter_id: str, report: ManualReportInput, now: datetime
+    ) -> ReportData: ...

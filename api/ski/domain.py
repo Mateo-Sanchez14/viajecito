@@ -1,5 +1,7 @@
 """Pure ski rules (no Django, no HTTP)."""
 
+import re
+import unicodedata
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from decimal import Decimal
@@ -178,3 +180,195 @@ def level_groups(
             groups.setdefault((profile.discipline, profile.level), []).append(person.person_id)
     ordered = sorted(groups, key=lambda k: (DISCIPLINES.index(k[0]), LEVELS.index(k[1])))
     return [LevelGroup(discipline=d, level=lv, person_ids=groups[(d, lv)]) for d, lv in ordered]
+
+
+class InvalidSkiInputError(ValueError):
+    """A ski field is not acceptable."""
+
+
+class UsageError(ValueError):
+    """The ``/viaje nieve`` arguments do not parse."""
+
+
+@dataclass(frozen=True)
+class PersonRef:
+    person_id: str
+    display_name: str
+
+
+@dataclass(frozen=True)
+class TripInfo:
+    id: str
+    crew_id: str
+    type: str
+    currency: str
+    timezone: str
+    name: str
+
+
+@dataclass(frozen=True)
+class ResortData:
+    id: str
+    slug: str
+    name: str
+    country: str
+    region: str
+    lat: Decimal
+    lng: Decimal
+    base_elev_m: int
+    summit_elev_m: int
+    website_url: str
+
+
+@dataclass(frozen=True)
+class TripResortData:
+    resort: ResortData
+    nights: int | None
+    position: int
+
+
+@dataclass(frozen=True)
+class ReportData:
+    id: str
+    resort_id: str
+    source: str
+    observed_at: datetime
+    fetched_at: datetime
+    base_cm: int | None
+    new_24h_cm: Decimal | None
+    forecast_72h_cm: Decimal | None
+    temp_c: Decimal | None
+    lifts_open: int | None
+    lifts_total: int | None
+    runs_open: int | None
+    runs_total: int | None
+    status_text: str
+    reporter: PersonRef | None
+
+
+@dataclass(frozen=True)
+class ReportView:
+    report: ReportData
+    stale: bool
+    age_hours: int
+
+
+@dataclass(frozen=True)
+class Conditions:
+    trip_resort: TripResortData
+    latest: ReportView | None
+
+
+@dataclass(frozen=True)
+class ManualReportInput:
+    base_cm: int | None = None
+    new_24h_cm: Decimal | None = None
+    temp_c: Decimal | None = None
+    lifts_open: int | None = None
+    lifts_total: int | None = None
+    runs_open: int | None = None
+    runs_total: int | None = None
+    status_text: str = ""
+
+
+_CONTROL_CHARS = re.compile(r"[\x00-\x08\x0b-\x1f\x7f-\x9f\u2028\u2029]")
+MAX_STATUS_TEXT = 280
+
+
+def view_report(report: ReportData, now: datetime) -> ReportView:
+    return ReportView(
+        report=report,
+        stale=is_stale(report.observed_at, now),
+        age_hours=age_hours(report.observed_at, now),
+    )
+
+
+def clean_text(text: str, limit: int) -> str:
+    """Strip control characters (newlines and tabs become spaces), collapse blanks, bound."""
+    spaced = text.replace("\n", " ").replace("\r", " ").replace("\t", " ")
+    return " ".join(_CONTROL_CHARS.sub("", spaced).split())[:limit]
+
+
+def _in_range(name: str, value: int | Decimal | None, low: int, high: int) -> None:
+    if value is not None and not low <= value <= high:
+        raise InvalidSkiInputError(f"{name} must be between {low} and {high}")
+
+
+def validate_manual_report(report: ManualReportInput) -> ManualReportInput:
+    """Bounded manual report with at least one field; ``status_text`` is cleaned."""
+    _in_range("base_cm", report.base_cm, 0, 1000)
+    _in_range("new_24h_cm", report.new_24h_cm, 0, 300)
+    _in_range("temp_c", report.temp_c, -40, 30)
+    for name in ("lifts_open", "lifts_total", "runs_open", "runs_total"):
+        _in_range(name, getattr(report, name), 0, 500)
+    for opened, total in (("lifts_open", "lifts_total"), ("runs_open", "runs_total")):
+        a, b = getattr(report, opened), getattr(report, total)
+        if a is not None and b is not None and a > b:
+            raise InvalidSkiInputError(f"{opened} must not exceed {total}")
+    text = clean_text(report.status_text, MAX_STATUS_TEXT)
+    cleaned = ManualReportInput(
+        base_cm=report.base_cm,
+        new_24h_cm=report.new_24h_cm,
+        temp_c=report.temp_c,
+        lifts_open=report.lifts_open,
+        lifts_total=report.lifts_total,
+        runs_open=report.runs_open,
+        runs_total=report.runs_total,
+        status_text=text,
+    )
+    if all(v in (None, "") for v in vars(cleaned).values()):
+        raise InvalidSkiInputError("a manual report needs at least one field")
+    return cleaned
+
+
+def fold(text: str) -> str:
+    """Accent- and case-insensitive form used to match resort names."""
+    decomposed = unicodedata.normalize("NFKD", text)
+    return "".join(c for c in decomposed if not unicodedata.combining(c)).casefold().strip()
+
+
+def match_resort(query: str, resorts: list[ResortData]) -> ResortData | None:
+    """The one resort whose name or slug starts with ``query`` at a word boundary
+    (``catedral`` -> Cerro Catedral); ``None`` when nothing or more than one matches. An exact
+    name/slug match always wins."""
+    wanted = " ".join(fold(query).replace("-", " ").split())
+    if not wanted:
+        return None
+
+    def words(resort: ResortData) -> list[list[str]]:
+        names = (fold(resort.name), fold(resort.slug).replace("-", " "))
+        return [n.split() for n in names]
+
+    exact = [r for r in resorts if any(" ".join(w) == wanted for w in words(r))]
+    if len(exact) == 1:
+        return exact[0]
+    found = [
+        r
+        for r in resorts
+        if any(" ".join(w[i:]).startswith(wanted) for w in words(r) for i in range(len(w)))
+    ]
+    return found[0] if len(found) == 1 else None
+
+
+@dataclass(frozen=True)
+class NieveArgs:
+    resort_query: str
+    base_cm: int
+    new_24h_cm: int | None
+
+
+def parse_nieve_args(args: str) -> NieveArgs:
+    """``<resort words> <base_cm> [nuevos_cm]``; raises ``UsageError`` on anything else."""
+    tokens = args.split()
+    numbers: list[int] = []
+    while tokens and len(numbers) < 2 and re.fullmatch(r"\d{1,5}", tokens[-1]):
+        numbers.insert(0, int(tokens.pop()))
+    if not numbers or not tokens:
+        raise UsageError(args)
+    base = numbers[0]
+    new = numbers[1] if len(numbers) == 2 else None
+    try:
+        validate_manual_report(ManualReportInput(base_cm=base, new_24h_cm=new and Decimal(new)))
+    except InvalidSkiInputError as exc:
+        raise UsageError(args) from exc
+    return NieveArgs(" ".join(tokens), base, new)
