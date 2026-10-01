@@ -7,6 +7,8 @@ import dates from "./dates.json";
 import errors from "./errors.json";
 import home from "./home.json";
 import ops from "./ops.json";
+import push from "./push.json";
+import pwa from "./pwa.json";
 import ski from "./ski.json";
 import trips from "./trips.json";
 
@@ -17,6 +19,8 @@ export default mergeMessages(
   errors,
   home,
   ops,
+  push,
+  pwa,
   ski,
   trips,
 );

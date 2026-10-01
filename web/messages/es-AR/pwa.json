@@ -1,0 +1,48 @@
+{
+  "pwa": {
+    "name": "viajecito",
+    "description": "Planeá viajes con tu grupo",
+    "install": {
+      "title": "Instalá viajecito",
+      "body": "Tenelo a mano en el viaje, incluso sin señal",
+      "cta": "Instalar",
+      "iosSteps": {
+        "share": "Tocá el botón Compartir de Safari",
+        "add": "Elegí \"Agregar a inicio\"",
+        "confirm": "Confirmá con \"Agregar\""
+      },
+      "dismiss": "Ahora no"
+    },
+    "countdown": {
+      "title": "Cuenta regresiva",
+      "days": "Faltan {days} días",
+      "tomorrow": "¡Mañana arrancamos!",
+      "today": "¡Hoy arranca el viaje!"
+    },
+    "offline": {
+      "banner": "Sin conexión: mostrando lo último que bajamos",
+      "page": {
+        "title": "Estás sin conexión",
+        "body": "Abrí Hoy o tus documentos guardados"
+      }
+    },
+    "offlineDocs": {
+      "title": "Documentos sin conexión",
+      "empty": "Todavía no hay documentos para guardar",
+      "save": "Guardar sin conexión",
+      "saving": "Guardando…",
+      "saved": "Disponible sin conexión",
+      "remove": "Quitar de este dispositivo",
+      "error": "No pudimos guardar el documento",
+      "unsupported": "Este navegador no puede guardar documentos sin conexión",
+      "loadError": "No pudimos cargar tus documentos",
+      "sharedDevice": "Los documentos guardados quedan en este dispositivo hasta que cierres sesión"
+    },
+    "pushOptIn": {
+      "title": "Activá las notificaciones",
+      "body": "Enterate de los recordatorios del viaje al instante",
+      "cta": "Configurar",
+      "dismiss": "Ahora no"
+    }
+  }
+}
