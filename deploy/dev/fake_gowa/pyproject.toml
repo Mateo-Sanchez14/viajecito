@@ -1,0 +1,22 @@
+[project]
+name = "fake-gowa"
+version = "0.1.0"
+description = "Dev-only stub of Gowa's POST /send/message that records sends in memory"
+requires-python = ">=3.13"
+dependencies = [
+    "fastapi",
+    "uvicorn",
+]
+
+[dependency-groups]
+dev = [
+    "httpx2",
+    "pytest",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+
+[tool.uv]
+package = false

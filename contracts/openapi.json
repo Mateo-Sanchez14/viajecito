@@ -3,56 +3,544 @@
   "info": {
     "title": "viajecito",
     "version": "0.1.0",
-    "description": "Placeholder contract for M0a. Regenerated from the real API at integration (T4)."
+    "description": ""
   },
   "paths": {
     "/api/health": {
       "get": {
         "operationId": "ops_api_health",
         "summary": "Health",
-        "tags": ["ops"],
+        "parameters": [],
         "responses": {
           "200": {
             "description": "OK",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/HealthOut" }
+                "schema": {
+                  "$ref": "#/components/schemas/HealthOut"
+                }
               }
             }
           },
           "503": {
-            "description": "Degraded",
+            "description": "Service Unavailable",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/HealthOut" }
+                "schema": {
+                  "$ref": "#/components/schemas/HealthOut"
+                }
               }
             }
           }
-        }
+        },
+        "tags": [
+          "ops"
+        ]
+      }
+    },
+    "/api/auth/csrf": {
+      "get": {
+        "operationId": "identity_api_csrf",
+        "summary": "Csrf",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CsrfOut"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/auth/otp/request": {
+      "post": {
+        "operationId": "identity_api_request_otp",
+        "summary": "Request Otp",
+        "parameters": [],
+        "responses": {
+          "202": {
+            "description": "Accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OtpRequestOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          }
+        },
+        "description": "Always answers the same 202 for valid phones.\n\n400 codes: `invalid_phone`, `invalid_request`. 403: `csrf_failed`.",
+        "tags": [
+          "auth"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OtpRequestIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "security": [
+          {
+            "CsrfCookie": []
+          }
+        ]
+      }
+    },
+    "/api/auth/otp/verify": {
+      "post": {
+        "operationId": "identity_api_verify_otp",
+        "summary": "Verify Otp",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OtpVerifyOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          }
+        },
+        "description": "Logs the person in.\n\n400 codes: `invalid_phone`, `invalid_code`, `expired_code`, `too_many_attempts`,\n`invalid_request`. 403: `csrf_failed`.",
+        "tags": [
+          "auth"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OtpVerifyIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "security": [
+          {
+            "CsrfCookie": []
+          }
+        ]
+      }
+    },
+    "/api/auth/logout": {
+      "post": {
+        "operationId": "identity_api_logout",
+        "summary": "Logout",
+        "parameters": [],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "auth"
+        ],
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ]
+      }
+    },
+    "/api/me": {
+      "get": {
+        "operationId": "identity_api_me",
+        "summary": "Me",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MeOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "auth"
+        ],
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ]
       }
     }
   },
   "components": {
     "schemas": {
       "HealthChecks": {
-        "type": "object",
-        "title": "HealthChecks",
         "properties": {
-          "db": { "type": "string", "enum": ["ok", "error"], "title": "Db" },
-          "media": { "type": "string", "enum": ["ok", "error"], "title": "Media" }
+          "db": {
+            "enum": [
+              "ok",
+              "error"
+            ],
+            "title": "Db",
+            "type": "string"
+          },
+          "media": {
+            "enum": [
+              "ok",
+              "error"
+            ],
+            "title": "Media",
+            "type": "string"
+          }
         },
-        "required": ["db", "media"]
+        "required": [
+          "db",
+          "media"
+        ],
+        "title": "HealthChecks",
+        "type": "object"
       },
       "HealthOut": {
-        "type": "object",
-        "title": "HealthOut",
         "properties": {
-          "status": { "type": "string", "enum": ["ok", "degraded"], "title": "Status" },
-          "version": { "type": "string", "title": "Version" },
-          "checks": { "$ref": "#/components/schemas/HealthChecks" }
+          "status": {
+            "enum": [
+              "ok",
+              "degraded"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "string"
+          },
+          "checks": {
+            "$ref": "#/components/schemas/HealthChecks"
+          }
         },
-        "required": ["status", "version", "checks"]
+        "required": [
+          "status",
+          "version",
+          "checks"
+        ],
+        "title": "HealthOut",
+        "type": "object"
+      },
+      "CsrfOut": {
+        "properties": {
+          "csrf_token": {
+            "title": "Csrf Token",
+            "type": "string"
+          }
+        },
+        "required": [
+          "csrf_token"
+        ],
+        "title": "CsrfOut",
+        "type": "object"
+      },
+      "OtpRequestOut": {
+        "properties": {
+          "status": {
+            "const": "sent",
+            "title": "Status",
+            "type": "string"
+          },
+          "retry_after_seconds": {
+            "title": "Retry After Seconds",
+            "type": "integer"
+          },
+          "expires_in_seconds": {
+            "title": "Expires In Seconds",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "status",
+          "retry_after_seconds",
+          "expires_in_seconds"
+        ],
+        "title": "OtpRequestOut",
+        "type": "object"
+      },
+      "ErrorOut": {
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "message"
+        ],
+        "title": "ErrorOut",
+        "type": "object"
+      },
+      "OtpRequestIn": {
+        "properties": {
+          "phone": {
+            "title": "Phone",
+            "type": "string"
+          }
+        },
+        "required": [
+          "phone"
+        ],
+        "title": "OtpRequestIn",
+        "type": "object"
+      },
+      "OtpVerifyOut": {
+        "properties": {
+          "person": {
+            "$ref": "#/components/schemas/PersonOut"
+          }
+        },
+        "required": [
+          "person"
+        ],
+        "title": "OtpVerifyOut",
+        "type": "object"
+      },
+      "PersonOut": {
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "phone": {
+            "title": "Phone",
+            "type": "string"
+          },
+          "display_name": {
+            "title": "Display Name",
+            "type": "string"
+          },
+          "locale": {
+            "title": "Locale",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "phone",
+          "display_name",
+          "locale"
+        ],
+        "title": "PersonOut",
+        "type": "object"
+      },
+      "OtpVerifyIn": {
+        "properties": {
+          "phone": {
+            "title": "Phone",
+            "type": "string"
+          },
+          "code": {
+            "title": "Code",
+            "type": "string"
+          }
+        },
+        "required": [
+          "phone",
+          "code"
+        ],
+        "title": "OtpVerifyIn",
+        "type": "object"
+      },
+      "CrewSummaryOut": {
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "role": {
+            "enum": [
+              "admin",
+              "member"
+            ],
+            "title": "Role",
+            "type": "string"
+          },
+          "gastito_group_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gastito Group Url"
+          },
+          "default_trip_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Default Trip Id"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "role",
+          "gastito_group_url",
+          "default_trip_id"
+        ],
+        "title": "CrewSummaryOut",
+        "type": "object"
+      },
+      "MeOut": {
+        "properties": {
+          "person": {
+            "$ref": "#/components/schemas/PersonOut"
+          },
+          "crews": {
+            "items": {
+              "$ref": "#/components/schemas/CrewSummaryOut"
+            },
+            "title": "Crews",
+            "type": "array"
+          }
+        },
+        "required": [
+          "person",
+          "crews"
+        ],
+        "title": "MeOut",
+        "type": "object"
+      }
+    },
+    "securitySchemes": {
+      "CsrfCookie": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "csrftoken"
+      },
+      "SessionAuth": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "sessionid"
       }
     }
-  }
+  },
+  "servers": []
 }
