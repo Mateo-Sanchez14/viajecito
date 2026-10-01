@@ -5,6 +5,7 @@ from datetime import date, datetime
 from typing import Protocol
 
 from messaging.domain import GroupMessage, InboundRecord
+from messaging.handlers.types import SentCard
 
 
 class GatewayError(Exception):
@@ -32,6 +33,7 @@ class TextGateway(Protocol):
 class LedgerEntry:
     id: int
     created: bool  # False when the dedupe key already existed
+    gowa_message_id: str | None = None  # of the existing row when ``created`` is False
 
 
 class OutboundLedger(Protocol):
@@ -106,6 +108,23 @@ class Replier(Protocol):
 
     def reply(self, *, chat_id: str, body: str, reply_to: str, inbound_id: int) -> str:
         """Send a threaded reply in the group and return its send status."""
+        ...
+
+    def send_card(
+        self,
+        *,
+        chat_id: str,
+        body: str,
+        reply_to: str,
+        subject_type: str,
+        subject_id: str,
+        dedupe_key: str,
+    ) -> SentCard:
+        """Send a threaded card (exempt from the reply gap, bounded by the 10-minute budget)."""
+        ...
+
+    def quoted_subject(self, chat_id: str, gowa_message_id: str) -> tuple[str, str] | None:
+        """The ledger subject of one of our messages in this chat, or ``None``."""
         ...
 
 

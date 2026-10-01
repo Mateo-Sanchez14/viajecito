@@ -15,6 +15,7 @@ REDACTED_KINDS = frozenset({"otp"})
 class SendResult:
     status: str  # "sent" | "failed" | "duplicate"
     entry_id: int
+    gowa_message_id: str | None = None  # when sent, or the existing row's on duplicate
 
 
 def send_message(
@@ -40,7 +41,7 @@ def send_message(
         subject_id=subject_id,
     )
     if not entry.created:
-        return SendResult("duplicate", entry.id)
+        return SendResult("duplicate", entry.id, entry.gowa_message_id)
     try:
         message_id = gateway.send_text(to_jid, body, reply_to)
     except GatewayError as exc:
@@ -48,4 +49,4 @@ def send_message(
         ledger.mark_failed(entry.id, str(exc))
         return SendResult("failed", entry.id)
     ledger.mark_sent(entry.id, message_id)
-    return SendResult("sent", entry.id)
+    return SendResult("sent", entry.id, message_id)

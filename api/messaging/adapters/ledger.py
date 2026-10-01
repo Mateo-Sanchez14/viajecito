@@ -31,7 +31,9 @@ class DjangoOutboundLedger:
                 )
         except IntegrityError:
             existing = OutboundMessage.objects.get(dedupe_key=dedupe_key)
-            return LedgerEntry(existing.pk, created=False)
+            return LedgerEntry(
+                existing.pk, created=False, gowa_message_id=existing.gowa_message_id or None
+            )
         return LedgerEntry(row.pk, created=True)
 
     def mark_sent(self, entry_id: int, gowa_message_id: str) -> None:

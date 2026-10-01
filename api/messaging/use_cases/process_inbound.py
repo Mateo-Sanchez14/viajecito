@@ -58,6 +58,19 @@ def process_inbound(
             person_id=person_id,
             crew_id=crew_id,
             reply_allowed=lambda: replier.can_reply(record.chat_id),
+            quoted_subject=(
+                replier.quoted_subject(record.chat_id, record.replied_to_id)
+                if record.replied_to_id
+                else None
+            ),
+            send_card=lambda body, *, subject_type, subject_id, dedupe_key: replier.send_card(
+                chat_id=record.chat_id,
+                body=body,
+                reply_to=record.gowa_message_id,
+                subject_type=subject_type,
+                subject_id=subject_id,
+                dedupe_key=dedupe_key,
+            ),
             reply=lambda body: replier.reply(
                 chat_id=record.chat_id,
                 body=body,
