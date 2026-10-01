@@ -1,3 +1,4 @@
+import { ProposalsOverviewCard } from "@/features/proposals/containers/ProposalsOverviewCard";
 import { DatesOverviewCard } from "@/features/dates/containers/DatesOverviewCard";
 import { SkiOverviewCard } from "@/features/ski/containers/SkiOverviewCard";
 import { InstallCard } from "@/features/pwa/containers/InstallCard";
@@ -15,6 +16,7 @@ export type { TripCard } from "./types";
  * Modules enabled on a trip without an entry here get a core placeholder card.
  */
 export const tripCards: TripCard[] = [
+  { key: "proposals", module: "proposals", order: 10, Component: ProposalsOverviewCard },
   { key: "dates", module: "dates", order: 20, Component: DatesOverviewCard },
   { key: "ski", module: "ski", order: 15, Component: SkiOverviewCard },
   { key: "pwa-countdown", order: 1, Component: CountdownCard },
