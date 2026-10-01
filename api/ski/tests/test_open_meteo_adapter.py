@@ -118,3 +118,22 @@ def test_oversized_chunked_response_is_rejected_while_streaming(mock):
     with pytest.raises(ProviderError) as exc:
         OpenMeteoProvider().fetch(CATEDRAL, NOW)
     assert exc.value.reason == "too_large"
+
+
+def test_a_trickling_response_is_cut_off_at_the_10s_total_deadline(mock):
+    ticks = iter(range(0, 1000, 4))  # every clock read is 4 s later than the previous one
+
+    def trickle():
+        for _ in range(100):
+            yield b" "
+
+    mock.get(URL).respond(200, content=trickle())
+    provider = OpenMeteoProvider(monotonic=lambda: next(ticks))
+    with pytest.raises(ProviderError) as exc:
+        provider.fetch(CATEDRAL, NOW)
+    assert exc.value.reason == "timeout"
+
+
+def test_a_fast_response_is_within_the_deadline(mock):
+    mock.get(URL).respond(200, json=json.loads(FIXTURE.read_text()))
+    assert OpenMeteoProvider(monotonic=lambda: 0.0).fetch(CATEDRAL, NOW).base_cm == 115

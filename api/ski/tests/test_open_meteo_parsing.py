@@ -91,3 +91,21 @@ def test_unexpected_depth_unit_is_malformed():
     payload["hourly_units"]["snow_depth"] = "ft"
     with pytest.raises(ProviderError):
         parse_forecast(payload, timezone="America/Argentina/Salta", now=NOW)
+
+
+def test_timestamps_use_the_payload_utc_offset_not_the_timezone_database():
+    # The week Chile leaves summer time: the response keeps one offset (UTC-3) for every hour, so
+    # "2026-04-05T12:00" is 15:00Z even though tzdata would already say UTC-4 on that date.
+    payload = load("santiago_dst_week.json")
+    now = datetime(2026, 4, 5, 15, 30, tzinfo=UTC)
+    reading = parse_forecast(payload, timezone="America/Santiago", now=now)
+    assert reading.observed_at == datetime(2026, 4, 5, 15, 0, tzinfo=UTC)
+    assert reading.base_cm == 50  # the 12:00 value (0.5 m), not the 11:00 one
+    assert reading.forecast_72h_cm == Decimal("7.0")  # the 6th and 7th (3 + 4); the response ends
+
+
+def test_without_an_offset_the_timezone_is_the_fallback():
+    payload = load("catedral_snowy.json")
+    del payload["utc_offset_seconds"]
+    reading = parse_forecast(payload, timezone="America/Argentina/Salta", now=NOW)
+    assert reading.observed_at == datetime(2026, 7, 15, 18, 0, tzinfo=UTC)

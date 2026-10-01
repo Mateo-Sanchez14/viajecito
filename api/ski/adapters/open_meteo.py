@@ -6,7 +6,9 @@ timestamps local and naive ISO 8601).
 """
 
 import json
-from datetime import UTC, date, datetime, timedelta
+import time
+from collections.abc import Callable
+from datetime import UTC, date, datetime, timedelta, timezone, tzinfo
 from decimal import ROUND_HALF_UP, Decimal
 from typing import Any
 from zoneinfo import ZoneInfo
@@ -16,7 +18,8 @@ import httpx
 from ski.ports import ProviderError, ResortRef, SnowReading
 
 BASE_URL = "https://api.open-meteo.com/v1/forecast"  # fixed host: never built from user input
-TIMEOUT = httpx.Timeout(10.0, connect=5.0)  # 5 s connect, 10 s for everything else
+TOTAL_SECONDS = 10.0  # deadline for the whole call, body included
+TIMEOUT = httpx.Timeout(TOTAL_SECONDS, connect=5.0)  # per-operation limits inside it
 MAX_RESPONSE_BYTES = 512 * 1024
 
 RAW_MAX_BYTES = 32 * 1024
@@ -50,7 +53,16 @@ def _tenths(values: list[Decimal | None]) -> Decimal | None:
     return sum(present, Decimal(0)).quantize(_TENTH, rounding=ROUND_HALF_UP)
 
 
-def _local_time(text: Any, zone: ZoneInfo) -> datetime:
+def _zone(payload: dict, fallback: str) -> tzinfo:
+    """The response's own constant UTC offset (``utc_offset_seconds``); the named zone only when it
+    is missing. tzdata would shift hours after a DST change inside the response window."""
+    offset = payload.get("utc_offset_seconds")
+    if isinstance(offset, int) and not isinstance(offset, bool) and abs(offset) < 86400:
+        return timezone(timedelta(seconds=offset))
+    return ZoneInfo(fallback)
+
+
+def _local_time(text: Any, zone: tzinfo) -> datetime:
     if not isinstance(text, str):
         raise _malformed()
     try:
@@ -69,7 +81,7 @@ def parse_forecast(payload: Any, *, timezone: str, now: datetime) -> SnowReading
     hourly, daily = payload.get("hourly"), payload.get("daily")
     if not isinstance(hourly, dict) or not isinstance(daily, dict):
         raise _malformed()
-    zone = ZoneInfo(timezone)
+    zone = _zone(payload, timezone)
     times = hourly.get("time")
     if not isinstance(times, list) or not times:
         raise _malformed()
@@ -142,7 +154,10 @@ def _trim_raw(payload: dict, window: slice) -> dict:
 
 class OpenMeteoProvider:
     """``SnowReportProvider`` backed by the free Open-Meteo forecast API. One call per fetch,
-    no retries (the refresh job owns backoff)."""
+    no retries (the refresh job owns backoff), and a 10 s deadline for the whole call."""
+
+    def __init__(self, monotonic: Callable[[], float] = time.monotonic) -> None:
+        self._monotonic = monotonic
 
     def fetch(self, resort: ResortRef, now: datetime) -> SnowReading:
         params = {
@@ -162,8 +177,8 @@ class OpenMeteoProvider:
             raise ProviderError("malformed") from exc
         return parse_forecast(payload, timezone=resort.timezone, now=now)
 
-    @staticmethod
-    def _get(params: dict[str, str]) -> bytes:
+    def _get(self, params: dict[str, str]) -> bytes:
+        deadline = self._monotonic() + TOTAL_SECONDS
         try:
             with httpx.Client(timeout=TIMEOUT) as client:
                 with client.stream("GET", BASE_URL, params=params) as response:
@@ -174,6 +189,8 @@ class OpenMeteoProvider:
                         body += chunk
                         if len(body) > MAX_RESPONSE_BYTES:
                             raise ProviderError("too_large")
+                        if self._monotonic() > deadline:  # httpx timeouts reset on every chunk
+                            raise ProviderError("timeout")
                     return bytes(body)
         except httpx.TimeoutException as exc:
             raise ProviderError("timeout") from exc
