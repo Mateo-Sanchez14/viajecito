@@ -1,10 +1,13 @@
 """Member-scoped itinerary endpoints; cookie authentication enforces CSRF."""
 
+import hashlib
+import json
 from dataclasses import asdict
 from datetime import date
 from uuid import UUID
 from zoneinfo import ZoneInfo
 
+from django.http import HttpResponse, JsonResponse
 from ninja import Router, Status
 from ninja.security import django_auth
 
@@ -24,10 +27,15 @@ from itinerary.schemas import (
     NoteIn,
     NoteOut,
     NotePatchIn,
+    TodayOut,
 )
+from itinerary.use_cases.get_today import get_today
 from itinerary.use_cases.planner import itinerary, save_day, write_entry, write_note
 from shared.api_errors import ApiError, ErrorOut
+from shared.clock import SystemClock
 from trips.api_auth import member_of_trip
+
+clock = SystemClock()
 
 router = Router(tags=["itinerary"], auth=django_auth)
 ERRORS = {400: ErrorOut, 401: ErrorOut, 403: ErrorOut, 404: ErrorOut, 409: ErrorOut}
@@ -176,3 +184,42 @@ def delete_note(request, note_id: UUID):
         raise ApiError(403, "forbidden", "Only the active author can delete this note")
     default_store().delete_note(str(note_id))
     return Status(204, None)
+
+
+@router.get("/trips/{trip_id}/today", response={200: TodayOut, 304: None, **ERRORS})
+def get_today_endpoint(request, trip_id: UUID):
+    access = member_of_trip(request, trip_id)
+    snap = get_today(access.trip, clock.now())
+    tz = access.trip.timezone
+    me = str(access.membership.person_id)
+    data = TodayOut(
+        mode=snap.mode,
+        local_date=snap.local_date,
+        local_time=snap.local_time,
+        timezone=tz,
+        countdown_days=snap.countdown_days,
+        day=day_out(snap.day, tz) if snap.day else None,
+        now_entry=entry_out(snap.now_entry, tz) if snap.now_entry else None,
+        next_entry=entry_out(snap.next_entry, tz) if snap.next_entry else None,
+        next_meeting_point=entry_out(snap.next_meeting_point, tz)
+        if snap.next_meeting_point
+        else None,
+        pinned_notes=note_outputs(snap.pinned_notes, access.trip, me),
+        recent_notes=note_outputs(snap.recent_notes, access.trip, me),
+        generated_at=snap.generated_at,
+    ).model_dump(mode="json")
+    canonical = json.dumps(
+        {k: v for k, v in data.items() if k != "generated_at"},
+        sort_keys=True,
+        separators=(",", ":"),
+        ensure_ascii=False,
+    )
+    etag = f'W/"{hashlib.sha256(canonical.encode()).hexdigest()[:16]}"'
+    matches = request.headers.get("If-None-Match", "")
+    matched = matches.strip() == "*" or etag[2:] in {
+        token.strip().removeprefix("W/") for token in matches.split(",")
+    }
+    response = HttpResponse(status=304) if matched else JsonResponse(data)
+    response["ETag"] = etag
+    response["Cache-Control"] = "private, no-cache"
+    return response
