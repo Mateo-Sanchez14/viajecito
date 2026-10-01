@@ -117,6 +117,59 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/crews/{crew_id}/trips": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Trips */
+        get: operations["trips_api_list_trips"];
+        put?: never;
+        /** Create Trip */
+        post: operations["trips_api_create_trip"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/trips/{trip_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Trip */
+        get: operations["trips_api_get_trip"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Patch Trip */
+        patch: operations["trips_api_patch_trip"];
+        trace?: never;
+    };
+    "/api/trips/{trip_id}/participation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Set Participation */
+        put: operations["trips_api_set_participation"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -223,6 +276,130 @@ export interface components {
             person: components["schemas"]["PersonOut"];
             /** Crews */
             crews: components["schemas"]["CrewSummaryOut"][];
+        };
+        /** ParticipantOut */
+        ParticipantOut: {
+            /**
+             * Person Id
+             * Format: uuid
+             */
+            person_id: string;
+            /** Display Name */
+            display_name: string;
+            /**
+             * Rsvp
+             * @enum {string}
+             */
+            rsvp: "in" | "maybe" | "out" | "pending";
+        };
+        /** TripSummaryOut */
+        TripSummaryOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Crew Id
+             * Format: uuid
+             */
+            crew_id: string;
+            /** Name */
+            name: string;
+            /** Type */
+            type: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "idea" | "planning" | "booked" | "ongoing" | "done";
+            /** Start On */
+            start_on: string | null;
+            /** End On */
+            end_on: string | null;
+            /** Destination Label */
+            destination_label: string;
+        };
+        /** TripOut */
+        TripOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Crew Id
+             * Format: uuid
+             */
+            crew_id: string;
+            /** Name */
+            name: string;
+            /** Type */
+            type: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "idea" | "planning" | "booked" | "ongoing" | "done";
+            /** Start On */
+            start_on: string | null;
+            /** End On */
+            end_on: string | null;
+            /** Destination Label */
+            destination_label: string;
+            /** Timezone */
+            timezone: string;
+            /** Currency */
+            currency: string;
+            /** Modules */
+            modules: string[];
+            /** Participants */
+            participants: components["schemas"]["ParticipantOut"][];
+            /**
+             * My Rsvp
+             * @enum {string}
+             */
+            my_rsvp: "in" | "maybe" | "out" | "pending";
+        };
+        /** TripCreateIn */
+        TripCreateIn: {
+            /** Name */
+            name: string;
+            /** Type */
+            type?: string | null;
+            /** Start On */
+            start_on?: string | null;
+            /** End On */
+            end_on?: string | null;
+            /** Destination Label */
+            destination_label?: string | null;
+            /** Currency */
+            currency?: string | null;
+        };
+        /** TripPatchIn */
+        TripPatchIn: {
+            /** Name */
+            name?: string | null;
+            /** Type */
+            type?: string | null;
+            /** Start On */
+            start_on?: string | null;
+            /** End On */
+            end_on?: string | null;
+            /** Destination Label */
+            destination_label?: string | null;
+            /** Currency */
+            currency?: string | null;
+            /** Status */
+            status?: ("idea" | "planning" | "booked" | "ongoing" | "done") | null;
+        };
+        /** ParticipationIn */
+        ParticipationIn: {
+            /**
+             * Rsvp
+             * @enum {string}
+             */
+            rsvp: "in" | "maybe" | "out" | "pending";
         };
     };
     responses: never;
@@ -440,6 +617,245 @@ export interface operations {
             };
             /** @description Unauthorized */
             401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    trips_api_list_trips: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                crew_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TripSummaryOut"][];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    trips_api_create_trip: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                crew_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TripCreateIn"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TripOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    trips_api_get_trip: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                trip_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TripOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    trips_api_patch_trip: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                trip_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TripPatchIn"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TripOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    trips_api_set_participation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                trip_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ParticipationIn"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ParticipantOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
