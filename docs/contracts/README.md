@@ -350,3 +350,5 @@ Writers code against these facts; read `api/README.md` for examples.
   returned only for rows already `sent`/`queued`/`sending`.
 - Unknown `/viaje` subcommands get the full help text (hint line first).
 - `update_trip(..., actor_id=...)`: `actor_id` is accepted for future auditing and not persisted yet.
+- A channel skipped because of the tick deadline is not retried in a later pass (its row is no longer
+  new); keep channels fast.
