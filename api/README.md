@@ -235,18 +235,24 @@ no-op. Orders: commands 10 (registered by `MessagingConfig`), quoted card 20, li
      link capture 30, fallback 100);
    - `/viaje` subcommand: `messaging.handlers.commands.register_subcommand(name, handler, aliases=(),
      help_line="")`; `handler(ctx, args)` gets the text after the subcommand (original casing, stripped)
-     and returns `Handled | None`; names match accent- and case-insensitively, `ayuda` lists every
-     `help_line` sorted by name, and a throttled chat never reaches your handler;
+     and returns `Handled | None` (`None` leaves the message unclaimed for later handlers); names match accent- and case-insensitively, `ayuda` lists every
+     `help_line` sorted by name, an unknown subcommand answers the hint followed by that same help, and a
+     throttled chat never reaches your handler;
    - reminder rule / channel / tick job / digest section: see *Reminders* below;
    - event subscriber: `shared.events.subscribe(event_name, callback)` (see *Domain events*).
 4. Handler context (`HandlerContext`): `reply(body)`; `reply_allowed()`;
    `send_card(body, *, subject_type, subject_id, dedupe_key) -> SentCard(status, gowa_message_id)`, a
    threaded `kind="card"` row that keeps its subject, exempt from the 3 s reply gap but counted in the
-   per-chat 20-per-10-minutes budget (`"failed"` when over it, `"duplicate"` for a known `dedupe_key`);
+   per-chat 20-per-10-minutes budget (`"failed"` when over it, `"duplicate"` for a known `dedupe_key` whose row is sent, queued or sending; a `failed` row with fewer than
+   3 attempts is re-sent on the same row and its real status returned);
    `quoted_subject`: `(subject_type, subject_id)` of OUR message the inbound one quotes, else `None`.
 5. Callable core use cases (import from the module, e.g. `from trips.use_cases.update_trip import
    update_trip`): `update_trip(trip_id, actor_id, **fields)` (the caller authorizes the actor; `actor_id` is accepted for future auditing and is currently not persisted),
-   `default_trip_for_crew(crew_id)`, `crews.use_cases.active_member_ids(crew_id)`.
+   `default_trip_for_crew(crew_id)`, `trips.use_cases.list_active_trips()` (planning/booked/ongoing trips of
+   every crew with crew id, timezone and dates), `trips.use_cases.trip_participants(trip_id)` (every active
+   member with `rsvp`; `display_name` falls back to the phone), `crews.use_cases.active_member_ids(crew_id)`
+   (oldest membership first) and `identity.use_cases.display_names(person_ids)` (`{id: name or phone}`).
+   All use the default-store pattern: no store argument.
 6. Never edit core files (`config/api.py`, `messaging/router.py`, `trips`); a core change goes in a request.
 
 ## Domain events
@@ -265,6 +271,9 @@ swap in an empty registry for a block) and `clear()`.
 - **Names** `<noun>.<past_participle>` (`proposal.status_changed`); **payload** ids as `str(uuid)` and plain
   values (`str`, `int`, `bool`, `None`, `date`, aware `datetime`), never model instances.
 - **Subscribe** from `AppConfig.ready()`. In tests wrap registrations in `with events.isolated():`.
+  The same pattern exists for the other registries: `messaging.reminders.isolated()` (rules, channels, tick
+  jobs, digest sections: empty registries) and `messaging.handlers.commands.isolated()` (subcommands: just
+  `ping` and `ayuda`). Each restores the previous registry on exit, even when the block raises.
 - **Testing `publish_after_commit`**: pytest-django's default `django_db` wraps the test in a transaction
   that is never committed, so `on_commit` callbacks never fire. Use the
   `django_capture_on_commit_callbacks(execute=True)` fixture (or `django_db(transaction=True)`).
@@ -304,6 +313,9 @@ registration order, each isolated, and are skipped once the lock deadline is nea
   unknown id renders as an empty string. With `GOWA_MENTIONS_ENABLED=1` the JIDs (tokens plus
   `mention_person_ids`) are also stored on the row and sent to Gowa as `mentions` (the field name is
   unconfirmed, hence the flag, default off). Channels get the original draft, tokens included.
+- **Deadline**: no new rule, draft or channel starts once the lock deadline is within 5 s; the skipped work
+  is counted in `reminders_deadline_skipped`. Rows already queued stay; their rules run again next pass, but
+  a channel skipped for an already-queued row is NOT retried (the row is no longer new), so keep channels fast.
 - **Delivery**: rows queued by the reminders phase are backdated past `QUEUED_MIN_AGE_SECONDS` so the same
   pass sends them (rows made by other processes still wait that long, as they may be in flight).
 - **Timezones** of `Crew` and `Trip` are validated against IANA names (`shared/timezones.py`) in

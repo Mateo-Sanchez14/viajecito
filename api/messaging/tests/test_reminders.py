@@ -25,10 +25,10 @@ JULY_NOON = datetime(2025, 7, 15, 15, 0, tzinfo=UTC)  # 12:00 in both
 
 
 @pytest.fixture
-def registry(monkeypatch):
+def registry():
     """Isolated, empty registries."""
-    for name in ("_RULES", "_CHANNELS", "_JOBS", "_SECTIONS"):
-        monkeypatch.setattr(reminders, name, {})
+    with reminders.isolated():
+        yield
 
 
 def draft(crew, key="1", **overrides) -> ReminderDraft:
@@ -629,3 +629,25 @@ def test_channels_are_not_started_past_the_deadline(registry, synced):
 def test_the_tick_reports_reminders_deadline_skipped(registry, synced, gowa):
     reminders.register_reminder_rule("fake", lambda ctx: [draft(synced)])
     assert tick()["reminders_deadline_skipped"] == 0
+
+
+def test_isolated_swaps_every_registry_and_restores_it(registry):
+    def keep(ctx):
+        return []
+
+    reminders.register_reminder_rule("outer", keep)
+    with reminders.isolated():
+        assert reminders.registered_rules() == []
+        reminders.register_reminder_rule("inner", keep)
+        reminders.register_channel("c", lambda d: None)
+        reminders.register_tick_job("j", lambda now: None)
+        reminders.register_digest_section("s", lambda t, d: "x")
+    assert [r.key for r in reminders.registered_rules()] == ["outer"]
+    assert reminders.registered_channels() == [] and reminders.registered_tick_jobs() == []
+    assert reminders.digest_sections("t", date.today()) == []
+
+
+def test_isolated_restores_the_registries_when_the_block_raises(registry):
+    with pytest.raises(RuntimeError), reminders.isolated():
+        raise RuntimeError
+    assert reminders.registered_rules() == []

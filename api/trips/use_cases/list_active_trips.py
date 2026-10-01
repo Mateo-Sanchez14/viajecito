@@ -1,7 +1,7 @@
+from trips import ports
 from trips.domain import TripData
-from trips.ports import TripStore
 
 
-def list_active_trips(store: TripStore) -> list[TripData]:
-    """Planning, booked and ongoing trips across all crews."""
-    return store.list_active()
+def list_active_trips() -> list[TripData]:
+    """Planning, booked and ongoing trips across all crews (with crew id, timezone and dates)."""
+    return ports.default_store().list_active()

@@ -43,11 +43,13 @@ def member(crew):
 
 
 @pytest.fixture
-def seen(monkeypatch):
+def seen():
     """Register a ``probe`` subcommand that records what the context offers."""
-    monkeypatch.setattr(commands, "_SUBCOMMANDS", {})
-    monkeypatch.setattr(commands, "_ALIASES", {})
-    commands.register_core_subcommands()
+    with commands.isolated():
+        yield from _probe()
+
+
+def _probe():
     record: dict = {"cards": [], "quoted": []}
 
     def probe(ctx, args):
@@ -64,7 +66,7 @@ def seen(monkeypatch):
         return Handled("probe")
 
     commands.register_subcommand("probe", probe)
-    return record
+    yield record
 
 
 @pytest.fixture
