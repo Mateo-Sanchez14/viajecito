@@ -243,3 +243,105 @@ def test_prod_with_waha_does_not_need_the_gowa_secret(monkeypatch):
 def test_prod_with_gowa_ignores_waha_keys(monkeypatch):
     prod = _prod_env(monkeypatch, WHATSAPP_PROVIDER="gowa")
     assert importlib.reload(prod).WHATSAPP_PROVIDER == "gowa"
+
+
+WAVE_A_DEFAULTS = {
+    "DECISIONS_NUDGE_WINDOW_HOURS": 48,
+    "DECISIONS_NUDGE_AFTER_DAYS": 3,
+    "SKI_TICK_BUDGET_SECONDS": 30.0,
+    "SKI_MANUAL_REPORTS_PER_HOUR": 6,
+    "NOTIFICATIONS_VAPID_PUBLIC_KEY": "",
+    "NOTIFICATIONS_VAPID_PRIVATE_KEY": "",
+    "NOTIFICATIONS_VAPID_SUBJECT": "",
+    "NOTIFICATIONS_PUSH_ENDPOINT_HOSTS": [
+        "fcm.googleapis.com",
+        "updates.push.services.mozilla.com",
+        "push.services.mozilla.com",
+        "*.push.apple.com",
+        "*.notify.windows.com",
+    ],
+    "NOTIFICATIONS_PUSH_BUDGET_SECONDS": 10.0,
+    "LINKPREVIEW_FETCHER": "httpx",
+    "LINKPREVIEW_FETCH_SYNC": False,
+    "LINKPREVIEW_MAX_BYTES": 1_048_576,
+    "PROPOSALS_LLM_CLASSIFIER_ENABLED": False,
+    "PROPOSALS_LLM_BASE_URL": "",
+    "PROPOSALS_LLM_API_KEY": "",
+    "PROPOSALS_LLM_MODEL": "",
+}
+
+
+@pytest.mark.parametrize(("name", "expected"), WAVE_A_DEFAULTS.items())
+def test_wave_a_defaults(monkeypatch, name, expected):
+    monkeypatch.delenv(name, raising=False)
+    assert getattr(_reload_base(monkeypatch), name) == expected
+
+
+@pytest.mark.parametrize(
+    ("name", "raw", "expected"),
+    [
+        ("DECISIONS_NUDGE_WINDOW_HOURS", "24", 24),
+        ("DECISIONS_NUDGE_AFTER_DAYS", "7", 7),
+        ("SKI_TICK_BUDGET_SECONDS", "2.5", 2.5),
+        ("SKI_MANUAL_REPORTS_PER_HOUR", "2", 2),
+        ("NOTIFICATIONS_VAPID_PUBLIC_KEY", "public", "public"),
+        ("NOTIFICATIONS_VAPID_PRIVATE_KEY", "private", "private"),
+        ("NOTIFICATIONS_VAPID_SUBJECT", "mailto:owner@example.com", "mailto:owner@example.com"),
+        (
+            "NOTIFICATIONS_PUSH_ENDPOINT_HOSTS",
+            "push.example.com,*.push.example.org",
+            ["push.example.com", "*.push.example.org"],
+        ),
+        ("NOTIFICATIONS_PUSH_BUDGET_SECONDS", "1.5", 1.5),
+        ("LINKPREVIEW_FETCHER", "static", "static"),
+        ("LINKPREVIEW_FETCH_SYNC", "1", True),
+        ("LINKPREVIEW_MAX_BYTES", "2048", 2048),
+        ("PROPOSALS_LLM_CLASSIFIER_ENABLED", "1", True),
+        ("PROPOSALS_LLM_BASE_URL", "https://llm.example.com", "https://llm.example.com"),
+        ("PROPOSALS_LLM_API_KEY", "key", "key"),
+        ("PROPOSALS_LLM_MODEL", "model", "model"),
+    ],
+)
+def test_wave_a_env_parsing(monkeypatch, name, raw, expected):
+    value = getattr(_reload_base(monkeypatch, **{name: raw}), name)
+    assert value == expected
+    assert type(value) is type(expected)
+
+
+def test_preview_environment_defaults(monkeypatch):
+    monkeypatch.delenv("LINKPREVIEW_FETCHER", raising=False)
+    import config.settings.dev as dev
+    import config.settings.test as test
+
+    assert importlib.reload(dev).LINKPREVIEW_FETCHER == "static"
+    assert importlib.reload(test).LINKPREVIEW_FETCHER == "fake"
+    assert test.LINKPREVIEW_FETCH_SYNC is True
+
+
+def test_prod_without_vapid_keys_keeps_push_optional(monkeypatch, settings):
+    from notifications import conf
+
+    base = _reload_base(
+        monkeypatch, NOTIFICATIONS_VAPID_PUBLIC_KEY="", NOTIFICATIONS_VAPID_PRIVATE_KEY=""
+    )
+    prod = importlib.reload(_prod_env(monkeypatch))
+    assert prod.NOTIFICATIONS_VAPID_PUBLIC_KEY == ""
+    assert prod.NOTIFICATIONS_VAPID_PRIVATE_KEY == ""
+    settings.NOTIFICATIONS_VAPID_PUBLIC_KEY = base.NOTIFICATIONS_VAPID_PUBLIC_KEY
+    settings.NOTIFICATIONS_VAPID_PRIVATE_KEY = base.NOTIFICATIONS_VAPID_PRIVATE_KEY
+    assert conf.push_enabled() is False
+
+
+def test_push_host_defaults_match_the_domain_allowlist(monkeypatch):
+    from notifications.domain.subscriptions import DEFAULT_ENDPOINT_HOSTS
+
+    monkeypatch.delenv("NOTIFICATIONS_PUSH_ENDPOINT_HOSTS", raising=False)
+    base = _reload_base(monkeypatch)
+    assert tuple(base.NOTIFICATIONS_PUSH_ENDPOINT_HOSTS) == DEFAULT_ENDPOINT_HOSTS
+
+
+def test_dev_preview_fetcher_can_be_overridden(monkeypatch):
+    monkeypatch.setenv("LINKPREVIEW_FETCHER", "httpx")
+    import config.settings.dev as dev
+
+    assert importlib.reload(dev).LINKPREVIEW_FETCHER == "httpx"

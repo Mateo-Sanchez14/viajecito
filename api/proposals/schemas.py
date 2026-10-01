@@ -5,6 +5,7 @@ from uuid import UUID
 from ninja import Field, Schema
 
 from shared.api_errors import ErrorOut
+from shared.schemas import PersonRefOut as PersonRefOut
 
 Category = Literal["lodging", "transport", "activity", "food", "gear", "destination", "other"]
 Status = Literal["proposed", "discussing", "chosen", "booked", "discarded"]
@@ -85,11 +86,6 @@ class VoteTallyOut(Schema):
     score: int
     my_vote: VoteValue | None
     majority: bool
-
-
-class PersonRefOut(Schema):
-    person_id: UUID
-    display_name: str
 
 
 class VoteOut(Schema):

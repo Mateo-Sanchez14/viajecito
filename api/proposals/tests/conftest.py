@@ -18,8 +18,6 @@ ORIGIN = "https://viajecito.example.com"
 
 @pytest.fixture(autouse=True)
 def proposals_settings(settings, tmp_path):
-    settings.LINKPREVIEW_FETCHER = "fake"
-    settings.LINKPREVIEW_FETCH_SYNC = True
     settings.MEDIA_ROOT = tmp_path / "media"
     settings.PUBLIC_ORIGIN = ORIGIN
     settings.MESSAGING_PROCESS_SYNC = True

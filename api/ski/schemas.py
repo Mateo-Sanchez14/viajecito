@@ -5,6 +5,8 @@ from uuid import UUID
 
 from ninja import Field, Schema
 
+from shared.schemas import PersonRefOut as PersonRefOut
+
 Country = Literal["AR", "CL"]
 SnowSource = Literal["open_meteo", "manual"]
 Discipline = Literal["ski", "snowboard", "both"]
@@ -14,11 +16,6 @@ GearItem = Literal[
     "skis", "board", "boots", "poles", "helmet", "goggles", "jacket", "pants", "other"
 ]
 GearMode = Literal["own", "rent", "borrow"]
-
-
-class PersonRefOut(Schema):
-    person_id: UUID
-    display_name: str
 
 
 class ResortOut(Schema):

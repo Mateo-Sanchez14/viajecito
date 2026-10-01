@@ -17,3 +17,7 @@ OTP_PEPPER = "test-pepper"
 OTP_SEND_SYNC = True
 MESSAGING_PROCESS_SYNC = True
 GOWA_WEBHOOK_SECRET = "test-webhook-secret"
+
+# All suites use deterministic, inline previews without public network access.
+LINKPREVIEW_FETCHER = "fake"
+LINKPREVIEW_FETCH_SYNC = True

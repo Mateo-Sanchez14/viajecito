@@ -320,3 +320,26 @@ registration order, each isolated, and are skipped once the lock deadline is nea
   pass sends them (rows made by other processes still wait that long, as they may be in flight).
 - **Timezones** of `Crew` and `Trip` are validated against IANA names (`shared/timezones.py`) in
   `clean()` and `save()`; the trips API answers `400 invalid_request` when the crew's is invalid.
+
+## Wave A runtime settings
+
+The environment parsers in `config/settings/base.py` expose milestone tuning without changing
+code: `DECISIONS_NUDGE_WINDOW_HOURS` (48), `DECISIONS_NUDGE_AFTER_DAYS` (3),
+`SKI_TICK_BUDGET_SECONDS` (30), `SKI_MANUAL_REPORTS_PER_HOUR` (6), and
+`NOTIFICATIONS_PUSH_BUDGET_SECONDS` (10). `NOTIFICATIONS_PUSH_ENDPOINT_HOSTS` is a comma-separated
+allowlist defaulting to the browser push-service hosts in `notifications.domain.subscriptions`.
+
+Push remains optional. Empty VAPID keys disable it; invalid/mismatched keys or an invalid subject
+also fail closed through `notifications.conf.push_enabled`. Configure both
+`NOTIFICATIONS_VAPID_PUBLIC_KEY` and `NOTIFICATIONS_VAPID_PRIVATE_KEY` from
+`manage.py generate_vapid_keys`, plus `NOTIFICATIONS_VAPID_SUBJECT` (`mailto:` or `https:`).
+The subject defaults to `PUBLIC_ORIGIN` when it is HTTPS.
+
+`LINKPREVIEW_FETCHER` defaults to `httpx` in base/production, `static` in dev and `fake` in tests.
+Dev can override the fetcher through the environment; tests always use synchronous fake fetching.
+`LINKPREVIEW_FETCH_SYNC` defaults to false outside tests; `LINKPREVIEW_MAX_BYTES` defaults to 1048576.
+The optional classifier remains off unless `PROPOSALS_LLM_CLASSIFIER_ENABLED=1`; its
+`PROPOSALS_LLM_BASE_URL`, `PROPOSALS_LLM_API_KEY` and `PROPOSALS_LLM_MODEL` default to empty strings.
+
+Milestone schemas import/re-export `shared.schemas.PersonRefOut` rather than declaring duplicate
+components with the same OpenAPI name. Its fields are `person_id` (UUID) and `display_name` (string).
