@@ -151,6 +151,24 @@ describe("CommentThread", () => {
     expect(screen.getByLabelText(t.label)).toHaveValue("hola");
   });
 
+  it("drops a failed delete's error once a later action succeeds", async () => {
+    serveComments([makeComment({ body: "mio" })]);
+    server.use(
+      http.delete("/api/comments/{comment_id}", () => HttpResponse.json({ code: "forbidden", message: "x" }, { status: 403 })),
+    );
+    setup();
+    await screen.findByText("mio");
+
+    fireEvent.click(screen.getByRole("button", { name: t.delete }));
+    expect(await screen.findByRole("alert")).toHaveTextContent(messages.proposals.errors.forbidden);
+
+    fireEvent.change(screen.getByLabelText(t.label), { target: { value: "otro" } });
+    fireEvent.click(screen.getByRole("button", { name: t.submit }));
+
+    expect(await screen.findByText("otro")).toBeInTheDocument();
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  });
+
   it("says when the thread cannot load", async () => {
     server.use(
       http.get("/api/proposals/{proposal_id}/comments", () =>

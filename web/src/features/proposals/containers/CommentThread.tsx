@@ -40,14 +40,20 @@ export function CommentThread({ proposalId }: { proposalId: string }) {
               comment={comment}
               timeZone={trip.timezone}
               deleting={remove.isPending && remove.variables === comment.id}
-              onDelete={(target) => remove.mutate(target.id)}
+              onDelete={(target) => {
+                add.reset();
+                remove.mutate(target.id);
+              }}
             />
           ))}
         </ul>
       )}
 
       <CommentForm
-        onSubmit={(body) => add.mutateAsync(body)}
+        onSubmit={(body) => {
+          remove.reset();
+          return add.mutateAsync(body);
+        }}
         pending={add.isPending}
         error={error ? errorMessage(error) : null}
       />

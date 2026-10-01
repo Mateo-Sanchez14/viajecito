@@ -20,6 +20,7 @@ import { VoteButtons } from "../components/VoteButtons";
 import { useRefreshPreview, useTransition } from "../hooks/mutations";
 import { useProposal } from "../hooks/queries";
 import { proposalsPath } from "../lib/paths";
+import { safeHttpUrl } from "../lib/links";
 import { useErrorMessage } from "../lib/useErrorMessage";
 import { BookingRefForm } from "./BookingRefForm";
 import { CommentThread } from "./CommentThread";
@@ -79,7 +80,7 @@ export function ProposalDetail({ proposalId, initialProposal }: ProposalDetailPr
   const { preview } = proposal;
   const unreadable = preview !== null && ["blocked", "partial", "failed"].includes(preview.fetch_status);
   const hasDates = proposal.starts_on !== null || proposal.ends_on !== null;
-  const link = preview ? preview.final_url || preview.url : "";
+  const link = preview ? safeHttpUrl(preview.final_url || preview.url) : null;
 
   function move(to: ProposalStatus) {
     transition.mutate(

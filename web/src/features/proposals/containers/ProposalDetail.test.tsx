@@ -149,6 +149,18 @@ describe("ProposalDetail", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent(t.errors.refresh_too_soon);
   });
 
+  it("never renders a link whose scheme is not http or https", async () => {
+    serve(
+      makeProposal({
+        preview: makePreview({ url: "javascript:alert(1)", final_url: "javascript:alert(1)", has_thumbnail: false }),
+      }),
+    );
+    setup();
+
+    await screen.findByRole("heading", { level: 1 });
+    expect(screen.queryByRole("link", { name: t.detail.openLink })).not.toBeInTheDocument();
+  });
+
   it("does not offer a retry when the proposal has no link", async () => {
     serve(makeProposal({ preview: null }));
     setup();
