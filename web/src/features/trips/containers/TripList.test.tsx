@@ -1,4 +1,4 @@
-import { screen } from "@testing-library/react";
+import { screen, waitForElementToBeRemoved } from "@testing-library/react";
 import { createOpenApiHttp } from "openapi-msw";
 import { describe, expect, it } from "vitest";
 import type { paths } from "@/shared/api/schema";
@@ -15,6 +15,28 @@ function trips(...rows: ReturnType<typeof makeSummary>[]) {
 }
 
 describe("TripList", () => {
+  it("announces the pending request as a named status and removes it when trips arrive", async () => {
+    let release!: () => void;
+    const pending = new Promise<void>((resolve) => { release = resolve; });
+    server.use(
+      http.get("/api/crews/{crew_id}/trips", async ({ response }) => {
+        await pending;
+        return response(200).json([makeSummary()]);
+      }),
+    );
+    renderWithProviders(<TripList crewId={CREW_ID} />);
+
+    try {
+      const loading = screen.getByRole("status", { name: messages.trips.list.loading });
+      expect(loading).toBeInTheDocument();
+      release();
+      await waitForElementToBeRemoved(loading);
+      expect(await screen.findByRole("link", { name: /Bariloche 2027/ })).toBeInTheDocument();
+    } finally {
+      release();
+    }
+  });
+
   it("shows the empty state when the crew has no trips", async () => {
     server.use(trips());
     renderWithProviders(<TripList crewId={CREW_ID} />);

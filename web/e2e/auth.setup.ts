@@ -11,15 +11,18 @@ const fakeGowaUrl = process.env.FAKE_GOWA_URL ?? "http://localhost:4000";
 setup.describe.configure({ retries: 0 });
 
 setup("sign in once and save the storage state", async ({ page, request }) => {
-  // Drop codes left over from earlier runs so the poll cannot return a stale one.
-  await request.delete(`${fakeGowaUrl}/__sent`);
+  // Snapshot this phone only; never clear the shared outbound ledger.
+  const digits = phone.replace(/\D/g, "");
+  const previousResponse = await request.get(`${fakeGowaUrl}/__sent/latest?phone=${digits}`);
+  const previous = previousResponse.ok()
+    ? ((await previousResponse.json()) as { id: string }).id
+    : undefined;
 
   await page.goto("/login");
   await page.getByLabel(messages.auth.phone.label).fill(phone);
   await page.getByRole("button", { name: messages.auth.phone.submit }).click();
   await expect(page.getByLabel(messages.auth.code.label)).toBeVisible();
 
-  const digits = phone.replace(/\D/g, "");
   let code: string | undefined;
   await expect
     .poll(
@@ -27,7 +30,8 @@ setup("sign in once and save the storage state", async ({ page, request }) => {
         const response = await request.get(`${fakeGowaUrl}/__sent/latest?phone=${digits}`);
         if (!response.ok()) return undefined;
         // Match on `message` only: `received_at` carries 6-digit microseconds.
-        const { message } = (await response.json()) as { message?: string };
+        const { id, message } = (await response.json()) as { id: string; message?: string };
+        if (id === previous) return undefined;
         code = /\b(\d{6})\b/.exec(message ?? "")?.[1];
         return code;
       },

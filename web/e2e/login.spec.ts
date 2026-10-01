@@ -15,6 +15,7 @@ test.use({ storageState: { cookies: [], origins: [] } });
 async function readCode(
   request: import("@playwright/test").APIRequestContext,
   digits: string,
+  previous?: string,
 ): Promise<string> {
   let code: string | undefined;
   await expect
@@ -25,7 +26,8 @@ async function readCode(
         );
         if (!response.ok()) return undefined;
         // Match on `message` only: `received_at` carries 6-digit microseconds.
-        const { message } = (await response.json()) as { message?: string };
+        const { id, message } = (await response.json()) as { id: string; message?: string };
+        if (id === previous) return undefined;
         code = /\b(\d{6})\b/.exec(message ?? "")?.[1];
         return code;
       },
@@ -39,8 +41,12 @@ test("logs in with the WhatsApp code read from fake gowa", async ({
   page,
   request,
 }) => {
-  // Drop codes left over from earlier runs so the poll cannot return a stale one.
-  await request.delete(`${fakeGowaUrl}/__sent`);
+  // Snapshot this phone only; parallel specs rely on the other outbound messages.
+  const digits = phone.replace(/\D/g, "");
+  const previousResponse = await request.get(`${fakeGowaUrl}/__sent/latest?phone=${digits}`);
+  const previous = previousResponse.ok()
+    ? ((await previousResponse.json()) as { id: string }).id
+    : undefined;
 
   await page.goto("/login");
 
@@ -48,7 +54,7 @@ test("logs in with the WhatsApp code read from fake gowa", async ({
   await page.getByRole("button", { name: messages.auth.phone.submit }).click();
 
   await expect(page.getByLabel(messages.auth.code.label)).toBeVisible();
-  const code = await readCode(request, phone.replace(/\D/g, ""));
+  const code = await readCode(request, digits, previous);
   await page.getByLabel(messages.auth.code.label).fill(code);
   await page.getByRole("button", { name: messages.auth.code.submit }).click();
 

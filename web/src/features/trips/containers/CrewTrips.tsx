@@ -11,10 +11,10 @@ export function CrewTrips() {
   const empty = useTranslations("home.crews")("empty");
   const { crews } = useMe();
 
-  if (crews.length === 0) return <p className="text-sm text-muted">{empty}</p>;
-
   return (
     <>
+      <h1 className="text-2xl font-semibold">{t("title")}</h1>
+      {crews.length === 0 && <p className="text-sm text-muted">{empty}</p>}
       {crews.map((crew) => (
         <section key={crew.id} className="flex w-full flex-col gap-3">
           <h2 className="text-lg font-semibold">{crew.name}</h2>
