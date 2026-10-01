@@ -6,6 +6,7 @@ from ninja.security import django_auth
 
 from crews.api_auth import current_person
 from notifications import conf
+from notifications.adapters import wiring
 from notifications.adapters.django_store import (
     DjangoPreferenceStore,
     DjangoSubscriptionStore,
@@ -18,10 +19,12 @@ from notifications.schemas import (
     PreferencesOut,
     SubscriptionIn,
     SubscriptionOut,
+    TestPushOut,
     UnsubscribeIn,
     VapidKeyOut,
 )
 from notifications.use_cases.preferences import get_preferences, set_preferences
+from notifications.use_cases.push_delivery import send_test_push
 from notifications.use_cases.subscriptions import (
     list_subscriptions,
     register_subscription,
@@ -158,3 +161,25 @@ def put_prefs(request, payload: PreferencesIn):
     except InvalidPreferencesError as exc:
         raise ApiError(HTTPStatus.BAD_REQUEST, "invalid_request", str(exc)) from exc
     return Status(HTTPStatus.OK, PreferencesOut(push=prefs))
+
+
+@router.post(
+    "/test",
+    response={
+        HTTPStatus.ACCEPTED: TestPushOut,
+        HTTPStatus.TOO_MANY_REQUESTS: ErrorOut,
+        HTTPStatus.SERVICE_UNAVAILABLE: ErrorOut,
+        **COMMON_ERRORS,
+    },
+    auth=django_auth,
+    summary="Send Test Push",
+)
+def test_push(request):
+    """Sends the test notification to the caller's subscriptions (1 per minute)."""
+    person = current_person(request)
+    require_push()
+    try:
+        sent = send_test_push(str(person.pk), wiring.push_services())
+    except RateLimitedError as exc:
+        raise rate_limited(exc) from exc
+    return Status(HTTPStatus.ACCEPTED, TestPushOut(sent=sent))
