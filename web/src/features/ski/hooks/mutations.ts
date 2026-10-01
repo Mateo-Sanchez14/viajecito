@@ -51,6 +51,8 @@ export function useSaveSkiProfile() {
     mutationFn: (profile: SkiProfileIn) => putSkiProfile(profile),
     onSuccess: (saved) => {
       queryClient.setQueryData(skiKeys.profile(), saved);
+      // Consent and sizes show up in every trip's rental roll-up.
+      return queryClient.invalidateQueries({ queryKey: ["ski"] });
     },
   });
 }

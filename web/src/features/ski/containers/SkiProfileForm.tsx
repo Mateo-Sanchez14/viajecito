@@ -7,21 +7,19 @@ import { Card } from "@/ui/atoms/Card";
 import { Input } from "@/ui/atoms/Input";
 import { Select } from "@/ui/atoms/Select";
 import { Skeleton } from "@/ui/atoms/Skeleton";
-import type { SkiProfile } from "../api/ski";
+import { DISCIPLINES, LEVELS, toDiscipline, toLevel, type SkiProfile } from "../api/ski";
 import { useSaveSkiProfile } from "../hooks/mutations";
 import { useSkiProfile } from "../hooks/queries";
+import { useSkiErrorMessage } from "../lib/useErrorMessage";
 import { parseSizes, type SizeField } from "../lib/profile";
-
-const DISCIPLINES = ["ski", "snowboard", "both"] as const;
-const LEVELS = ["first_time", "beginner", "intermediate", "advanced", "expert"] as const;
 
 function ProfileFields({ profile }: { profile: SkiProfile }) {
   const t = useTranslations("ski.profile");
-  const tError = useTranslations("ski.errors");
+  const errorMessage = useSkiErrorMessage();
   const id = useId();
   const save = useSaveSkiProfile();
-  const [discipline, setDiscipline] = useState(profile.discipline);
-  const [level, setLevel] = useState(profile.level);
+  const [discipline, setDiscipline] = useState(toDiscipline(profile.discipline));
+  const [level, setLevel] = useState(toLevel(profile.level));
   const [ownsGear, setOwnsGear] = useState(profile.owns_gear);
   const [boot, setBoot] = useState(profile.boot_size_eu?.toString() ?? "");
   const [height, setHeight] = useState(profile.height_cm?.toString() ?? "");
@@ -108,7 +106,7 @@ function ProfileFields({ profile }: { profile: SkiProfile }) {
 
       <Button type="submit" disabled={save.isPending}>{save.isPending ? t("saving") : t("save")}</Button>
       {save.isSuccess && <p role="status" className="text-sm text-ok">{t("saved")}</p>}
-      {save.isError && <p role="alert" className="text-sm text-warn">{tError("generic")}</p>}
+      {save.isError && <p role="alert" className="text-sm text-warn">{errorMessage(save.error)}</p>}
     </form>
   );
 }

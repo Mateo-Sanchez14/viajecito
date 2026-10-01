@@ -12,15 +12,21 @@ export type SkiConditions = Schemas["SkiConditionsOut"];
 export type PersonRef = Schemas["PersonRefOut"];
 export type PassRow = Schemas["PassRowOut"];
 export type PassIn = Schemas["PassIn"];
-export type PassStatus = PassRow["status"];
 export type GearRow = Schemas["GearRowOut"];
 export type GearItemIn = Schemas["GearItemIn"];
-export type GearItem = GearRow["item"];
-export type GearMode = GearRow["mode"];
 export type LevelGroup = Schemas["LevelGroupOut"];
 export type ManualReportIn = Schemas["ManualReportIn"];
 export type SkiProfile = Schemas["SkiProfileOut"];
 export type SkiProfileIn = Schemas["SkiProfileIn"];
+
+// The api types the choice fields of responses as plain strings, so the unions come from the
+// request schemas and responses are narrowed with the helpers below.
+export type Country = "AR" | "CL";
+export type PassStatus = PassIn["status"];
+export type GearItem = GearItemIn["item"];
+export type GearMode = GearItemIn["mode"];
+export type Discipline = SkiProfileIn["discipline"];
+export type Level = SkiProfileIn["level"];
 
 export const GEAR_ITEMS = [
   "skis",
@@ -41,10 +47,30 @@ export const PASS_STATUSES = [
   "not_needed",
 ] as const satisfies readonly PassStatus[];
 
+export const DISCIPLINES = ["ski", "snowboard", "both"] as const satisfies readonly Discipline[];
+
+export const LEVELS = [
+  "first_time",
+  "beginner",
+  "intermediate",
+  "advanced",
+  "expert",
+] as const satisfies readonly Level[];
+
+function narrow<T extends string>(list: readonly T[], value: string, fallback: T): T {
+  return (list as readonly string[]).includes(value) ? (value as T) : fallback;
+}
+
+export const toPassStatus = (value: string): PassStatus => narrow(PASS_STATUSES, value, "needed");
+export const toGearItem = (value: string): GearItem => narrow(GEAR_ITEMS, value, "other");
+export const toGearMode = (value: string): GearMode => narrow(["own", "rent", "borrow"], value, "own");
+export const toDiscipline = (value: string): Discipline => narrow(DISCIPLINES, value, "ski");
+export const toLevel = (value: string): Level => narrow(LEVELS, value, "beginner");
+
 export const skiKeys = {
   overview: (tripId: string) => ["ski", tripId] as const,
   conditions: (tripId: string) => ["ski", tripId, "conditions"] as const,
-  resorts: (country?: Resort["country"]) => ["ski", "resorts", country ?? "all"] as const,
+  resorts: (country?: Country) => ["ski", "resorts", country ?? "all"] as const,
   profile: () => ["ski", "profile", "me"] as const,
 };
 
@@ -65,7 +91,7 @@ const resortPath = (tripId: string, resortId: string) => ({
   params: { path: { trip_id: tripId, resort_id: resortId } },
 });
 
-export async function listResorts(country?: Resort["country"]): Promise<Resort[]> {
+export async function listResorts(country?: Country): Promise<Resort[]> {
   return unwrap(await client().GET("/api/ski/resorts", { params: { query: { country } } }));
 }
 

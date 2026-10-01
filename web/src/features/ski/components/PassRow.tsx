@@ -1,6 +1,6 @@
 import { useTranslations } from "next-intl";
 import { Avatar } from "@/ui/atoms/Avatar";
-import type { PassRow as PassRowData } from "../api/ski";
+import { toPassStatus, type PassRow as PassRowData } from "../api/ski";
 import { PassStatusBadge } from "./PassStatusBadge";
 
 /** Presentational: one person's lift pass for one resort. */
@@ -19,7 +19,7 @@ export function PassRow({ row, resortName }: { row: PassRowData; resortName: str
           </span>
         </span>
       </span>
-      <PassStatusBadge status={row.status} />
+      <PassStatusBadge status={toPassStatus(row.status)} />
     </li>
   );
 }

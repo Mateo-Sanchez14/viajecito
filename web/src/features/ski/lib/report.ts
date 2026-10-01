@@ -23,15 +23,18 @@ export const EMPTY_REPORT: ReportInput = {
   status_text: "",
 };
 
+/** Lift and run counts: whole numbers up to the api limit. */
+const isCount = (n: number) => Number.isInteger(n) && n >= 0 && n <= 500;
+
 /** Per-field rule and the error key it raises (limits come from the ski contract). */
 const RULES: Record<ReportField, { error: ReportErrorKey; valid: (n: number) => boolean }> = {
   base_cm: { error: "base", valid: (n) => Number.isInteger(n) && n >= 0 && n <= 1000 },
   new_24h_cm: { error: "new24h", valid: (n) => Number.isInteger(n) && n >= 0 && n <= 300 },
   temp_c: { error: "temp", valid: (n) => n >= -40 && n <= 30 },
-  lifts_open: { error: "count", valid: (n) => Number.isInteger(n) && n >= 0 },
-  lifts_total: { error: "count", valid: (n) => Number.isInteger(n) && n >= 0 },
-  runs_open: { error: "count", valid: (n) => Number.isInteger(n) && n >= 0 },
-  runs_total: { error: "count", valid: (n) => Number.isInteger(n) && n >= 0 },
+  lifts_open: { error: "count", valid: isCount },
+  lifts_total: { error: "count", valid: isCount },
+  runs_open: { error: "count", valid: isCount },
+  runs_total: { error: "count", valid: isCount },
 };
 
 export type ReportValidation =
@@ -41,7 +44,7 @@ export type ReportValidation =
 /** Validates a manual report; only the filled fields end up in the body (at least one is required). */
 export function validateReport(input: ReportInput): ReportValidation {
   const errors: Partial<Record<ReportField, ReportErrorKey>> = {};
-  const body: ManualReportIn = {};
+  const body: ManualReportIn = { status_text: "" };
 
   for (const field of Object.keys(RULES) as ReportField[]) {
     const raw = input[field].trim();
@@ -54,6 +57,6 @@ export function validateReport(input: ReportInput): ReportValidation {
   if (status) body.status_text = status;
 
   if (Object.keys(errors).length > 0) return { ok: false, errors };
-  if (Object.keys(body).length === 0) return { ok: false, errors: {}, form: "empty" };
+  if (Object.keys(body).length === 1 && !status) return { ok: false, errors: {}, form: "empty" };
   return { ok: true, body };
 }

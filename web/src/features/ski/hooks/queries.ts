@@ -5,7 +5,7 @@ import {
   getSkiProfile,
   listResorts,
   skiKeys,
-  type Resort,
+  type Country,
 } from "../api/ski";
 
 /** Everything the ski page shows; polled every minute. */
@@ -29,7 +29,7 @@ export function useSkiConditions(tripId: string) {
 }
 
 /** The seeded resort catalog; it barely changes, so it is cached for an hour. */
-export function useResorts(country?: Resort["country"]) {
+export function useResorts(country?: Country) {
   return useQuery({
     queryKey: skiKeys.resorts(country),
     queryFn: () => listResorts(country),
