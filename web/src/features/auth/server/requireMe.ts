@@ -1,4 +1,5 @@
 import "server-only";
+import { cache } from "react";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { createServerClient } from "@/shared/api/client.server";
@@ -12,7 +13,7 @@ export const NEXT_PATH_HEADER = "x-next-path";
  * to `/login?next=<current path>` on 401. Other failures surface as errors, never as a
  * silent logout.
  */
-export async function requireMe(): Promise<Me> {
+export const requireMe = cache(async (): Promise<Me> => {
   const cookieHeader = (await cookies()).toString();
   const { data, response } = await createServerClient(cookieHeader).GET(
     "/api/me",
@@ -24,4 +25,4 @@ export async function requireMe(): Promise<Me> {
   }
   if (!data) throw new Error(`Could not load the session (HTTP ${response.status})`);
   return data;
-}
+});

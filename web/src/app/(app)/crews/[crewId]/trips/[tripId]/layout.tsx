@@ -1,8 +1,7 @@
-import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
 import { requireMe } from "@/features/auth/server/requireMe";
-import { getTripServer } from "@/features/trips/api/trips.server";
+import { loadTrip } from "@/features/trips/server/loadTrip";
 import { TripShellContainer } from "@/features/trips/containers/TripShellContainer";
 import { TripProvider } from "@/features/trips/TripProvider";
 
@@ -18,7 +17,7 @@ type TripLayoutProps = {
 export default async function TripLayout({ children, params }: TripLayoutProps) {
   await requireMe();
   const { crewId, tripId } = await params;
-  const trip = await getTripServer((await cookies()).toString(), tripId);
+  const trip = await loadTrip(tripId);
   if (!trip || trip.crew_id !== crewId) notFound();
 
   return (
