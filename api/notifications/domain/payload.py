@@ -5,6 +5,7 @@ import re
 from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import Protocol
+from urllib.parse import urljoin, urlsplit
 
 from notifications.copy.es_ar import ALGUIEN, TITLE_DEFAULT
 
@@ -15,6 +16,7 @@ MAX_TAG_CHARS = 64
 MAX_PAYLOAD_BYTES = 3000
 
 _MENTION = re.compile(r"\{@([^{}]*)\}")
+_PROBE_ORIGIN = "https://origin.invalid"
 _SPACES = re.compile(r"[ \t]{2,}")
 
 _CATEGORY_PREFIXES = (
@@ -70,6 +72,9 @@ def safe_path(path: str) -> str:
         or len(path) > MAX_URL_CHARS
         or any(ord(ch) < 0x20 or ch == "\x7f" for ch in path)
     ):
+        return "/"
+    # Belt and braces: resolve it like a browser would and require the same origin.
+    if urlsplit(urljoin(_PROBE_ORIGIN, path)).netloc != urlsplit(_PROBE_ORIGIN).netloc:
         return "/"
     return path
 
