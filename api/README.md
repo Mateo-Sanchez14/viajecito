@@ -340,3 +340,6 @@ Dev can override the fetcher through the environment; tests always use synchrono
 `LINKPREVIEW_FETCH_SYNC` defaults to false outside tests; `LINKPREVIEW_MAX_BYTES` defaults to 1048576.
 The optional classifier remains off unless `PROPOSALS_LLM_CLASSIFIER_ENABLED=1`; its
 `PROPOSALS_LLM_BASE_URL`, `PROPOSALS_LLM_API_KEY` and `PROPOSALS_LLM_MODEL` default to empty strings.
+
+Milestone schemas import/re-export `shared.schemas.PersonRefOut` rather than declaring duplicate
+components with the same OpenAPI name. Its fields are `person_id` (UUID) and `display_name` (string).

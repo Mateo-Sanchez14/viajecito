@@ -6,6 +6,8 @@ from uuid import UUID
 from ninja import Field, Schema
 from pydantic import AwareDatetime, field_validator, model_validator
 
+from shared.schemas import PersonRefOut as PersonRefOut
+
 Answer = Literal["yes", "maybe", "no"]
 DecisionKind = Literal["dates"]
 DecisionStatus = Literal["open", "closed"]
@@ -64,11 +66,6 @@ class AvailabilityAnswerIn(Schema):
 
 class AvailabilityIn(Schema):
     answers: list[AvailabilityAnswerIn] = Field(min_length=1, max_length=366)
-
-
-class PersonRefOut(Schema):
-    person_id: UUID
-    display_name: str
 
 
 class DecisionOut(Schema):
