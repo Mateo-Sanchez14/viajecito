@@ -187,14 +187,15 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * decisions_api_list_decisions
-         * @description DRAFT (m2-web): derived from docs/contracts/m2-decisions.md; the orchestrator regenerates from the real api.
+         * List Decisions
+         * @description Newest first. 400 codes: `invalid_request` (unknown `status`).
          */
         get: operations["decisions_api_list_decisions"];
         put?: never;
         /**
-         * decisions_api_open_decision
-         * @description DRAFT (m2-web): derived from docs/contracts/m2-decisions.md; the orchestrator regenerates from the real api.
+         * Open Decision
+         * @description Any member may open a dates decision. 400 codes: `invalid_request`, `invalid_window`.
+         *     409: `decision_already_open`.
          */
         post: operations["decisions_api_open_decision"];
         delete?: never;
@@ -210,10 +211,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * decisions_api_get_decision
-         * @description DRAFT (m2-web): derived from docs/contracts/m2-decisions.md; the orchestrator regenerates from the real api.
-         */
+        /** Get Decision */
         get: operations["decisions_api_get_decision"];
         put?: never;
         post?: never;
@@ -221,8 +219,8 @@ export interface paths {
         options?: never;
         head?: never;
         /**
-         * decisions_api_update_decision
-         * @description DRAFT (m2-web): derived from docs/contracts/m2-decisions.md; the orchestrator regenerates from the real api.
+         * Update Decision
+         * @description 400 codes: `invalid_request`, `invalid_window`. 409: `decision_closed`.
          */
         patch: operations["decisions_api_update_decision"];
         trace?: never;
@@ -234,14 +232,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * decisions_api_get_availability
-         * @description DRAFT (m2-web): derived from docs/contracts/m2-decisions.md; the orchestrator regenerates from the real api.
-         */
+        /** Get Availability */
         get: operations["decisions_api_get_availability"];
         /**
-         * decisions_api_set_availability
-         * @description DRAFT (m2-web): derived from docs/contracts/m2-decisions.md; the orchestrator regenerates from the real api.
+         * Set Availability
+         * @description Writes the CALLER's answers only (`null` clears a day). 400 codes: `date_out_of_range`,
+         *     `invalid_request`. 409: `decision_closed`.
          */
         put: operations["decisions_api_set_availability"];
         post?: never;
@@ -261,8 +257,9 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * decisions_api_close_decision
-         * @description DRAFT (m2-web): derived from docs/contracts/m2-decisions.md; the orchestrator regenerates from the real api.
+         * Close Decision
+         * @description Writes the chosen dates (default: best window #1) to the trip. 400 codes: `invalid_window`,
+         *     `no_window`. 409: `decision_closed`.
          */
         post: operations["decisions_api_close_decision"];
         delete?: never;
@@ -281,8 +278,8 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * decisions_api_reopen_decision
-         * @description DRAFT (m2-web): derived from docs/contracts/m2-decisions.md; the orchestrator regenerates from the real api.
+         * Reopen Decision
+         * @description Trip dates stay untouched. 409: `decision_open`, `decision_already_open`.
          */
         post: operations["decisions_api_reopen_decision"];
         delete?: never;
@@ -537,138 +534,195 @@ export interface components {
              */
             rsvp: "in" | "maybe" | "out" | "pending";
         };
-        /**
-         * PersonRefOut
-         * @description DRAFT (m2-web): derived from docs/contracts/m2-decisions.md; the orchestrator regenerates from the real api.
-         */
-        PersonRefOut: {
-            /** Format: uuid */
-            person_id: string;
-            display_name: string;
-        };
-        /**
-         * DecisionOut
-         * @description DRAFT (m2-web): derived from docs/contracts/m2-decisions.md; the orchestrator regenerates from the real api.
-         */
+        /** DecisionOut */
         DecisionOut: {
-            /** Format: uuid */
+            /**
+             * Id
+             * Format: uuid
+             */
             id: string;
-            /** Format: uuid */
+            /**
+             * Trip Id
+             * Format: uuid
+             */
             trip_id: string;
-            /** @enum {string} */
+            /**
+             * Kind
+             * @constant
+             */
             kind: "dates";
-            /** @enum {string} */
+            /**
+             * Status
+             * @enum {string}
+             */
             status: "open" | "closed";
-            /** Format: date */
+            /**
+             * Window Start
+             * Format: date
+             */
             window_start: string;
-            /** Format: date */
+            /**
+             * Window End
+             * Format: date
+             */
             window_end: string;
+            /** Min Days */
             min_days: number;
+            /** Max Days */
             max_days: number;
+            /** Maybe Weight */
             maybe_weight: string;
+            /** Deadline */
             deadline: string | null;
+            /** Outcome Start */
             outcome_start: string | null;
+            /** Outcome End */
             outcome_end: string | null;
             opened_by: components["schemas"]["PersonRefOut"];
             closed_by: components["schemas"]["PersonRefOut"] | null;
+            /** Closed At */
             closed_at: string | null;
+            /** Respondents */
             respondents: number;
+            /** Eligible */
             eligible: number;
         };
-        /**
-         * WindowOut
-         * @description DRAFT (m2-web): derived from docs/contracts/m2-decisions.md; the orchestrator regenerates from the real api.
-         */
-        WindowOut: {
-            /** Format: date */
-            start: string;
-            /** Format: date */
-            end: string;
-            days: number;
-            avg_score: number;
-            no_count: number;
-            blocked_people: string[];
-            full_people: string[];
-            weekend_days: number;
-            missing_people: string[];
-        };
-        /**
-         * GridPersonOut
-         * @description DRAFT (m2-web): derived from docs/contracts/m2-decisions.md; the orchestrator regenerates from the real api.
-         */
-        GridPersonOut: {
-            /** Format: uuid */
+        /** PersonRefOut */
+        PersonRefOut: {
+            /**
+             * Person Id
+             * Format: uuid
+             */
             person_id: string;
+            /** Display Name */
             display_name: string;
-            rsvp: ("in" | "maybe" | "out" | "pending") | null;
-            answers: {
-                [key: string]: "yes" | "maybe" | "no";
-            };
         };
-        /**
-         * AvailabilityOut
-         * @description DRAFT (m2-web): derived from docs/contracts/m2-decisions.md; the orchestrator regenerates from the real api.
-         */
-        AvailabilityOut: {
-            decision: components["schemas"]["DecisionOut"];
-            dates: string[];
-            people: components["schemas"]["GridPersonOut"][];
-            /** Format: uuid */
-            me: string;
-            best_windows: components["schemas"]["WindowOut"][];
-            has_data: boolean;
-            non_responders: components["schemas"]["PersonRefOut"][];
-        };
-        /**
-         * DecisionCreateIn
-         * @description DRAFT (m2-web): derived from docs/contracts/m2-decisions.md; the orchestrator regenerates from the real api.
-         */
+        /** DecisionCreateIn */
         DecisionCreateIn: {
-            /** @enum {string} */
+            /**
+             * Kind
+             * @constant
+             */
             kind: "dates";
-            /** Format: date */
+            /**
+             * Window Start
+             * Format: date
+             */
             window_start: string;
-            /** Format: date */
+            /**
+             * Window End
+             * Format: date
+             */
             window_end: string;
+            /** Min Days */
             min_days: number;
+            /** Max Days */
             max_days?: number | null;
-            maybe_weight?: string | null;
+            /** Maybe Weight */
+            maybe_weight?: number | string | null;
+            /** Deadline */
             deadline?: string | null;
         };
         /**
          * DecisionPatchIn
-         * @description DRAFT (m2-web): derived from docs/contracts/m2-decisions.md; the orchestrator regenerates from the real api.
+         * @description Every field optional; only the ones sent change (``null`` clears the deadline).
          */
         DecisionPatchIn: {
+            /** Window Start */
             window_start?: string | null;
+            /** Window End */
             window_end?: string | null;
+            /** Min Days */
             min_days?: number | null;
+            /** Max Days */
             max_days?: number | null;
-            maybe_weight?: string | null;
+            /** Maybe Weight */
+            maybe_weight?: number | string | null;
+            /** Deadline */
             deadline?: string | null;
         };
-        /**
-         * AvailabilityAnswerIn
-         * @description DRAFT (m2-web): derived from docs/contracts/m2-decisions.md; the orchestrator regenerates from the real api.
-         */
+        /** AvailabilityOut */
+        AvailabilityOut: {
+            decision: components["schemas"]["DecisionOut"];
+            /** Dates */
+            dates: string[];
+            /** People */
+            people: components["schemas"]["GridPersonOut"][];
+            /**
+             * Me
+             * Format: uuid
+             */
+            me: string;
+            /** Best Windows */
+            best_windows: components["schemas"]["WindowOut"][];
+            /** Has Data */
+            has_data: boolean;
+            /** Non Responders */
+            non_responders: components["schemas"]["PersonRefOut"][];
+        };
+        /** GridPersonOut */
+        GridPersonOut: {
+            /**
+             * Person Id
+             * Format: uuid
+             */
+            person_id: string;
+            /** Display Name */
+            display_name: string;
+            /** Rsvp */
+            rsvp: ("in" | "maybe" | "out" | "pending") | null;
+            /** Answers */
+            answers: {
+                [key: string]: "yes" | "maybe" | "no";
+            };
+        };
+        /** WindowOut */
+        WindowOut: {
+            /**
+             * Start
+             * Format: date
+             */
+            start: string;
+            /**
+             * End
+             * Format: date
+             */
+            end: string;
+            /** Days */
+            days: number;
+            /** Avg Score */
+            avg_score: number;
+            /** No Count */
+            no_count: number;
+            /** Blocked People */
+            blocked_people: string[];
+            /** Full People */
+            full_people: string[];
+            /** Weekend Days */
+            weekend_days: number;
+            /** Missing People */
+            missing_people: string[];
+        };
+        /** AvailabilityAnswerIn */
         AvailabilityAnswerIn: {
-            /** Format: date */
+            /**
+             * Date
+             * Format: date
+             */
             date: string;
+            /** Answer */
             answer: ("yes" | "maybe" | "no") | null;
         };
-        /**
-         * AvailabilityIn
-         * @description DRAFT (m2-web): derived from docs/contracts/m2-decisions.md; the orchestrator regenerates from the real api.
-         */
+        /** AvailabilityIn */
         AvailabilityIn: {
+            /** Answers */
             answers: components["schemas"]["AvailabilityAnswerIn"][];
         };
-        /**
-         * CloseDecisionIn
-         * @description DRAFT (m2-web): derived from docs/contracts/m2-decisions.md; the orchestrator regenerates from the real api.
-         */
+        /** CloseDecisionIn */
         CloseDecisionIn: {
+            /** Start On */
             start_on?: string | null;
+            /** End On */
             end_on?: string | null;
         };
     };
@@ -1220,15 +1274,6 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorOut"];
                 };
             };
-            /** @description Conflict */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorOut"];
-                };
-            };
         };
     };
     decisions_api_open_decision: {
@@ -1246,7 +1291,7 @@ export interface operations {
             };
         };
         responses: {
-            /** @description OK */
+            /** @description Created */
             201: {
                 headers: {
                     [name: string]: unknown;
@@ -1322,15 +1367,6 @@ export interface operations {
                     "application/json": components["schemas"]["DecisionOut"];
                 };
             };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorOut"];
-                };
-            };
             /** @description Unauthorized */
             401: {
                 headers: {
@@ -1351,15 +1387,6 @@ export interface operations {
             };
             /** @description Not Found */
             404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorOut"];
-                };
-            };
-            /** @description Conflict */
-            409: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -1460,15 +1487,6 @@ export interface operations {
                     "application/json": components["schemas"]["AvailabilityOut"];
                 };
             };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorOut"];
-                };
-            };
             /** @description Unauthorized */
             401: {
                 headers: {
@@ -1489,15 +1507,6 @@ export interface operations {
             };
             /** @description Not Found */
             404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorOut"];
-                };
-            };
-            /** @description Conflict */
-            409: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -1667,15 +1676,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["DecisionOut"];
-                };
-            };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorOut"];
                 };
             };
             /** @description Unauthorized */
