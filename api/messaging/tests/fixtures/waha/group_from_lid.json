@@ -1,0 +1,22 @@
+{
+  "event": "message",
+  "session": "default",
+  "engine": "GOWS",
+  "payload": {
+    "id": "false_120363000000000000@g.us_3EB0AAAA0000000002_251556000000001@lid",
+    "timestamp": 1760524260,
+    "from": "120363000000000000@g.us",
+    "fromMe": false,
+    "participant": "251556000000001@lid",
+    "body": "/viaje ping",
+    "hasMedia": false,
+    "ack": 1,
+    "_data": {
+      "Info": {
+        "PushName": "Fake Friend",
+        "Sender": "251556000000001@lid",
+        "SenderAlt": "5491100000001:12@s.whatsapp.net"
+      }
+    }
+  }
+}

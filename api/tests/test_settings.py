@@ -162,3 +162,84 @@ def test_prod_requires_a_webhook_secret(monkeypatch, value):
     expected = Exception if value is None else ImproperlyConfigured  # unset: environs EnvError
     with pytest.raises(expected, match="GOWA_WEBHOOK_SECRET"):
         importlib.reload(prod)
+
+
+def test_whatsapp_provider_defaults_to_gowa_with_waha_defaults(monkeypatch):
+    for name in ("WHATSAPP_PROVIDER", "WAHA_BASE_URL", "WAHA_API_KEY", "WAHA_SESSION"):
+        monkeypatch.delenv(name, raising=False)
+    base = _reload_base(monkeypatch)
+    assert base.WHATSAPP_PROVIDER == "gowa"
+    assert (base.WAHA_API_KEY, base.WAHA_SESSION) == ("", "default")
+    assert base.WAHA_BASE_URL == "http://localhost:3000" and base.WAHA_WEBHOOK_HMAC_KEY == ""
+
+
+def test_waha_settings_come_from_env(monkeypatch):
+    base = _reload_base(
+        monkeypatch,
+        WHATSAPP_PROVIDER="waha",
+        WAHA_BASE_URL="http://waha:3000",
+        WAHA_API_KEY="k",
+        WAHA_SESSION="bot",
+        WAHA_WEBHOOK_HMAC_KEY="h",
+    )
+    assert (base.WHATSAPP_PROVIDER, base.WAHA_BASE_URL, base.WAHA_SESSION) == (
+        "waha",
+        "http://waha:3000",
+        "bot",
+    )
+    assert (base.WAHA_API_KEY, base.WAHA_WEBHOOK_HMAC_KEY) == ("k", "h")
+
+
+def test_unknown_provider_is_rejected(monkeypatch):
+    with pytest.raises(Exception, match="WHATSAPP_PROVIDER"):
+        _reload_base(monkeypatch, WHATSAPP_PROVIDER="telegram")
+
+
+def test_extra_allowed_hosts_are_appended(monkeypatch):
+    base = _reload_base(
+        monkeypatch,
+        PUBLIC_ORIGIN="https://viajecito.example.com",
+        EXTRA_ALLOWED_HOSTS="viajecito-api, other.internal",
+    )
+    assert {"viajecito-api", "other.internal", "viajecito.example.com", "api"} <= set(
+        base.ALLOWED_HOSTS
+    )
+
+
+def _prod_env(monkeypatch, **env):
+    monkeypatch.setenv("DJANGO_SECRET_KEY", "x" * 50)
+    monkeypatch.setenv("OTP_PEPPER", "p" * 32)
+    monkeypatch.setenv("GOWA_WEBHOOK_SECRET", "w" * 32)
+    for key, value in env.items():
+        monkeypatch.setenv(key, value)
+    import config.settings.prod as prod
+
+    return prod
+
+
+@pytest.mark.parametrize(
+    ("env", "missing"),
+    [
+        ({"WAHA_API_KEY": "k", "WAHA_WEBHOOK_HMAC_KEY": ""}, "WAHA_WEBHOOK_HMAC_KEY"),
+        ({"WAHA_API_KEY": "", "WAHA_WEBHOOK_HMAC_KEY": "h"}, "WAHA_API_KEY"),
+    ],
+)
+def test_prod_with_waha_requires_both_keys(monkeypatch, env, missing):
+    from django.core.exceptions import ImproperlyConfigured
+
+    prod = _prod_env(monkeypatch, WHATSAPP_PROVIDER="waha", **env)
+    with pytest.raises(ImproperlyConfigured, match=missing):
+        importlib.reload(prod)
+
+
+def test_prod_with_waha_does_not_need_the_gowa_secret(monkeypatch):
+    prod = _prod_env(
+        monkeypatch, WHATSAPP_PROVIDER="waha", WAHA_API_KEY="k", WAHA_WEBHOOK_HMAC_KEY="h"
+    )
+    monkeypatch.delenv("GOWA_WEBHOOK_SECRET")
+    assert importlib.reload(prod).WHATSAPP_PROVIDER == "waha"
+
+
+def test_prod_with_gowa_ignores_waha_keys(monkeypatch):
+    prod = _prod_env(monkeypatch, WHATSAPP_PROVIDER="gowa")
+    assert importlib.reload(prod).WHATSAPP_PROVIDER == "gowa"

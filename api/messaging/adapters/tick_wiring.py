@@ -9,9 +9,9 @@ from django.db import transaction
 
 from messaging import reminders
 from messaging.adapters import wiring
-from messaging.adapters.gowa_factory import build_gowa_client
 from messaging.adapters.identity_gateway import IdentityGateway
 from messaging.adapters.ledger import DjangoOutboundLedger
+from messaging.adapters.provider import build_gateway
 from messaging.adapters.tick_store import DjangoJobLocks, DjangoOutboundQueue, DjangoTickInbound
 from messaging.models import OutboundMessage
 from messaging.use_cases.dispatch_queued import dispatch_queued
@@ -55,7 +55,7 @@ def run_default_tick() -> dict[str, int] | None:
     def dispatch(deadline):
         return dispatch_queued(
             queue=queue,
-            gateway=build_gowa_client(),
+            gateway=build_gateway(),
             clock=clock,
             min_age=timedelta(seconds=QUEUED_MIN_AGE_SECONDS),
             max_attempts=config.max_attempts,

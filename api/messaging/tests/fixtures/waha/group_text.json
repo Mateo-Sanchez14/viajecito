@@ -1,0 +1,17 @@
+{
+  "event": "message",
+  "session": "default",
+  "engine": "WEBJS",
+  "payload": {
+    "id": "false_120363000000000000@g.us_3EB0AAAA0000000001_5491100000001@c.us",
+    "timestamp": 1760524200,
+    "from": "120363000000000000@g.us",
+    "fromMe": false,
+    "participant": "5491100000001@c.us",
+    "body": "Hola equipo, ¿cuándo viajamos?",
+    "hasMedia": false,
+    "ack": 1,
+    "replyTo": null,
+    "_data": {"notifyName": "Fake Friend"}
+  }
+}
