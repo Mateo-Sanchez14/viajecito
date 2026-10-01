@@ -1,11 +1,13 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
+  putSkiProfile,
   setMyGear,
   setMyPass,
   skiKeys,
   type GearItemIn,
   type PassIn,
   type PersonRef,
+  type SkiProfileIn,
   type SkiOverview,
 } from "../api/ski";
 import { applyMyPass } from "../lib/passes";
@@ -35,5 +37,16 @@ export function useSetMyGear(tripId: string) {
   return useMutation({
     mutationFn: (items: GearItemIn[]) => setMyGear(tripId, items),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: skiKeys.overview(tripId) }),
+  });
+}
+
+/** Saves my ski profile and keeps the cached copy in step with the saved one. */
+export function useSaveSkiProfile() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (profile: SkiProfileIn) => putSkiProfile(profile),
+    onSuccess: (saved) => {
+      queryClient.setQueryData(skiKeys.profile(), saved);
+    },
   });
 }
