@@ -191,7 +191,7 @@ reference so `crews` never imports `trips`) is set by the first `POST` when empt
 | `GET /api/crews/{crew_id}/trips` | `200 [TripSummaryOut]` | |
 | `POST /api/crews/{crew_id}/trips` | `201 TripOut` | creator gets `rsvp=in`; `type` must be a registered plugin |
 | `GET /api/trips/{trip_id}` | `200 TripOut` | `modules` from the plugin registry; `participants` lists every active crew member (`pending` without a row; `display_name` falls back to the phone); `my_rsvp` likewise |
-| `PATCH /api/trips/{trip_id}` | `200 TripOut` | any active member; partial (also `fx_rates`: `{"ARS": "1150.00"}`, <= 10 uppercase 3-letter codes, rates > 0, returned as decimal strings); `null` clears a date; dates validated after merging |
+| `PATCH /api/trips/{trip_id}` | `200 TripOut` | any active member; partial (also `fx_rates`: `{"ARS": "1150.00"}`, <= 10 uppercase 3-letter codes, rates between 1e-9 and 1e13 rounded to 8 decimals, returned as plain decimal strings); `null` clears a date; dates validated after merging |
 | `PUT /api/trips/{trip_id}/participation` | `200 ParticipantOut` | sets the caller's own RSVP (creates the row) |
 
 Errors: `400 invalid_request`, `401 unauthenticated`, `403 csrf_failed`, `404 not_found` (non-members,
@@ -245,7 +245,7 @@ no-op. Orders: commands 10 (registered by `MessagingConfig`), quoted card 20, li
    per-chat 20-per-10-minutes budget (`"failed"` when over it, `"duplicate"` for a known `dedupe_key`);
    `quoted_subject`: `(subject_type, subject_id)` of OUR message the inbound one quotes, else `None`.
 5. Callable core use cases (import from the module, e.g. `from trips.use_cases.update_trip import
-   update_trip`): `update_trip(trip_id, actor_id, **fields)` (the caller authorizes the actor),
+   update_trip`): `update_trip(trip_id, actor_id, **fields)` (the caller authorizes the actor; `actor_id` is accepted for future auditing and is currently not persisted),
    `default_trip_for_crew(crew_id)`, `crews.use_cases.active_member_ids(crew_id)`.
 6. Never edit core files (`config/api.py`, `messaging/router.py`, `trips`); a core change goes in a request.
 

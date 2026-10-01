@@ -125,8 +125,8 @@ GOWA_BASIC_AUTH_USER = env.str("GOWA_BASIC_AUTH_USER", "")
 GOWA_BASIC_AUTH_PASS = env.str("GOWA_BASIC_AUTH_PASS", "")
 GOWA_WEBHOOK_SECRET = env.str("GOWA_WEBHOOK_SECRET", "")  # empty fails closed; required in prod
 GOWA_DEVICE_ID = env.str("GOWA_DEVICE_ID", "")  # optional, sent as X-Device-Id
-# Pass @-mention JIDs to Gowa and render reminder mentions as @<digits>. Off until Gowa's mention
-# field is confirmed; then mentions render as display names.
+# Reminder mentions always render as @<digits>; this flag only controls whether the mentioned JIDs
+# are also passed to Gowa (its ``mentions`` field is unconfirmed, hence off by default).
 GOWA_MENTIONS_ENABLED = env.bool("GOWA_MENTIONS_ENABLED", False)
 
 # Inbound processing. False: process on a worker thread after the webhook commits; True: inline.

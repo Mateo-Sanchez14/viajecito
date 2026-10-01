@@ -22,7 +22,7 @@ def update_trip(trip_id: str, actor_id: str, **fields: Any) -> domain.TripRef:
 
     Only the given fields change. Raises ``InvalidTripInputError`` for unknown or invalid fields and
     ``TripNotFoundError`` for an unknown trip. The caller authorizes the actor (``member_of_trip``
-    on the HTTP side); ``actor_id`` identifies who changed the trip.
+    on the HTTP side); ``actor_id`` is accepted for future auditing and is currently not persisted.
     """
     return apply_trip_update(trip_id, fields, ports.default_store())
 
