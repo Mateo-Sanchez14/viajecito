@@ -144,3 +144,12 @@ def test_login_is_idempotent_for_whatsapp_identity(client, member, gowa):
         with time_machine.travel(T0 + timedelta(hours=_), tick=False):
             verify_otp(client, MEMBER_PHONE, login_code(client, gowa))
     assert WhatsAppIdentity.objects.filter(person=member).count() == 1
+
+
+def test_deactivated_person_cannot_log_in(client, member, gowa):
+    code = login_code(client, gowa)
+    member.is_active = False
+    member.save()
+    response = verify_otp(client, MEMBER_PHONE, code)
+    assert response.status_code == 400 and response.json()["code"] == "invalid_code"
+    assert "sessionid" not in response.cookies

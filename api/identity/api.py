@@ -33,12 +33,16 @@ AUTHENTICATED_BACKEND = "django.contrib.auth.backends.ModelBackend"
 
 
 def client_ip(request: HttpRequest) -> str:
-    """``CF-Connecting-IP`` when present, else the socket address.
+    """``CF-Connecting-IP`` when trusted and present, else the socket address.
 
-    The header is trusted because the api is only reachable through cloudflared (the tunnel), which
-    always sets it; nothing else can connect to the container port from outside the host network.
+    The header is only trusted (``TRUST_CF_CONNECTING_IP``, on in prod) because there the api is
+    reachable solely through cloudflared, which always sets it. Elsewhere any client could forge it.
     """
-    return request.headers.get("CF-Connecting-IP") or request.META.get("REMOTE_ADDR", "")
+    if settings.TRUST_CF_CONNECTING_IP:
+        forwarded = request.headers.get("CF-Connecting-IP")
+        if forwarded:
+            return forwarded
+    return request.META.get("REMOTE_ADDR", "")
 
 
 @router.get("/auth/csrf", response={HTTPStatus.OK: CsrfOut}, auth=None, summary="Csrf")
@@ -114,8 +118,11 @@ def verify_otp(request, payload: OtpVerifyIn):
         raise ApiError(HTTPStatus.BAD_REQUEST, "invalid_phone", "Invalid phone number") from exc
     except OtpVerificationError as exc:
         raise ApiError(HTTPStatus.BAD_REQUEST, exc.code, "Code verification failed") from exc
+    account = Person.objects.get(pk=person.id)
+    if not account.is_active:
+        raise ApiError(HTTPStatus.BAD_REQUEST, "invalid_code", "Code verification failed")
     # login() cycles the session key and rotates the CSRF token.
-    login(request, Person.objects.get(pk=person.id), backend=AUTHENTICATED_BACKEND)
+    login(request, account, backend=AUTHENTICATED_BACKEND)
     return Status(HTTPStatus.OK, OtpVerifyOut(person=person))
 
 

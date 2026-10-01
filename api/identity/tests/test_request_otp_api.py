@@ -128,7 +128,8 @@ def phone_n(n):
     return f"+549115555{n:04d}"
 
 
-def test_per_ip_limit_uses_cf_connecting_ip(client, gowa):
+def test_per_ip_limit_uses_cf_connecting_ip(client, gowa, settings):
+    settings.TRUST_CF_CONNECTING_IP = True
     with time_machine.travel(T0, tick=False):
         for n in range(10):
             response = request_otp(client, phone_n(n), HTTP_CF_CONNECTING_IP="203.0.113.7")
@@ -140,12 +141,26 @@ def test_per_ip_limit_uses_cf_connecting_ip(client, gowa):
     assert OtpChallenge.objects.filter(ip="203.0.113.7").count() == 10
 
 
-def test_ip_falls_back_to_remote_addr(client, gowa):
+def test_cf_connecting_ip_is_ignored_unless_trusted(client, gowa, settings):
+    assert settings.TRUST_CF_CONNECTING_IP is False  # default outside prod
+    request_otp(client, phone_n(1), HTTP_CF_CONNECTING_IP="203.0.113.7", REMOTE_ADDR="198.51.100.9")
+    assert OtpChallenge.objects.get().ip == "198.51.100.9"
+
+
+def test_trusted_cf_connecting_ip_wins_over_remote_addr(client, gowa, settings):
+    settings.TRUST_CF_CONNECTING_IP = True
+    request_otp(client, phone_n(1), HTTP_CF_CONNECTING_IP="203.0.113.7", REMOTE_ADDR="198.51.100.9")
+    assert OtpChallenge.objects.get().ip == "203.0.113.7"
+
+
+def test_ip_falls_back_to_remote_addr(client, gowa, settings):
+    settings.TRUST_CF_CONNECTING_IP = True
     request_otp(client, phone_n(1), REMOTE_ADDR="198.51.100.9")
     assert OtpChallenge.objects.get().ip == "198.51.100.9"
 
 
-def test_global_limit(client, gowa):
+def test_global_limit(client, gowa, settings):
+    settings.TRUST_CF_CONNECTING_IP = True
     with time_machine.travel(T0, tick=False):
         for n in range(30):
             response = request_otp(client, phone_n(n), HTTP_CF_CONNECTING_IP=f"203.0.113.{n}")

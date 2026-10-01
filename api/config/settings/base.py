@@ -135,3 +135,7 @@ OTP_MAX_ATTEMPTS = env.int("OTP_MAX_ATTEMPTS", 5)
 # False: the Gowa send runs on a worker thread after the transaction commits (latency never leaks
 # whether a phone is eligible). True: send inline (tests).
 OTP_SEND_SYNC = env.bool("OTP_SEND_SYNC", False)
+
+# Trust the CF-Connecting-IP header for rate limiting only when every request comes through
+# cloudflared (prod). Elsewhere the port may be reachable directly, so the header is forgeable.
+TRUST_CF_CONNECTING_IP = env.bool("TRUST_CF_CONNECTING_IP", False)

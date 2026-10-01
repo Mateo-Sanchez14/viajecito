@@ -114,3 +114,25 @@ def test_otp_defaults_and_prod_requires_a_pepper(monkeypatch):
 
     with pytest.raises(Exception, match="OTP_PEPPER"):
         importlib.reload(prod)
+
+
+def test_prod_rejects_an_empty_pepper(monkeypatch):
+    from django.core.exceptions import ImproperlyConfigured
+
+    monkeypatch.setenv("DJANGO_SECRET_KEY", "x" * 50)
+    monkeypatch.setenv("OTP_PEPPER", "")
+    import config.settings.prod as prod
+
+    with pytest.raises(ImproperlyConfigured, match="OTP_PEPPER"):
+        importlib.reload(prod)
+
+
+def test_trust_cf_connecting_ip_defaults_off_and_on_in_prod(monkeypatch):
+    assert _reload_base(monkeypatch).TRUST_CF_CONNECTING_IP is False
+    monkeypatch.setenv("DJANGO_SECRET_KEY", "x" * 50)
+    monkeypatch.setenv("OTP_PEPPER", "p" * 32)
+    import config.settings.prod as prod
+
+    assert importlib.reload(prod).TRUST_CF_CONNECTING_IP is True
+    monkeypatch.setenv("TRUST_CF_CONNECTING_IP", "0")
+    assert importlib.reload(prod).TRUST_CF_CONNECTING_IP is False

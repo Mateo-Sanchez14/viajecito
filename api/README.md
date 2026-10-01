@@ -55,6 +55,7 @@ uv run python manage.py export_openapi_schema --api config.api.api --output ../c
 | `OTP_DELIVERY_ENABLED` | `1` | kill switch; `0` makes `POST /api/auth/otp/request` return `503 delivery_unavailable` |
 | `OTP_CODE_TTL_SECONDS` | `300` | code lifetime |
 | `OTP_MAX_ATTEMPTS` | `5` | wrong codes before a challenge locks |
+| `TRUST_CF_CONNECTING_IP` | `0` (`1` in `prod`) | rate limits use `CF-Connecting-IP` only when trusted; otherwise `REMOTE_ADDR` |
 | `OTP_SEND_SYNC` | `0` (`1` in tests) | send the WhatsApp message inline instead of on a worker thread |
 
 Only `api/.env` is read (no parent-directory lookup); real environment variables always win.
@@ -84,9 +85,9 @@ cookie. Error bodies are `{"code","message"}`; `message` is English and develope
   5 attempts, single use, constant-time compare. One live challenge per phone (a new request
   invalidates the previous one).
 - **Rate limits** (counted from `OtpChallenge` rows): per phone 1/60 s and 5/h, per IP 10/h, global
-  30/h -> `429 rate_limited` with `Retry-After`. The IP is `CF-Connecting-IP` when present, else
-  `REMOTE_ADDR`; the header is trusted because the api is only reachable through cloudflared, which
-  always sets it.
+  30/h -> `429 rate_limited` with `Retry-After`. The IP is `CF-Connecting-IP` only when
+  `TRUST_CF_CONNECTING_IP=1` (the prod default: the api is only reachable through cloudflared, which
+  always sets it); otherwise `REMOTE_ADDR`, because in dev the port is public and the header is forgeable.
 - **Phones** are accepted in free form and normalized to E.164 with `phonenumbers` (default region AR).
 - **WhatsApp copy** lives in `messaging/copy/es_ar.py`; the ledger (`OutboundMessage`) stores OTP
   bodies as `<redacted>`.
