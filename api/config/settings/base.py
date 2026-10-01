@@ -125,3 +125,13 @@ GOWA_BASE_URL = env.str("GOWA_BASE_URL", "http://localhost:4000")
 GOWA_BASIC_AUTH_USER = env.str("GOWA_BASIC_AUTH_USER", "")
 GOWA_BASIC_AUTH_PASS = env.str("GOWA_BASIC_AUTH_PASS", "")
 GOWA_WEBHOOK_SECRET = env.str("GOWA_WEBHOOK_SECRET", "")
+
+# OTP login. The pepper keys the HMAC of every stored code; prod requires it, other settings
+# modules fall back to a development value so `manage.py check` works without a .env file.
+OTP_DELIVERY_ENABLED = env.bool("OTP_DELIVERY_ENABLED", True)
+OTP_PEPPER = env.str("OTP_PEPPER", "")
+OTP_CODE_TTL_SECONDS = env.int("OTP_CODE_TTL_SECONDS", 300)
+OTP_MAX_ATTEMPTS = env.int("OTP_MAX_ATTEMPTS", 5)
+# False: the Gowa send runs on a worker thread after the transaction commits (latency never leaks
+# whether a phone is eligible). True: send inline (tests).
+OTP_SEND_SYNC = env.bool("OTP_SEND_SYNC", False)

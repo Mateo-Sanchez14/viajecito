@@ -58,3 +58,31 @@ class WhatsAppIdentity(models.Model):
 
     def __str__(self) -> str:
         return self.jid
+
+
+class OtpChallenge(models.Model):
+    """One login code request. The code itself is never stored, only its HMAC.
+
+    A row is created for every valid request (``eligible`` records whether the phone could log in)
+    so that rate limits and latency do not reveal which phones belong to a crew.
+    """
+
+    phone = models.CharField(max_length=20)
+    code_hmac = models.CharField(max_length=64)
+    expires_at = models.DateTimeField()
+    attempts = models.PositiveSmallIntegerField(default=0)
+    max_attempts = models.PositiveSmallIntegerField(default=5)
+    consumed_at = models.DateTimeField(null=True, blank=True)
+    ip = models.CharField(max_length=45, blank=True)
+    eligible = models.BooleanField(default=False)
+    created_at = models.DateTimeField()  # set from the injected clock
+
+    class Meta:
+        indexes = [
+            models.Index(fields=["phone", "created_at"]),
+            models.Index(fields=["ip", "created_at"]),
+            models.Index(fields=["created_at"]),
+        ]
+
+    def __str__(self) -> str:
+        return f"otp {self.phone} @ {self.created_at:%Y-%m-%d %H:%M:%S}"

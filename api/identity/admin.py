@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 
-from identity.models import Person, WhatsAppIdentity
+from identity.models import OtpChallenge, Person, WhatsAppIdentity
 
 
 @admin.register(Person)
@@ -24,3 +24,9 @@ class PersonAdmin(UserAdmin):
 class WhatsAppIdentityAdmin(admin.ModelAdmin):
     list_display = ("jid", "lid", "person")
     search_fields = ("jid", "lid")
+
+
+@admin.register(OtpChallenge)
+class OtpChallengeAdmin(admin.ModelAdmin):
+    list_display = ("phone", "created_at", "eligible", "attempts", "consumed_at", "ip")
+    readonly_fields = [f.name for f in OtpChallenge._meta.fields]

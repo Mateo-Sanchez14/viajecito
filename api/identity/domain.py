@@ -3,7 +3,7 @@
 import hmac
 import re
 import secrets
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import StrEnum
 from math import ceil
@@ -120,3 +120,34 @@ def rate_limit_retry_after(
     ]
     longest = max(waits)
     return longest or None
+
+
+@dataclass(frozen=True)
+class OtpConfig:
+    pepper: str
+    ttl_seconds: int = 300
+    max_attempts: int = 5
+    limits: RateLimits = field(default_factory=RateLimits)
+    cooldown_seconds: int = 60
+
+
+@dataclass(frozen=True)
+class PersonData:
+    id: str
+    phone: str
+    display_name: str
+    locale: str
+
+
+class RateLimitedError(Exception):
+    def __init__(self, retry_after_seconds: int) -> None:
+        super().__init__(f"rate limited; retry in {retry_after_seconds}s")
+        self.retry_after_seconds = retry_after_seconds
+
+
+class OtpVerificationError(Exception):
+    """Verification failed; ``code`` is the API error code."""
+
+    def __init__(self, code: str) -> None:
+        super().__init__(code)
+        self.code = code

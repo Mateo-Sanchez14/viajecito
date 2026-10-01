@@ -12,3 +12,6 @@ STORAGES = {
     **STORAGES,  # noqa: F405
     "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
 }
+
+OTP_PEPPER = "test-pepper"
+OTP_SEND_SYNC = True
