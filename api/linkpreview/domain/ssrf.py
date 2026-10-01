@@ -34,6 +34,7 @@ _BLOCKED_V6_NETWORKS = tuple(
         "64:ff9b:1::/48",
         "2002::/16",  # 6to4
         "2001::/32",  # Teredo
+        "fec0::/10",  # deprecated site-local
     )
 )
 

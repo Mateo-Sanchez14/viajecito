@@ -93,7 +93,12 @@ class GuardedClient:
                     return response
                 if hop == self._max_redirects:
                     raise FetchError("too_many_redirects", blocked=True, final_url=current)
-                current = resolve_location(current, response)
+                target = resolve_location(current, response)
+                check_url(target)  # a blocked target is reported as such, whatever the scheme
+                if current.lower().startswith("https://") and target.lower().startswith("http://"):
+                    # Downgrades are refused: a secure link never ends up on plain http.
+                    raise FetchError("insecure_redirect", blocked=True, final_url=current)
+                current = target
         raise AssertionError("unreachable")  # pragma: no cover
 
     def _hop(
@@ -111,6 +116,8 @@ class GuardedClient:
             "Host": host_header,
             "User-Agent": USER_AGENT,
             "Accept-Language": "es-AR,es;q=0.9,en;q=0.6",
+            # No compression: the byte cap then bounds memory too (no decompression bombs).
+            "Accept-Encoding": "identity",
             "Accept": (
                 "text/html,application/xhtml+xml;q=0.9,*/*;q=0.5"
                 if kind == "html"
@@ -189,7 +196,10 @@ class HttpxLinkPreviewFetcher:
         except FetchError as exc:
             build = blocked_preview if exc.blocked else failed_preview
             return build(url, exc.code, final_url=exc.final_url)
-        meta = parse_page(page.body, page.url)
+        try:
+            meta = parse_page(page.body, page.url)
+        except Exception:  # hostile markup must never escape as an exception
+            return failed_preview(url, "parse_error", final_url=page.url)
         thumbnail = self._thumbnail(meta.image_url, deadline) if meta.image_url else None
         return finalize(url, page.url, meta, thumbnail)
 

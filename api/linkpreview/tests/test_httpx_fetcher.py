@@ -424,3 +424,54 @@ def test_unfurl_reports_the_final_url_after_redirects():
     assert (
         fetcher().unfurl("https://example.com/short").final_url == "https://example.com/long/place"
     )
+
+
+# --- hardening ---------------------------------------------------------------------------------
+
+
+@respx.mock
+def test_the_request_asks_for_an_unencoded_body(client):
+    route = respx.get(f"https://{PAGE_IP}/page").mock(return_value=html_response())
+    get_page(client)
+    assert route.calls.last.request.headers["accept-encoding"] == "identity"
+
+
+@respx.mock
+def test_any_parser_failure_becomes_a_failed_preview(monkeypatch):
+    from linkpreview.adapters import httpx_fetcher
+
+    respx.get(f"https://{PAGE_IP}/p").mock(return_value=html_response())
+
+    def boom(body, url):
+        raise RecursionError("deep")
+
+    monkeypatch.setattr(httpx_fetcher, "parse_page", boom)
+    preview = fetcher().unfurl("https://example.com/p")
+    assert (preview.fetch_status, preview.fetch_error) == ("failed", "parse_error")
+
+
+@respx.mock
+def test_a_hostile_json_ld_page_is_unfurled_without_raising():
+    page = b'<title>Hostile</title><script type="application/ld+json">' + b"[" * 5000 + b"</script>"
+    respx.get(f"https://{PAGE_IP}/p").mock(return_value=html_response(page))
+    preview = fetcher().unfurl("https://example.com/p")
+    assert (preview.fetch_status, preview.title) == ("ok", "Hostile")
+
+
+@respx.mock
+def test_https_to_http_redirects_are_refused(client):
+    respx.get(f"https://{PAGE_IP}/start").mock(
+        return_value=httpx.Response(302, headers={"location": "http://example.com/plain"})
+    )
+    with pytest.raises(FetchError) as raised:
+        get_page(client, "https://example.com/start")
+    assert (raised.value.code, raised.value.blocked) == ("insecure_redirect", True)
+
+
+@respx.mock
+def test_http_to_https_and_http_to_http_redirects_are_fine(client):
+    respx.get(f"http://{PAGE_IP}/a").mock(
+        return_value=httpx.Response(302, headers={"location": "https://example.com/b"})
+    )
+    respx.get(f"https://{PAGE_IP}/b").mock(return_value=html_response())
+    assert get_page(client, "http://example.com/a").url == "https://example.com/b"

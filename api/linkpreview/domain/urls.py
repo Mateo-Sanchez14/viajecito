@@ -9,7 +9,7 @@ MAX_URLS = 3
 IGNORED_HOSTS = frozenset({"wa.me", "chat.whatsapp.com", "api.whatsapp.com"})
 
 _URL = re.compile(r"(?:https?://|www\.)[^\s<>]+", re.IGNORECASE)
-_TRAILING = ".,;:!?…'\"»”’›"
+_TRAILING = ".,;:!?…'\"»”’›*_~"  # punctuation and WhatsApp formatting marks
 _CLOSERS = {")": "(", "]": "[", "}": "{"}
 
 

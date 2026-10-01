@@ -31,6 +31,11 @@ def test_finds_several_urls_in_order_and_dedupes():
         ),
         ("[https://a.com/x]", "https://a.com/x"),
         ("https://a.com/x?q=1&r=2;", "https://a.com/x?q=1&r=2"),
+        ("*https://a.com/x*", "https://a.com/x"),
+        ("_https://a.com/x_", "https://a.com/x"),
+        ("~https://a.com/x~", "https://a.com/x"),
+        ("*mirá https://a.com/x*.", "https://a.com/x"),
+        ("www.a.com/x*", "https://www.a.com/x"),
     ],
 )
 def test_trailing_punctuation_and_unbalanced_brackets(text, expected):

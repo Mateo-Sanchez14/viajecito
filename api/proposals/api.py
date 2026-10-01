@@ -552,6 +552,14 @@ def refresh_proposal_preview(request, proposal_id: UUID):
     response={HTTPStatus.UNAUTHORIZED: ErrorOut, HTTPStatus.NOT_FOUND: ErrorOut},
     auth=django_auth,
     summary="Proposal Thumbnail",
+    openapi_extra={
+        "responses": {
+            "200": {
+                "description": "The thumbnail (WebP, at most 640 px wide)",
+                "content": {"image/webp": {"schema": {"type": "string", "format": "binary"}}},
+            }
+        }
+    },
 )
 def proposal_thumbnail(request, proposal_id: UUID):
     """`200 image/webp` (private, one day). 404 without a thumbnail or without access."""

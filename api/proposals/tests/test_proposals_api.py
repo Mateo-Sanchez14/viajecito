@@ -677,3 +677,9 @@ def test_no_thumbnail_is_a_404(as_person, ana, make_proposal):
     assert send(as_person(ana), "get", f"/api/proposals/{proposal.pk}/thumbnail").status_code == 404
     bare = make_proposal(title="sin preview")
     assert send(as_person(ana), "get", f"/api/proposals/{bare.pk}/thumbnail").status_code == 404
+
+
+def test_the_thumbnail_200_is_documented_as_binary_webp_in_the_openapi(anon):
+    spec = anon.get("/api/openapi.json").json()
+    ok = spec["paths"]["/api/proposals/{proposal_id}/thumbnail"]["get"]["responses"]["200"]
+    assert ok["content"]["image/webp"]["schema"] == {"type": "string", "format": "binary"}
