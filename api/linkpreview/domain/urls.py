@@ -217,7 +217,7 @@ def canonical_after_redirect(url: str, final_url: str) -> str:
     return canonicalize(url)
 
 
-_EXTENSION = re.compile(r"\.(html?|php|aspx?|jsp)$", re.IGNORECASE)
+_EXTENSION = re.compile(r"\.(html?|php|aspx?|jsp|pdf)$", re.IGNORECASE)
 
 
 def slug_title(url: str) -> str:
