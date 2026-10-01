@@ -3960,7 +3960,7 @@
         ]
       }
     },
-    "/api/trips/{trip_id}/itinerary/days/{day_date}": {
+    "/api/trips/{trip_id}/itinerary/days/{date}": {
       "put": {
         "operationId": "itinerary_api_put_day",
         "summary": "Put Day",
@@ -3977,10 +3977,10 @@
           },
           {
             "in": "path",
-            "name": "day_date",
+            "name": "date",
             "schema": {
               "format": "date",
-              "title": "Day Date",
+              "title": "Date",
               "type": "string"
             },
             "required": true

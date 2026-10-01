@@ -14,3 +14,10 @@ class ItineraryConfig(AppConfig):
         from shared.events import subscribe
 
         subscribe("proposal.status_changed", on_proposal_status_changed)
+
+        from itinerary.adapters.reminders import morning_rule
+        from itinerary.bot.subcommands import register
+        from messaging.reminders import register_reminder_rule
+
+        register()
+        register_reminder_rule("itinerary.morning_digest", morning_rule)

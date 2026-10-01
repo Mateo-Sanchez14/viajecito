@@ -3,7 +3,7 @@
 import hashlib
 import json
 from dataclasses import asdict
-from datetime import date
+from datetime import date as Date
 from uuid import UUID
 from zoneinfo import ZoneInfo
 
@@ -114,10 +114,10 @@ def get_itinerary(request, trip_id: UUID):
     )
 
 
-@router.put("/trips/{trip_id}/itinerary/days/{day_date}", response={200: DayOut, **ERRORS})
-def put_day(request, trip_id: UUID, day_date: date, payload: DayIn):
+@router.put("/trips/{trip_id}/itinerary/days/{date}", response={200: DayOut, **ERRORS})
+def put_day(request, trip_id: UUID, date: Date, payload: DayIn):
     access = member_of_trip(request, trip_id)
-    d = call(save_day, access.trip, day_date, payload.model_dump(exclude_unset=True))
+    d = call(save_day, access.trip, date, payload.model_dump(exclude_unset=True))
     return day_out(d, access.trip.timezone)
 
 
