@@ -89,3 +89,24 @@ def test_serialized_payload_never_exceeds_the_byte_budget():
 )
 def test_category_comes_from_the_dedupe_key_prefix(key, category):
     assert category_of(key) == category
+
+
+@pytest.mark.parametrize(
+    "unsafe",
+    [
+        "/\t/evil.example",
+        "/\n/evil.example",
+        "/\r/evil.example/x",
+        "/\x00/evil.example",
+        "//evil.example",
+        "/\\evil.example",
+        "/\\/evil.example",
+    ],
+)
+def test_url_paths_a_browser_could_resolve_to_another_host_become_the_root(unsafe):
+    assert build_payload(draft(url_path=unsafe), {}, NOW)["url"] == "/"
+
+
+def test_a_valid_path_with_a_query_is_kept():
+    path = "/crews/x/trips/y/proposals?tab=2"
+    assert build_payload(draft(url_path=path), {}, NOW)["url"] == path
