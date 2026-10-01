@@ -3,6 +3,8 @@
 from dataclasses import dataclass
 from typing import Protocol
 
+from messaging.domain import GroupMessage
+
 
 class GatewayError(Exception):
     """The WhatsApp gateway could not deliver the message."""
@@ -36,3 +38,19 @@ class OutboundLedger(Protocol):
     def mark_sent(self, entry_id: int, gowa_message_id: str) -> None: ...
 
     def mark_failed(self, entry_id: int, error: str) -> None: ...
+
+
+class InboundStore(Protocol):
+    def get_or_create(self, message: GroupMessage, raw: dict) -> tuple[int, bool]:
+        """Insert unless ``(device_id, message_id)`` exists; return ``(id, created)``."""
+        ...
+
+
+class GroupLinks(Protocol):
+    def crew_id_for_chat(self, chat_id: str) -> str | None: ...
+
+
+class ProcessScheduler(Protocol):
+    def schedule(self, inbound_id: int) -> None:
+        """Arrange for ``process_inbound(inbound_id)`` to run soon, off the request path."""
+        ...

@@ -66,7 +66,7 @@ type = "forbidden"
 source_modules = [
     "identity.domain", "identity.use_cases", "identity.ports",
     "crews.domain", "crews.use_cases", "crews.ports",
-    "messaging.use_cases", "messaging.ports",
+    "messaging.use_cases", "messaging.ports", "messaging.domain",
     "shared.phone", "shared.clock",
 ]
 forbidden_modules = ["django", "ninja", "httpx"]
@@ -79,6 +79,14 @@ forbidden_modules = [
     "identity.models", "identity.domain", "identity.ports", "identity.adapters", "identity.api",
     "identity.schemas", "crews.models", "crews.domain", "crews.ports", "crews.adapters",
     "crews.api", "crews.schemas",
+]
+# Only direct imports are checked: use cases legitimately reach their own domain and ports.
+allow_indirect_imports = true
+# The gateway adapters are messaging's single bridge to each app: they wire that app's use cases
+# to its Django adapter (same shape as ``identity.adapters.crews_gateway``). Tests create rows.
+ignore_imports = [
+    "messaging.adapters.crews_gateway -> crews.adapters.django_store",
+    "messaging.tests.* -> crews.models",
 ]
 
 [[tool.importlinter.contracts]]

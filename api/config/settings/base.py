@@ -124,7 +124,13 @@ CSRF_COOKIE_SECURE = False
 GOWA_BASE_URL = env.str("GOWA_BASE_URL", "http://localhost:4000")
 GOWA_BASIC_AUTH_USER = env.str("GOWA_BASIC_AUTH_USER", "")
 GOWA_BASIC_AUTH_PASS = env.str("GOWA_BASIC_AUTH_PASS", "")
-GOWA_WEBHOOK_SECRET = env.str("GOWA_WEBHOOK_SECRET", "")
+GOWA_WEBHOOK_SECRET = env.str("GOWA_WEBHOOK_SECRET", "")  # empty fails closed; required in prod
+GOWA_DEVICE_ID = env.str("GOWA_DEVICE_ID", "")  # optional, sent as X-Device-Id
+
+# Inbound processing. False: process on a worker thread after the webhook commits; True: inline.
+MESSAGING_PROCESS_SYNC = env.bool("MESSAGING_PROCESS_SYNC", False)
+INBOUND_STUCK_MINUTES = env.int("INBOUND_STUCK_MINUTES", 2)
+ROSTER_SYNC_HOURS = env.int("ROSTER_SYNC_HOURS", 24)
 
 # OTP login. The pepper keys the HMAC of every stored code; prod requires it, other settings
 # modules fall back to a development value so `manage.py check` works without a .env file.
