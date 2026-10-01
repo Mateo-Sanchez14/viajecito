@@ -227,3 +227,15 @@ def test_quiet_hours_hold_the_reminder_until_the_morning_tick(crew, trip, ana, b
     morning = datetime(2026, 7, 2, 12, 30, tzinfo=UTC)  # 09:30
     with time_machine.travel(morning, tick=False):
         assert tick()["reminders_queued"] == 1
+
+
+def test_the_nudge_window_and_day3_threshold_are_settings(trip, ana, beto, settings):
+    open_decision(trip, ana, deadline=NOW + timedelta(hours=60))
+    assert drafts() == []
+    settings.DECISIONS_NUDGE_WINDOW_HOURS = 72
+    assert len(drafts()) == 1
+    Decision.objects.all().delete()
+    open_decision(trip, ana, age_days=1)
+    assert drafts() == []
+    settings.DECISIONS_NUDGE_AFTER_DAYS = 1
+    assert len(drafts()) == 1
