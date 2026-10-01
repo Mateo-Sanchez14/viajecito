@@ -33,7 +33,7 @@ Out of scope: proposals, link unfurling, decisions, logistics, itinerary, ski, P
 - **Strict TDD** (source: `~/.claude/CLAUDE.md`, "Strict TDD Mode: enabled"). Runners:
   api `cd api && uv run pytest`; web `cd web && pnpm test`; e2e `cd web && pnpm test:e2e`.
   RED must be observed before GREEN; evidence recorded per task.
-- **RDD is on (global)**. After each integration commit on `feat/m0-foundation`:
+- **RDD: disabled for this clone on 2026-10-01** (user decision after `lens_context_budget_exceeded`; global stays on). Verification = opus verifier per writer + checks + smoke. Historical rule kept for reference: after each integration commit on `feat/m0-foundation`:
   `gentle-ai review assess --cwd <repo> --agent claude-code --base-ref <last reviewed boundary> --committed-only --json`
   and follow `review_due`. First boundary: `main`.
 - **Models** (user decision 2026-10-01): writers run on `sonnet`, verifiers on `opus`.
@@ -141,3 +141,9 @@ M0a done. Launch T5 (api), T6 (web) and T7 (platform) writers in parallel in wor
   (`non_executable_only`), no lenses; acknowledged, authority burned (lineage `review-5563843267c76319`).
 - 2026-10-01 — committed range `main..HEAD` (docs + `.gitignore`): assess → risk `medium`
   (`executable_change` .gitignore), `review_due: false`, reason `under_budget`; boundary stays `main`.
+- 2026-10-01 — M0a integrated range `main..HEAD` (98 paths, 10652 lines incl. lockfiles): assess →
+  risk `high` (`executable_mode` api/manage.py, `process_boundary`, `shell_source` api.yml),
+  `review_due: true`. STATUS → START with consent relay; user answered `granted`; START failed in
+  preflight with `lens_context_budget_exceeded` (no authority created). User decision: disable RDD
+  for this clone (`gentle-ai review mode disable --scope clone`). From here delivery follows ordinary
+  repository policy (`disabled/unmanaged`); verification = opus verifiers + checks + smoke.
