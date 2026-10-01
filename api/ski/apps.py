@@ -6,6 +6,8 @@ class SkiConfig(AppConfig):
     default_auto_field = "django.db.models.BigAutoField"
 
     def ready(self) -> None:
+        from messaging import reminders
+        from ski.adapters.wiring import snow_refresh_job
         from trips import plugins
 
         generic = plugins.get("generic")
@@ -18,3 +20,5 @@ class SkiConfig(AppConfig):
                 reminder_rules=("ski.snow_refresh",),
             )
         )
+
+        reminders.register_tick_job("ski.snow_refresh", snow_refresh_job)
