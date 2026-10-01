@@ -5,6 +5,11 @@ on:
     branches: [main]
     paths: ["api/**", "web/**", "deploy/docker/**", ".github/workflows/images.yml"]
   workflow_dispatch:
+    inputs:
+      tag:
+        description: "Extra image tag to publish, e.g. v0.1.0 (optional; latest and the commit sha are always published)"
+        required: false
+        type: string
 
 permissions:
   contents: read
@@ -48,5 +53,6 @@ jobs:
           tags: |
             ghcr.io/${{ github.repository_owner }}/viajecito-${{ matrix.name }}:latest
             ghcr.io/${{ github.repository_owner }}/viajecito-${{ matrix.name }}:${{ github.sha }}
+            ${{ inputs.tag != '' && format('ghcr.io/{0}/viajecito-{1}:{2}', github.repository_owner, matrix.name, inputs.tag) || '' }}
           cache-from: type=gha,scope=${{ matrix.name }}
           cache-to: type=gha,mode=max,scope=${{ matrix.name }}

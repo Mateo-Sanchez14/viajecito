@@ -62,8 +62,10 @@ e2e-keep: ## Run the e2e like `e2e` but leave the stack running for debugging
 	$(BOOTSTRAP_CREW)
 	$(E2E_RUN)
 
-replay: ## Placeholder (exits non-zero until M0c): replay recorded webhooks
-	@echo "replay: available in M0c"; exit 1
+FIXTURE ?= api/messaging/tests/fixtures/gowa/group_command_ping.json
 
-deploy: ## Placeholder (exits non-zero until M0c): deploy to the Pi
-	@echo "deploy: available in M0c"; exit 1
+replay: ## Replay a recorded Gowa webhook against the local api (make replay FIXTURE=<path>)
+	cd api && uv run python manage.py replay_gowa ../$(FIXTURE)
+
+deploy: ## Print the Pi deployment pointer (deploys run on the Pi)
+	@echo "Run deploy/scripts/deploy.sh on the Pi; see deploy/README.md"
