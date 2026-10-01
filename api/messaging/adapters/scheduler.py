@@ -16,7 +16,7 @@ _executor = ThreadPoolExecutor(max_workers=2, thread_name_prefix="inbound")
 
 
 class ExecutorProcessScheduler:
-    def __init__(self, run: Callable[[int], None], *, synchronous: bool) -> None:
+    def __init__(self, run: Callable[[int], object], *, synchronous: bool) -> None:
         self._run = run
         self._synchronous = synchronous
 

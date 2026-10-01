@@ -2,6 +2,7 @@ from datetime import datetime
 
 from django.db import transaction
 from django.db.models import F
+from django.utils import timezone
 
 from messaging.models import InboundMessage, JobLock, OutboundMessage
 from messaging.ports import QueuedMessage
@@ -21,13 +22,14 @@ class DjangoJobLocks:
 
 
 class DjangoTickInbound:
-    def sweep_stuck(self, before: datetime, max_attempts: int) -> tuple[int, int]:
+    def sweep_stuck(self, before: datetime, max_attempts: int, now: datetime) -> tuple[int, int]:
         stuck = InboundMessage.objects.filter(
             status=InboundMessage.Status.PROCESSING, claimed_at__lt=before
         )
         failed = stuck.filter(attempts__gte=max_attempts).update(
             status=InboundMessage.Status.FAILED,
             error="stuck in processing and out of attempts",
+            processed_at=now,
         )
         requeued = stuck.filter(attempts__lt=max_attempts).update(
             status=InboundMessage.Status.RECEIVED
@@ -59,5 +61,33 @@ class DjangoOutboundQueue:
             for row in rows
         ]
 
+    def claim(self, message_id: int, now: datetime) -> bool:
+        claimed = OutboundMessage.objects.filter(
+            pk=message_id, status=OutboundMessage.Status.QUEUED
+        ).update(
+            status=OutboundMessage.Status.SENDING,
+            attempts=F("attempts") + 1,
+            claimed_at=now,
+        )
+        return claimed == 1
 
-__all__ = ["DjangoJobLocks", "DjangoOutboundQueue", "DjangoTickInbound", "F"]
+    def mark_sent(self, message_id: int, gowa_message_id: str) -> None:
+        OutboundMessage.objects.filter(pk=message_id).update(
+            status=OutboundMessage.Status.SENT,
+            gowa_message_id=gowa_message_id,
+            sent_at=timezone.now(),
+        )
+
+    def mark_failed(self, message_id: int, error: str) -> None:
+        OutboundMessage.objects.filter(pk=message_id).update(
+            status=OutboundMessage.Status.FAILED, error=error
+        )
+
+    def sweep_stuck(self, before: datetime, max_attempts: int, now: datetime) -> int:
+        stuck = OutboundMessage.objects.filter(
+            status=OutboundMessage.Status.SENDING, claimed_at__lt=before
+        )
+        stuck.filter(attempts__gte=max_attempts).update(
+            status=OutboundMessage.Status.FAILED, error="stuck sending and out of attempts"
+        )
+        return stuck.filter(attempts__lt=max_attempts).update(status=OutboundMessage.Status.QUEUED)

@@ -3,9 +3,9 @@
 import logging
 from collections.abc import Callable
 from dataclasses import dataclass
-from datetime import timedelta
+from datetime import datetime, timedelta
 
-from messaging.ports import JobLocks, RosterSyncSource, TickInbound
+from messaging.ports import JobLocks, OutboundQueue, RosterSyncSource, TickInbound
 from messaging.use_cases.dispatch_queued import DispatchResult
 from shared.clock import Clock
 
@@ -21,39 +21,49 @@ class TickConfig:
     max_attempts: int = 3
     lock_seconds: int = 120
     batch_size: int = 100
+    deadline_margin_seconds: int = 15  # stop starting work when the lock has less left
 
 
 def run_tick(
     *,
     locks: JobLocks,
     inbound: TickInbound,
+    outbound: OutboundQueue,
     rosters: RosterSyncSource,
     process: Callable[[int], str],
-    dispatch: Callable[[], DispatchResult],
+    dispatch: Callable[[datetime], DispatchResult],
     clock: Clock,
     config: TickConfig,
     owner: str,
 ) -> dict[str, int] | None:
     """Return the summary, or ``None`` when another tick holds the lock (nothing was done)."""
     now = clock.now()
+    deadline = now + timedelta(seconds=config.lock_seconds - config.deadline_margin_seconds)
     if not locks.acquire(LOCK_NAME, now + timedelta(seconds=config.lock_seconds), owner, now):
         return None
     errors = 0
     try:
         requeued, swept_failed = inbound.sweep_stuck(
-            now - timedelta(minutes=config.stuck_minutes), config.max_attempts
+            now - timedelta(minutes=config.stuck_minutes), config.max_attempts, now
+        )
+        outbound.sweep_stuck(
+            now - timedelta(minutes=config.stuck_minutes), config.max_attempts, now
         )
         processed = 0
         for inbound_id in inbound.received_ids(config.batch_size):
+            if clock.now() >= deadline:
+                break
             try:
                 if process(inbound_id) != "skipped":
                     processed += 1
             except Exception:  # one bad row must not stop the pass
                 logger.exception("tick: processing inbound %s crashed", inbound_id)
                 errors += 1
-        dispatched = dispatch()
+        dispatched = dispatch(deadline)
         synced = 0
         for crew_id in rosters.crews_needing_sync(now - timedelta(hours=config.roster_sync_hours)):
+            if clock.now() >= deadline:
+                break
             try:
                 rosters.sync_roster(crew_id)
                 synced += 1

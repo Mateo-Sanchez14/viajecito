@@ -123,7 +123,7 @@ class JobLocks(Protocol):
 
 
 class TickInbound(Protocol):
-    def sweep_stuck(self, before: datetime, max_attempts: int) -> tuple[int, int]:
+    def sweep_stuck(self, before: datetime, max_attempts: int, now: datetime) -> tuple[int, int]:
         """``processing`` rows claimed before ``before`` go back to ``received``, or ``failed``
         once they used ``max_attempts``. Returns ``(requeued, failed)``."""
         ...
@@ -135,6 +135,19 @@ class OutboundQueue(Protocol):
     def queued(
         self, created_before: datetime, max_attempts: int, limit: int
     ) -> list[QueuedMessage]: ...
+
+    def claim(self, message_id: int, now: datetime) -> bool:
+        """Atomically move a ``queued`` row to ``sending`` (counting an attempt)."""
+        ...
+
+    def mark_sent(self, message_id: int, gowa_message_id: str) -> None: ...
+
+    def mark_failed(self, message_id: int, error: str) -> None: ...
+
+    def sweep_stuck(self, before: datetime, max_attempts: int, now: datetime) -> int:
+        """``sending`` rows claimed before ``before`` go back to ``queued`` (or ``failed`` once out
+        of attempts). Returns how many were requeued."""
+        ...
 
 
 class RosterSyncSource(Protocol):

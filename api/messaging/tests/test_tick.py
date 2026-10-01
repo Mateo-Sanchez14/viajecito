@@ -244,3 +244,38 @@ def test_tick_is_idempotent(crew, ana, gowa):
     second = tick()
     assert second["processed"] == 0 and second["dispatched"] == 0 and second["rosters_synced"] == 0
     assert gowa.send.call_count == 2  # the pong reply and the queued reminder, once each
+
+
+@pytest.mark.django_db
+def test_rows_already_sending_are_not_sent_again(crew, gowa):
+    row = queued_outbound(status="sending", attempts=1)
+    OutboundMessage.objects.filter(pk=row.pk).update(claimed_at=NOW - timedelta(seconds=30))
+    tick()
+    row.refresh_from_db()
+    assert row.status == "sending" and gowa.send.call_count == 0
+
+
+@pytest.mark.django_db
+def test_stuck_sending_rows_return_to_queued_and_are_sent(crew, gowa):
+    row = queued_outbound(status="sending", attempts=1)
+    OutboundMessage.objects.filter(pk=row.pk).update(claimed_at=NOW - timedelta(minutes=5))
+    summary = tick()
+    row.refresh_from_db()
+    assert (row.status, row.attempts, summary["dispatched"]) == ("sent", 2, 1)
+
+
+@pytest.mark.django_db
+def test_stuck_sending_rows_out_of_attempts_fail(crew, gowa):
+    row = queued_outbound(status="sending", attempts=3)
+    OutboundMessage.objects.filter(pk=row.pk).update(claimed_at=NOW - timedelta(minutes=5))
+    tick()
+    row.refresh_from_db()
+    assert row.status == "failed" and gowa.send.call_count == 0
+
+
+@pytest.mark.django_db
+def test_swept_failed_inbound_rows_get_a_processed_at(crew, gowa):
+    row = inbound(status="processing", attempts=3, claimed_at=NOW - timedelta(minutes=10))
+    tick()
+    row.refresh_from_db()
+    assert row.status == "failed" and row.processed_at == NOW

@@ -13,6 +13,7 @@ class OutboundMessage(models.Model):
 
     class Status(models.TextChoices):
         QUEUED = "queued"
+        SENDING = "sending"  # claimed by a tick that is delivering it right now
         SENT = "sent"
         FAILED = "failed"
 
@@ -27,6 +28,7 @@ class OutboundMessage(models.Model):
     subject_type = models.CharField(max_length=64, blank=True)
     subject_id = models.CharField(max_length=64, blank=True)
     sent_at = models.DateTimeField(null=True, blank=True)
+    claimed_at = models.DateTimeField(null=True, blank=True)  # when a tick started sending
     error = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 

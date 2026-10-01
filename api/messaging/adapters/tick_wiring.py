@@ -8,7 +8,6 @@ from django.conf import settings
 
 from messaging.adapters import wiring
 from messaging.adapters.gowa_factory import build_gowa_client
-from messaging.adapters.ledger import DjangoOutboundLedger
 from messaging.adapters.tick_store import DjangoJobLocks, DjangoOutboundQueue, DjangoTickInbound
 from messaging.use_cases.dispatch_queued import dispatch_queued
 from messaging.use_cases.run_tick import TickConfig, run_tick
@@ -28,20 +27,23 @@ def run_default_tick() -> dict[str, int] | None:
         roster_sync_hours=settings.ROSTER_SYNC_HOURS,
     )
 
-    def dispatch():
+    queue = DjangoOutboundQueue()
+
+    def dispatch(deadline):
         return dispatch_queued(
-            queue=DjangoOutboundQueue(),
-            ledger=DjangoOutboundLedger(),
+            queue=queue,
             gateway=build_gowa_client(),
-            now=clock.now(),
+            clock=clock,
             min_age=timedelta(seconds=QUEUED_MIN_AGE_SECONDS),
             max_attempts=config.max_attempts,
             limit=config.batch_size,
+            deadline=deadline,
         )
 
     return run_tick(
         locks=DjangoJobLocks(),
         inbound=DjangoTickInbound(),
+        outbound=queue,
         rosters=wiring.crews_gateway(),
         process=lambda inbound_id: process_one(inbound_id),
         dispatch=dispatch,
