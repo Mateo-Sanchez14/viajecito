@@ -155,3 +155,32 @@ class DjangoStore:
 
     def delete_note(self, note_id):
         Note.objects.filter(pk=note_id).delete()
+
+    @transaction.atomic
+    def copy_proposal(self, proposal_id, trip_id, actor_id, day, fields):
+        if ItineraryEntry.objects.filter(proposal_id=proposal_id).exists():
+            return
+        day_row = ItineraryDay.objects.get_or_create(trip_id=trip_id, date=day)[0] if day else None
+        row, created = ItineraryEntry.objects.get_or_create(
+            proposal_id=proposal_id,
+            defaults=dict(
+                trip_id=trip_id,
+                created_by_id=actor_id,
+                day=day_row,
+                source="proposal",
+                position=bucket(trip_id, day_row.id if day_row else None).count(),
+                **fields,
+            ),
+        )
+        if created:
+            renumber(trip_id, row.day_id)
+
+    @transaction.atomic
+    def remove_tray_proposal(self, proposal_id):
+        row = ItineraryEntry.objects.filter(
+            proposal_id=proposal_id, source="proposal", day__isnull=True
+        ).first()
+        if row:
+            trip_id = row.trip_id
+            row.delete()
+            renumber(trip_id, None)
