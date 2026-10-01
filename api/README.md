@@ -226,3 +226,15 @@ no-op. Orders: commands 10 (registered by `MessagingConfig`), quoted card 20, li
 **Adding an app.** Append it to `PROJECT_APPS` in `config/settings/apps.py` (one per line), to
 `root_packages` and the `known-first-party`/`testpaths` lists in `pyproject.toml`, expose `api.router`
 (and optionally `PREFIX`), and register plugins/handlers in `ready()`.
+
+## Domain events
+
+`shared/events.py` is a tiny in-process bus: `subscribe(event_name, callback)`, `publish(event_name,
+**payload)` and `clear()` (tests). Subscribers run in registration order; one that raises is logged
+(`logger.exception`) and never stops the others; publishing with no subscribers does nothing. Subscribe
+from `AppConfig.ready()`.
+
+- **Names**: `"<app>.<entity>_<past_tense>"`, e.g. `proposals.status_changed`.
+- **Payload**: keyword arguments with ids and plain values only (never model instances).
+- **Inside a transaction** use `shared.events_django.publish_after_commit(...)`: it defers through
+  `transaction.on_commit` (dropped on rollback) and publishes immediately outside an atomic block.

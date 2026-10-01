@@ -70,7 +70,7 @@ source_modules = [
     "messaging.use_cases", "messaging.ports", "messaging.domain", "messaging.router",
     "messaging.handlers",
     "trips.domain", "trips.use_cases", "trips.ports", "trips.plugins",
-    "shared.phone", "shared.clock",
+    "shared.phone", "shared.clock", "shared.events",
 ]
 forbidden_modules = ["django", "ninja", "httpx"]
 
