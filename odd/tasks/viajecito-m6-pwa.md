@@ -45,3 +45,8 @@ Installable PWA with countdown and offline cache of Today and documents list, We
 - Map insertion into core overview/routes only through orchestrator request; writer owns contract files/appends and must not write others. New work starts after mapping, no unsafe draft contracts.
 
 - Map writer may edit package.json and lockfile for Leaflet/react-leaflet/types as explicit contract exception; confirm versions/APIs via Context7 before pinning. Own map static route + overview card module=proposals/order11; no new nav module. Estimate400–800 authored lines direct-main exception-ok.
+
+### Map dispatch — parallel acceleration
+- M1 map writer m4_web_writer launched in m6-map after completing M4web7891dea. Ownership remains map-only/static route/map copy/tests and allowed registry appends; explicit package/lock dependency exception approved. Different independent map verifier required (author cannot self-verify).
+- Strict TDD ON from AGENTS with pnpm test, Context7 dependency evidence, full web checks; no Docker/push/remote/subagents. Reads existing real M1 paths; no feature-local draft needed.
+- Global premium/fun visual foundation is a separate workstream; map uses shared primitives and does not edit them.
