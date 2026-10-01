@@ -47,7 +47,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Request Otp */
+        /**
+         * Request Otp
+         * @description Always answers the same 202 for valid phones.
+         *
+         *     400 codes: `invalid_phone`, `invalid_request`. 403: `csrf_failed`.
+         */
         post: operations["identity_api_request_otp"];
         delete?: never;
         options?: never;
@@ -64,7 +69,13 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Verify Otp */
+        /**
+         * Verify Otp
+         * @description Logs the person in.
+         *
+         *     400 codes: `invalid_phone`, `invalid_code`, `expired_code`, `too_many_attempts`,
+         *     `invalid_request`. 403: `csrf_failed`.
+         */
         post: operations["identity_api_verify_otp"];
         delete?: never;
         options?: never;
@@ -302,6 +313,15 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorOut"];
                 };
             };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
             /** @description Too Many Requests */
             429: {
                 headers: {
@@ -353,6 +373,15 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorOut"];
                 };
             };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
         };
     };
     identity_api_logout: {
@@ -373,6 +402,15 @@ export interface operations {
             };
             /** @description Unauthorized */
             401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };
