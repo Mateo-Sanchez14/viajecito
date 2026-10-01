@@ -134,28 +134,16 @@ export interface components {
             version: string;
             checks: components["schemas"]["HealthChecks"];
         };
-        /** ErrorOut */
-        ErrorOut: {
-            /** Code */
-            code: string;
-            /** Message */
-            message: string;
-        };
         /** CsrfOut */
         CsrfOut: {
             /** Csrf Token */
             csrf_token: string;
         };
-        /** OtpRequestIn */
-        OtpRequestIn: {
-            /** Phone */
-            phone: string;
-        };
         /** OtpRequestOut */
         OtpRequestOut: {
             /**
              * Status
-             * @enum {string}
+             * @constant
              */
             status: "sent";
             /** Retry After Seconds */
@@ -163,12 +151,21 @@ export interface components {
             /** Expires In Seconds */
             expires_in_seconds: number;
         };
-        /** OtpVerifyIn */
-        OtpVerifyIn: {
-            /** Phone */
-            phone: string;
+        /** ErrorOut */
+        ErrorOut: {
             /** Code */
             code: string;
+            /** Message */
+            message: string;
+        };
+        /** OtpRequestIn */
+        OtpRequestIn: {
+            /** Phone */
+            phone: string;
+        };
+        /** OtpVerifyOut */
+        OtpVerifyOut: {
+            person: components["schemas"]["PersonOut"];
         };
         /** PersonOut */
         PersonOut: {
@@ -184,9 +181,12 @@ export interface components {
             /** Locale */
             locale: string;
         };
-        /** OtpVerifyOut */
-        OtpVerifyOut: {
-            person: components["schemas"]["PersonOut"];
+        /** OtpVerifyIn */
+        OtpVerifyIn: {
+            /** Phone */
+            phone: string;
+            /** Code */
+            code: string;
         };
         /** CrewSummaryOut */
         CrewSummaryOut: {
