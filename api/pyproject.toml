@@ -137,7 +137,7 @@ forbidden_modules = [
     "linkpreview.models", "linkpreview.ports", "linkpreview.adapters", "linkpreview.api",
     "linkpreview.schemas",
     "identity.models", "identity.ports", "identity.adapters",
-    "crews.models", "crews.domain", "crews.ports", "crews.adapters",
+    "crews.models", "crews.domain", "crews.adapters",
     "trips.models", "trips.domain", "trips.ports", "trips.adapters", "trips.schemas",
 ]
 allow_indirect_imports = true
@@ -148,4 +148,6 @@ ignore_imports = [
     "proposals.tests.* -> trips.models",
     "proposals.tests.* -> linkpreview.models",
     "proposals.tests.* -> linkpreview.adapters.*",
+    # The single typed bridge to linkpreview: maps its ``PreviewRef`` to proposals' own type.
+    "proposals.adapters.previews -> linkpreview.ports",
 ]

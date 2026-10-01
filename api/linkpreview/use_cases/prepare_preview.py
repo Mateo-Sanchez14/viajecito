@@ -1,8 +1,8 @@
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 
-from linkpreview import conf, ports
-from linkpreview.domain.preview import OK, PARTIAL
+from linkpreview import ports
+from linkpreview.domain.preview import OK, PARTIAL, REUSE_DAYS
 from linkpreview.domain.urls import normalize
 from linkpreview.ports import PreviewRef, PreviewStore
 from shared.clock import SystemClock
@@ -13,7 +13,7 @@ def is_fresh(ref: PreviewRef, now: datetime) -> bool:
     return (
         ref.fetch_status in (OK, PARTIAL)
         and ref.fetched_at is not None
-        and now - ref.fetched_at < timedelta(days=conf.REUSE_DAYS)
+        and now - ref.fetched_at < timedelta(days=REUSE_DAYS)
     )
 
 

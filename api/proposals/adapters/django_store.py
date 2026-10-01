@@ -1,3 +1,4 @@
+import uuid
 from collections.abc import Collection
 from contextlib import AbstractContextManager
 from typing import Any
@@ -129,7 +130,11 @@ class DjangoProposalStore:
         return record(_queryset().get(pk=row.pk))
 
     def get(self, proposal_id: str) -> ProposalRecord | None:
-        row = _queryset().filter(pk=proposal_id).first()
+        try:
+            wanted = uuid.UUID(str(proposal_id))
+        except ValueError:  # not an id of ours: nothing to find
+            return None
+        row = _queryset().filter(pk=wanted).first()
         return record(row) if row else None
 
     def find_by_canonical(self, trip_id: str, canonical_url: str) -> ProposalRecord | None:

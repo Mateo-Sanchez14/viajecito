@@ -3,7 +3,6 @@ parsing to ``config/settings`` at integration)."""
 
 from django.conf import settings
 
-REUSE_DAYS = 7  # a fetched preview is reused for a week
 TOTAL_TIMEOUT_SECONDS = 8.0
 CONNECT_TIMEOUT_SECONDS = 5.0
 MAX_REDIRECTS = 4

@@ -10,6 +10,7 @@ from linkpreview.domain.urls import slug_title
 
 OK, PARTIAL, BLOCKED, FAILED, PENDING = "ok", "partial", "blocked", "failed", "pending"
 FETCH_STATUSES = (PENDING, OK, PARTIAL, BLOCKED, FAILED)
+REUSE_DAYS = 7  # a fetched preview is reused for a week
 
 TITLE_MAX, DESCRIPTION_MAX, SITE_NAME_MAX, URL_MAX = 300, 1000, 200, 2000
 RAW_MAX_CHARS = 30_000  # the model allows 32 KB; leave room for JSON overhead
