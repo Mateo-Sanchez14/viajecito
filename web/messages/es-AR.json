@@ -20,5 +20,49 @@
         "error": "con problemas"
       }
     }
+  },
+  "auth": {
+    "heading": "Entrá a viajecito",
+    "phone": {
+      "label": "Tu número de WhatsApp",
+      "hint": "Te mandamos un código por WhatsApp",
+      "placeholder": "+54 9 11 5555 1234",
+      "submit": "Mandame el código"
+    },
+    "code": {
+      "label": "El código que te llegó",
+      "hint": "Lo mandamos a {phone}",
+      "submit": "Entrar",
+      "resend": "Reenviar en {seconds}s",
+      "resendNow": "Reenviar",
+      "changeNumber": "Cambiar número"
+    },
+    "errors": {
+      "invalid_phone": "Ese número no parece válido",
+      "invalid_code": "Ese código no es correcto",
+      "expired_code": "El código venció, pedí otro",
+      "too_many_attempts": "Demasiados intentos, pedí un código nuevo",
+      "rate_limited": "Esperá un toque antes de pedir otro",
+      "delivery_unavailable": "No podemos mandar códigos ahora, probá más tarde",
+      "unknown": "Algo salió mal, probá de nuevo"
+    },
+    "logout": "Salir"
+  },
+  "home": {
+    "greeting": "Hola, {name}",
+    "crews": {
+      "title": "Tus grupos",
+      "empty": "Todavía no estás en ningún grupo",
+      "role": {
+        "admin": "Admin",
+        "member": "Miembro"
+      }
+    }
+  },
+  "errors": {
+    "unexpected": {
+      "title": "Algo salió mal",
+      "retry": "Probar de nuevo"
+    }
   }
 }

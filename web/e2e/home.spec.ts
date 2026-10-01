@@ -1,7 +1,11 @@
 import { expect, test } from "@playwright/test";
+import messages from "../messages/es-AR.json";
 
-test("home page shows the app name", async ({ page }) => {
+test("an anonymous visit to / lands on the login page", async ({ page }) => {
   await page.goto("/");
 
-  await expect(page.getByRole("heading", { name: "viajecito" })).toBeVisible();
+  await expect(page).toHaveURL(/\/login/);
+  await expect(
+    page.getByRole("heading", { name: messages.auth.heading }),
+  ).toBeVisible();
 });
