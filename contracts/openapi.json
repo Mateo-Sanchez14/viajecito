@@ -3,7 +3,7 @@
   "info": {
     "title": "viajecito",
     "version": "0.1.0",
-    "description": ""
+    "description": "Health is exported from the real API. Auth paths are an M0b DRAFT; the api regenerates this file at integration (T8)."
   },
   "paths": {
     "/api/health": {
@@ -36,6 +36,184 @@
         "tags": [
           "ops"
         ]
+      }
+    },
+    "/api/auth/csrf": {
+      "get": {
+        "operationId": "identity_api_csrf",
+        "summary": "Csrf",
+        "tags": [
+          "auth"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CsrfOut"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/otp/request": {
+      "post": {
+        "operationId": "identity_api_request_otp",
+        "summary": "Request Otp",
+        "tags": [
+          "auth"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OtpRequestIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OtpRequestOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/otp/verify": {
+      "post": {
+        "operationId": "identity_api_verify_otp",
+        "summary": "Verify Otp",
+        "tags": [
+          "auth"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OtpVerifyIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OtpVerifyOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/logout": {
+      "post": {
+        "operationId": "identity_api_logout",
+        "summary": "Logout",
+        "tags": [
+          "auth"
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/me": {
+      "get": {
+        "operationId": "identity_api_me",
+        "summary": "Me",
+        "tags": [
+          "auth"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MeOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          }
+        }
       }
     }
   },
@@ -92,6 +270,208 @@
         ],
         "title": "HealthOut",
         "type": "object"
+      },
+      "ErrorOut": {
+        "type": "object",
+        "title": "ErrorOut",
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          }
+        },
+        "required": [
+          "code",
+          "message"
+        ]
+      },
+      "CsrfOut": {
+        "type": "object",
+        "title": "CsrfOut",
+        "properties": {
+          "csrf_token": {
+            "type": "string",
+            "title": "Csrf Token"
+          }
+        },
+        "required": [
+          "csrf_token"
+        ]
+      },
+      "OtpRequestIn": {
+        "type": "object",
+        "title": "OtpRequestIn",
+        "properties": {
+          "phone": {
+            "type": "string",
+            "title": "Phone"
+          }
+        },
+        "required": [
+          "phone"
+        ]
+      },
+      "OtpRequestOut": {
+        "type": "object",
+        "title": "OtpRequestOut",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "sent"
+            ],
+            "title": "Status"
+          },
+          "retry_after_seconds": {
+            "type": "integer",
+            "title": "Retry After Seconds"
+          },
+          "expires_in_seconds": {
+            "type": "integer",
+            "title": "Expires In Seconds"
+          }
+        },
+        "required": [
+          "status",
+          "retry_after_seconds",
+          "expires_in_seconds"
+        ]
+      },
+      "OtpVerifyIn": {
+        "type": "object",
+        "title": "OtpVerifyIn",
+        "properties": {
+          "phone": {
+            "type": "string",
+            "title": "Phone"
+          },
+          "code": {
+            "type": "string",
+            "title": "Code"
+          }
+        },
+        "required": [
+          "phone",
+          "code"
+        ]
+      },
+      "PersonOut": {
+        "type": "object",
+        "title": "PersonOut",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "phone": {
+            "type": "string",
+            "title": "Phone"
+          },
+          "display_name": {
+            "type": "string",
+            "title": "Display Name"
+          },
+          "locale": {
+            "type": "string",
+            "title": "Locale"
+          }
+        },
+        "required": [
+          "id",
+          "phone",
+          "display_name",
+          "locale"
+        ]
+      },
+      "OtpVerifyOut": {
+        "type": "object",
+        "title": "OtpVerifyOut",
+        "properties": {
+          "person": {
+            "$ref": "#/components/schemas/PersonOut"
+          }
+        },
+        "required": [
+          "person"
+        ]
+      },
+      "CrewSummaryOut": {
+        "type": "object",
+        "title": "CrewSummaryOut",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "admin",
+              "member"
+            ],
+            "title": "Role"
+          },
+          "gastito_group_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gastito Group Url"
+          },
+          "default_trip_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Default Trip Id"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "role",
+          "gastito_group_url",
+          "default_trip_id"
+        ]
+      },
+      "MeOut": {
+        "type": "object",
+        "title": "MeOut",
+        "properties": {
+          "person": {
+            "$ref": "#/components/schemas/PersonOut"
+          },
+          "crews": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CrewSummaryOut"
+            },
+            "title": "Crews"
+          }
+        },
+        "required": [
+          "person",
+          "crews"
+        ]
       }
     }
   },

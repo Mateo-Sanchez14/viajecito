@@ -89,3 +89,40 @@ Each writer owns one subtree and never writes outside it:
 - **platform writer**: `Makefile`, `docker-compose.yml`, `.env.example`, `.github/**`, `deploy/**`, `README.md`.
 Nobody edits `AGENTS.md` or `odd/**` (orchestrator-owned). Writers never spawn sub-agents. Confirm
 current library versions and APIs with Context7 before pinning; do not rely on memory.
+
+## M0b contract: login with WhatsApp (identity + crews)
+
+JSON is **snake_case** (Django Ninja default). Error bodies are `{"code": "<snake_case_code>", "message": "<English, developer-facing>"}`;
+the web never shows `message`, it maps `code` to an i18n key. Phone numbers are accepted in free form and
+normalized with `phonenumbers` (default region `AR`; AR mobiles normalize to `+549…`, CL to `+569…`); every
+response carries E.164.
+
+| Endpoint | Request | Success | Errors |
+|---|---|---|---|
+| `GET /api/auth/csrf` | — | `200 {"csrf_token": str}` and sets the `csrftoken` cookie | — |
+| `POST /api/auth/otp/request` | `{"phone": str}` | `202 {"status": "sent", "retry_after_seconds": 60, "expires_in_seconds": 300}` — **identical body and latency whether or not the phone is eligible** (no enumeration); eligible = active `CrewMembership` or pending `Invite` | `400 invalid_phone`; `429 rate_limited` + `Retry-After` header; `503 delivery_unavailable` (kill switch off or Gowa send failed) |
+| `POST /api/auth/otp/verify` | `{"phone": str, "code": str}` | `200 {"person": PersonOut}` and sets the session cookie; rotates the CSRF token | `400 invalid_phone` / `invalid_code` / `expired_code` / `too_many_attempts` (challenge locked after 5 wrong codes) |
+| `POST /api/auth/logout` | — | `204` | `401 unauthenticated` |
+| `GET /api/me` | — | `200 {"person": PersonOut, "crews": [CrewSummaryOut]}` | `401 unauthenticated` |
+
+Schemas: `PersonOut {id: uuid, phone: E.164, display_name: str, locale: str}`;
+`CrewSummaryOut {id: uuid, name: str, role: "admin"|"member", gastito_group_url: str|null, default_trip_id: uuid|null}`.
+
+Rules the api enforces (and tests): one live `OtpChallenge` per phone; 6-digit code from `secrets`, stored only as
+HMAC-SHA256 with the server pepper; expiry 5 minutes; 5 attempts then locked; single use; constant-time compare.
+Rate limits counted in the DB: per phone 1/60 s and 5/h; per IP 10/h (IP from `CF-Connecting-IP`, else
+`REMOTE_ADDR`); global 30/h. Delivery: synchronous `POST {GOWA_BASE_URL}/send/message` with Basic auth, body
+`{"phone": "<digits>@s.whatsapp.net", "message": <copy from api/messaging/copy/es_ar.py>}`; log an
+`OutboundMessage(kind="otp")` with the body redacted. Unsafe requests must send `X-CSRFToken` matching the
+`csrftoken` cookie (the webhook in M0c is the only `csrf_exempt` route).
+
+Env (api): `OTP_DELIVERY_ENABLED` (default `1`), `OTP_PEPPER` (required; dev default in `.env.example`),
+`OTP_CODE_TTL_SECONDS` (300), `OTP_MAX_ATTEMPTS` (5). Bootstrap: `python manage.py bootstrap_crew --name <name>
+--chat-id <...@g.us> --admin-phone <phone>` creates the crew, its WhatsApp link and the admin membership.
+
+Web (M0b): `/login` under `src/app/(public)/` (phone step → code step → redirect to `next` or `/`);
+everything under `src/app/(app)/` is behind a server-side `GET /api/me` check that redirects to `/login` on
+`401`; a logout action; copy in `messages/es-AR.json` keyed `auth.*`. Playwright `e2e/login.spec.ts` reads the
+code from fake Gowa (`GET /__sent?phone=`) against the dev stack.
+
+Fake Gowa (M0b): add `GET /__sent/latest?phone=<E.164 digits>` returning the newest send for that phone (404 if none).
