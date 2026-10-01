@@ -99,3 +99,41 @@ class Replier(Protocol):
     def reply(self, *, chat_id: str, body: str, reply_to: str, inbound_id: int) -> str:
         """Send a threaded reply in the group and return its send status."""
         ...
+
+
+@dataclass(frozen=True)
+class QueuedMessage:
+    id: int
+    to_jid: str
+    kind: str
+    body: str
+    reply_to: str | None
+
+
+class JobLocks(Protocol):
+    def acquire(self, name: str, until: datetime, owner: str, now: datetime) -> bool:
+        """Take the lock unless somebody holds it (``locked_until`` in the future)."""
+        ...
+
+    def release(self, name: str, owner: str, now: datetime) -> None: ...
+
+
+class TickInbound(Protocol):
+    def sweep_stuck(self, before: datetime, max_attempts: int) -> tuple[int, int]:
+        """``processing`` rows claimed before ``before`` go back to ``received``, or ``failed``
+        once they used ``max_attempts``. Returns ``(requeued, failed)``."""
+        ...
+
+    def received_ids(self, limit: int) -> list[int]: ...
+
+
+class OutboundQueue(Protocol):
+    def queued(
+        self, created_before: datetime, max_attempts: int, limit: int
+    ) -> list[QueuedMessage]: ...
+
+
+class RosterSyncSource(Protocol):
+    def crews_needing_sync(self, before: datetime) -> list[str]: ...
+
+    def sync_roster(self, crew_id: str) -> object: ...
