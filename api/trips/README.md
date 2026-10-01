@@ -13,3 +13,11 @@ which is intentionally restricted to trips that can receive reminders.
 `TripsConfig.ready()` already configures the default `TripStore` factory. The reader imports neither
 Django nor HTTP and needs no caller-side adapter construction. This is a trusted internal read: callers
 must authorize the trip before exposing data to a person. No endpoint or schema changes are introduced.
+
+## Cross-app packing templates
+
+Import `packing_templates` from `trips.use_cases.packing_templates` to read a trip type's registered
+packing template keys as an immutable tuple, preserving their order. The reader is pure and requires
+no Django or adapter imports. `generic` returns an empty tuple; `ski` returns `("ski", "border")`.
+Consumers apply their generic template plus these plugin-specific templates. Unknown trip types raise
+`KeyError`, matching `trips.plugins.get`; the reader does not silently select another plugin.
