@@ -307,3 +307,15 @@ call is deduplicated per request) before fetching. The api enforces auth on ever
 - Regenerate `contracts/openapi.json` and `web/src/shared/api/schema.d.ts` in your branch; the
   orchestrator regenerates them at integration.
 - Same TDD, language, commit and boundary rules as everywhere else in this file.
+
+### Core registries (added with M-core)
+- `shared/events.py`: `subscribe(name, callback)`, `publish(name, **payload)`, `publish_after_commit(...)`;
+  names are `"<app>.<entity>_<past_tense>"`, payloads carry ids and plain values. Wave A publishes,
+  Wave B subscribes from `AppConfig.ready()`.
+- `messaging/reminders.py`: `register_reminder_rule(key, rule)`; a rule receives a `ReminderContext`
+  (trip, crew, chat, timezone, dates, `now`) and yields `ReminderDraft`s with a `dedupe_key`; `tick`
+  queues them as `OutboundMessage` rows, skipping quiet hours (22:00–09:00 in the trip timezone).
+- `messaging/router.py`: `register_handler(order, handler)` (commands 10, quoted card 20, link capture 30).
+- `config/api.py` mounts every app exposing `api.router` at `api.PREFIX`; `trips/plugins.py` registers
+  trip types. A new app appends itself to `PROJECT_APPS`, import-linter `root_packages`, ruff
+  `known-first-party` and pytest `testpaths` (see `api/README.md` → "Adding an app").
