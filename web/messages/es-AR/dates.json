@@ -2,7 +2,7 @@
   "dates": {
     "title": "Fechas",
     "loading": "Cargando fechas…",
-    "loadFailed": "No pudimos cargar las fechas, probá de nuevo",
+    "windowLine": "Entre el {start} y el {end}",
     "retry": "Reintentar",
     "deadline": "Cerramos el {date}",
     "open": {
