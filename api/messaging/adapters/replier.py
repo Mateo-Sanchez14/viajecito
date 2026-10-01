@@ -2,8 +2,8 @@ from datetime import timedelta
 
 from django.utils import timezone
 
-from messaging.adapters.gowa_factory import build_gowa_client
 from messaging.adapters.ledger import DjangoOutboundLedger
+from messaging.adapters.provider import build_gateway
 from messaging.adapters.sender import GowaMessageSender
 from messaging.handlers.types import SentCard
 from messaging.models import OutboundMessage
@@ -88,7 +88,7 @@ class GroupReplier:
             return SentCard("duplicate", None)
         ledger = DjangoOutboundLedger()
         try:
-            message_id = build_gowa_client().send_text(row.to_jid, row.body, reply_to or None)
+            message_id = build_gateway().send_text(row.to_jid, row.body, reply_to or None)
         except GatewayError as exc:
             ledger.mark_failed(row.pk, str(exc))
             return SentCard("failed", None)
