@@ -8,6 +8,8 @@ from decisions.tests.conftest import open_payload, send
 
 pytestmark = pytest.mark.django_db
 
+EXPLICIT = {"start_on": "2026-07-03", "end_on": "2026-07-09"}
+
 
 @pytest.fixture
 def decision(as_person, ana, trip):
@@ -65,8 +67,8 @@ def test_invalid_explicit_dates_are_rejected(as_person, ana, trip, decision, pay
 
 
 def test_closing_a_closed_decision_is_a_409(as_person, ana, decision):
-    close(as_person(ana), decision)
-    again = close(as_person(ana), decision)
+    close(as_person(ana), decision, EXPLICIT)
+    again = close(as_person(ana), decision, EXPLICIT)
     assert again.status_code == 409 and again.json()["code"] == "decision_closed"
 
 
@@ -87,7 +89,7 @@ def test_the_trip_update_runs_in_the_closing_transaction(
     monkeypatch.setattr(trips_gateway, "update_trip", boom)
     client = as_person(ana)
     client.raise_request_exception = False
-    response = close(client, decision)
+    response = close(client, decision, EXPLICIT)
     assert response.status_code == 500
     row = Decision.objects.get()
     assert row.status == "open" and row.outcome_start is None and row.closed_by_id is None
@@ -126,8 +128,32 @@ def test_reopening_an_open_decision_is_a_409(as_person, ana, decision):
 
 def test_reopening_while_another_decision_is_open_is_a_409(as_person, ana, trip, decision):
     client = as_person(ana)
-    close(client, decision)
+    close(client, decision, EXPLICIT)
     send(client, "post", f"/api/trips/{trip.pk}/decisions", open_payload())
     response = send(client, "post", f"/api/decisions/{decision['id']}/reopen")
     assert response.status_code == 409 and response.json()["code"] == "decision_already_open"
     assert Decision.objects.get(pk=decision["id"]).status == "closed"
+
+
+def test_closing_without_any_answers_and_without_dates_is_a_no_window_error(
+    as_person, ana, trip, decision
+):
+    response = close(as_person(ana), decision)
+    assert response.status_code == 400 and response.json()["code"] == "no_window"
+    trip.refresh_from_db()
+    assert trip.start_on is None and Decision.objects.get().status == "open"
+
+
+def test_closing_with_explicit_dates_needs_no_answers(as_person, ana, trip, decision):
+    response = close(as_person(ana), decision, {"start_on": "2026-07-03", "end_on": "2026-07-09"})
+    assert response.status_code == 200
+
+
+def test_a_non_member_cannot_close_or_reopen(as_person, ana, stranger, trip, decision):
+    explicit = {"start_on": "2026-07-03", "end_on": "2026-07-09"}
+    assert close(as_person(stranger), decision, explicit).status_code == 404
+    assert Decision.objects.get().status == "open"
+    close(as_person(ana), decision, explicit)
+    reopened = send(as_person(stranger), "post", f"/api/decisions/{decision['id']}/reopen")
+    assert reopened.status_code == 404
+    assert Decision.objects.get().status == "closed"

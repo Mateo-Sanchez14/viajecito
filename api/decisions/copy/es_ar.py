@@ -7,6 +7,7 @@ HELP_FECHAS = "/viaje fechas — cómo vamos con las fechas"
 SUMMARY_HEADER = "📅 Fechas para {trip}:"
 WINDOW_LINE = "{rank}) {start} al {end} · {full} pueden, {blocked} no"
 NO_VOTES_YET = "Todavía no votó nadie."
+SOMEONE = "alguien"  # stands in for a member without a display name
 MISSING_LINE = "Falta que marquen: {names}"
 DEADLINE_LINE = "Cerramos el {deadline}."
 LINK_LINE = "Marcá tus días acá 👉 {url}"

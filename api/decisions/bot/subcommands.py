@@ -1,5 +1,6 @@
 """``/viaje fechas`` (alias ``fecha``): how the dates vote is going on the crew's default trip."""
 
+import re
 from zoneinfo import ZoneInfo
 
 from decisions import conf
@@ -11,6 +12,13 @@ from decisions.use_cases.dates_status import DatesState, DatesStatus, dates_stat
 from messaging.handlers import commands
 from messaging.handlers.types import Handled, HandlerContext
 from trips.use_cases.default_trip_for_crew import default_trip_for_crew
+
+_PHONE = re.compile(r"\+?\d[\d\s-]*")
+
+
+def speakable_name(display_name: str) -> str:
+    """The display name, or neutral copy when core fell back to the member's phone number."""
+    return es_ar.SOMEONE if _PHONE.fullmatch(display_name.strip()) else display_name
 
 
 def render(status: DatesStatus, crew_id: str) -> str:
@@ -40,7 +48,7 @@ def render(status: DatesStatus, crew_id: str) -> str:
     else:
         lines.append(es_ar.NO_VOTES_YET)
     if board.non_responders:
-        names = ", ".join(p.display_name for p in board.non_responders)
+        names = ", ".join(speakable_name(p.display_name) for p in board.non_responders)
         lines.append(es_ar.MISSING_LINE.format(names=names))
     deadline = board.decision.deadline
     if deadline is not None:

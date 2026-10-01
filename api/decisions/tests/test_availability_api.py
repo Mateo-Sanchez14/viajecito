@@ -90,7 +90,8 @@ def test_exactly_366_answers_are_accepted(as_person, beto, decision):
 
 
 def test_a_closed_decision_takes_no_answers(as_person, ana, beto, decision):
-    send(as_person(ana), "post", f"/api/decisions/{decision['id']}/close", {})
+    explicit = {"start_on": "2026-07-03", "end_on": "2026-07-09"}
+    send(as_person(ana), "post", f"/api/decisions/{decision['id']}/close", explicit)
     response = put(as_person(beto), decision, ("2026-07-10", "yes"))
     assert response.status_code == 409 and response.json()["code"] == "decision_closed"
 

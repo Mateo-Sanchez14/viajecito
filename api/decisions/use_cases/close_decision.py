@@ -29,7 +29,12 @@ def close_decision(
             raise rules.DecisionNotFoundError(decision_id)
         if current.status == rules.STATUS_CLOSED:
             raise rules.DecisionClosedError("the decision is already closed")
-        best = () if start_on or end_on else build_board(current, store, trips).windows
+        best = ()
+        if start_on is None and end_on is None:
+            board = build_board(current, store, trips)
+            if not board.has_data:  # an unanswered window would only echo the weekend tie-break
+                raise rules.NoWindowError("nobody has answered yet; send explicit dates")
+            best = board.windows
         start, end = rules.choose_close_window(current, best, start_on, end_on)
         closed = store.close(decision_id, actor_id, start, end, now)
         trips.set_trip_dates(current.trip_id, actor_id, start, end)

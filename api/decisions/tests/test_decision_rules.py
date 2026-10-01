@@ -1,5 +1,6 @@
 import uuid
 from datetime import date
+from decimal import Decimal
 
 import pytest
 from django.test import Client
@@ -81,8 +82,8 @@ def test_unknown_kind_and_naive_deadline_are_invalid_requests(as_person, ana, tr
 def test_list_filters_by_status_and_is_newest_first(as_person, ana, trip):
     client = as_person(ana)
     first = create(client, trip).json()
-    client.post(f"/api/decisions/{first['id']}/close", data="{}", content_type="application/json")
-    # close needs a best window; no answers still yields one (weekend tie-break)
+    explicit = {"start_on": "2026-07-03", "end_on": "2026-07-09"}
+    send(client, "post", f"/api/decisions/{first['id']}/close", explicit)
     second = create(client, trip, window_start="2026-08-01", window_end="2026-08-31").json()
     listing = client.get(f"/api/trips/{trip.pk}/decisions").json()
     assert [d["id"] for d in listing] == [second["id"], first["id"]]
@@ -129,7 +130,8 @@ def test_patch_validates_the_merged_window(as_person, ana, trip):
 def test_patching_a_closed_decision_is_a_409(as_person, ana, trip):
     client = as_person(ana)
     created = create(client, trip).json()
-    send(client, "post", f"/api/decisions/{created['id']}/close", {})
+    explicit = {"start_on": "2026-07-03", "end_on": "2026-07-09"}
+    send(client, "post", f"/api/decisions/{created['id']}/close", explicit)
     response = send(client, "patch", f"/api/decisions/{created['id']}", {"min_days": 3})
     assert response.status_code == 409 and response.json()["code"] == "decision_closed"
 
@@ -150,3 +152,25 @@ def test_non_members_anonymous_and_csrf(as_person, anon, ana, stranger, trip):
     strict.force_login(ana)
     denied = send(strict, "post", trip_url, open_payload())
     assert denied.status_code == 403 and denied.json()["code"] == "csrf_failed"
+
+
+def test_patch_rejects_kind(as_person, ana, trip):
+    created = create(as_person(ana), trip).json()
+    response = send(as_person(ana), "patch", f"/api/decisions/{created['id']}", {"kind": "dates"})
+    assert response.status_code == 400 and response.json()["code"] == "invalid_request"
+
+
+@pytest.mark.parametrize("weight", ["0.555", "0.001", "0.5000001"])
+def test_maybe_weight_is_never_silently_rounded(as_person, ana, trip, weight):
+    response = create(as_person(ana), trip, maybe_weight=weight)
+    assert response.status_code == 400 and response.json()["code"] == "invalid_request"
+    created = create(as_person(ana), trip).json()
+    patched = send(
+        as_person(ana), "patch", f"/api/decisions/{created['id']}", {"maybe_weight": weight}
+    )
+    assert patched.status_code == 400 and patched.json()["code"] == "invalid_request"
+    assert Decision.objects.get().maybe_weight == Decimal("0.50")
+
+
+def test_two_decimal_weights_are_accepted(as_person, ana, trip):
+    assert create(as_person(ana), trip, maybe_weight="0.55").json()["maybe_weight"] == "0.55"

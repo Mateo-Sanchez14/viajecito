@@ -146,3 +146,16 @@ def test_the_crew_without_a_default_trip_gets_a_hint(crew, ana, trip, settings):
 def test_a_throttled_chat_is_not_answered(crew, ana, default_trip):
     handled, replies = say(crew, ana, allowed=False)
     assert replies == [] and handled.detail["throttled"] is True
+
+
+def test_nameless_members_are_never_listed_by_phone(crew, ana, default_trip):
+    from decisions.tests.conftest import join
+    from identity.models import Person
+
+    ghost = Person.objects.create_user("+5491155554444")  # no display name
+    join(crew, ghost)
+    open_decision(default_trip, ana)
+    answer(default_trip, ana, [10, 11, 12])
+    _, replies = say(crew, ana)
+    assert es_ar.MISSING_LINE.format(names=es_ar.SOMEONE) in replies[0]
+    assert "+549" not in replies[0] and "5491155554444" not in replies[0]

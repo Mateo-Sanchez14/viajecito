@@ -74,7 +74,6 @@ def test_longer_window_breaks_a_remaining_tie_then_earlier_start():
     # Mon 6 .. Thu 9: no weekend day in any scored window, everything inside is a yes.
     answers = answers_for("a", {6: "yes", 7: "yes", 8: "yes", 9: "yes"})
     windows = run(end=9, min_days=2, max_days=4, answers=answers, limit=10)
-    start_at_6 = answers_for("a", {})  # noqa: F841 - readability anchor
     ranked = [span(w) for w in windows if w.avg_score == 1]
     assert ranked == [(6, 9), (6, 8), (7, 9), (6, 7), (7, 8), (8, 9)]
 
@@ -164,10 +163,63 @@ def test_no_people_and_no_answers_still_rank_windows_by_the_tie_breaks():
     assert all(w.full_people == w.blocked_people == w.missing_people == () for w in windows)
 
 
-def test_result_is_deterministic():
+def test_result_does_not_depend_on_input_order():
     answers = answers_for("a", {1: "yes", 3: "maybe"}) | answers_for("b", {2: "no", 5: "yes"})
-    first = run(end=9, min_days=2, max_days=3, people=("a", "b"), answers=answers)
-    assert first == run(end=9, min_days=2, max_days=3, people=("b", "a")[::-1], answers=answers)
+    answers |= answers_for("c", {4: "yes", 5: "yes", 6: "no"})
+    canonical = run(
+        end=9, min_days=2, max_days=3, people=("a", "b", "c"), answers=answers, limit=50
+    )
+
+    def shape(windows):
+        return [
+            (
+                w.start,
+                w.end,
+                w.avg_score,
+                w.no_count,
+                w.weekend_days,
+                set(w.full_people),
+                set(w.blocked_people),
+                set(w.missing_people),
+            )
+            for w in windows
+        ]
+
+    rng = random.Random(7)
+    for _ in range(10):
+        people = ["a", "b", "c"]
+        rng.shuffle(people)
+        items = list(answers.items())
+        rng.shuffle(items)
+        shuffled = run(end=9, min_days=2, max_days=3, people=people, answers=dict(items), limit=50)
+        assert shape(shuffled) == shape(canonical)
+
+
+def test_windows_cross_month_boundaries():
+    # Thu 30 Jul .. Mon 3 Aug 2026; Sat 1 Aug and Sun 2 Aug are the weekend.
+    start = date(2026, 7, 30)
+    answers = {("a", start + timedelta(days=i)): "yes" for i in range(5)}
+    windows = best_windows(
+        window_start=start,
+        window_end=date(2026, 8, 3),
+        min_days=5,
+        max_days=5,
+        people=["a"],
+        answers=answers,
+    )
+    assert [(w.start, w.end, w.days, w.weekend_days) for w in windows] == [
+        (date(2026, 7, 30), date(2026, 8, 3), 5, 2)
+    ]
+    short = best_windows(
+        window_start=start,
+        window_end=date(2026, 8, 3),
+        min_days=3,
+        max_days=3,
+        people=["a"],
+        answers=answers,
+        limit=1,
+    )
+    assert (short[0].start, short[0].end) == (date(2026, 7, 31), date(2026, 8, 2))  # most weekend
 
 
 @pytest.mark.parametrize("kwargs", [{"min_days": 0}, {"min_days": 3, "max_days": 2}])

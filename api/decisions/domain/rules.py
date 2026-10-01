@@ -13,7 +13,7 @@ STATUSES = (STATUS_OPEN, STATUS_CLOSED)
 ANSWERS = ("yes", "maybe", "no")
 MAX_TRIP_DAYS = 60
 DEFAULT_MAYBE_WEIGHT = Decimal("0.50")
-MAX_WINDOW_DAYS = 180  # default; ``decisions.conf`` may override it
+MAX_WINDOW_DAYS = 180  # longest candidate range, in days (inclusive)
 
 
 class DecisionError(Exception):

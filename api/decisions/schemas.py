@@ -4,12 +4,19 @@ from typing import Literal
 from uuid import UUID
 
 from ninja import Field, Schema
-from pydantic import AwareDatetime
+from pydantic import AwareDatetime, field_validator, model_validator
 
 Answer = Literal["yes", "maybe", "no"]
 DecisionKind = Literal["dates"]
 DecisionStatus = Literal["open", "closed"]
 Rsvp = Literal["in", "maybe", "out", "pending"]
+
+
+def _two_decimals(value: Decimal | None) -> Decimal | None:
+    """Reject, never round, a weight with more than two decimals."""
+    if value is not None and (not value.is_finite() or value != value.quantize(Decimal("0.01"))):
+        raise ValueError("maybe_weight takes at most two decimals")
+    return value
 
 
 class DecisionCreateIn(Schema):
@@ -21,6 +28,8 @@ class DecisionCreateIn(Schema):
     maybe_weight: Decimal | None = None
     deadline: AwareDatetime | None = None
 
+    _weight = field_validator("maybe_weight")(_two_decimals)
+
 
 class DecisionPatchIn(Schema):
     """Every field optional; only the ones sent change (``null`` clears the deadline)."""
@@ -31,6 +40,16 @@ class DecisionPatchIn(Schema):
     max_days: int | None = None
     maybe_weight: Decimal | None = None
     deadline: AwareDatetime | None = None
+
+    _weight = field_validator("maybe_weight")(_two_decimals)
+
+    @model_validator(mode="before")
+    @classmethod
+    def _kind_is_immutable(cls, data):
+        raw = getattr(data, "_obj", data)  # ninja wraps the payload in a getter
+        if isinstance(raw, dict) and "kind" in raw:
+            raise ValueError("kind cannot be changed")
+        return data
 
 
 class CloseDecisionIn(Schema):
