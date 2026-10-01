@@ -3,56 +3,97 @@
   "info": {
     "title": "viajecito",
     "version": "0.1.0",
-    "description": "Placeholder contract for M0a. Regenerated from the real API at integration (T4)."
+    "description": ""
   },
   "paths": {
     "/api/health": {
       "get": {
         "operationId": "ops_api_health",
         "summary": "Health",
-        "tags": ["ops"],
+        "parameters": [],
         "responses": {
           "200": {
             "description": "OK",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/HealthOut" }
+                "schema": {
+                  "$ref": "#/components/schemas/HealthOut"
+                }
               }
             }
           },
           "503": {
-            "description": "Degraded",
+            "description": "Service Unavailable",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/HealthOut" }
+                "schema": {
+                  "$ref": "#/components/schemas/HealthOut"
+                }
               }
             }
           }
-        }
+        },
+        "tags": [
+          "ops"
+        ]
       }
     }
   },
   "components": {
     "schemas": {
       "HealthChecks": {
-        "type": "object",
-        "title": "HealthChecks",
         "properties": {
-          "db": { "type": "string", "enum": ["ok", "error"], "title": "Db" },
-          "media": { "type": "string", "enum": ["ok", "error"], "title": "Media" }
+          "db": {
+            "enum": [
+              "ok",
+              "error"
+            ],
+            "title": "Db",
+            "type": "string"
+          },
+          "media": {
+            "enum": [
+              "ok",
+              "error"
+            ],
+            "title": "Media",
+            "type": "string"
+          }
         },
-        "required": ["db", "media"]
+        "required": [
+          "db",
+          "media"
+        ],
+        "title": "HealthChecks",
+        "type": "object"
       },
       "HealthOut": {
-        "type": "object",
-        "title": "HealthOut",
         "properties": {
-          "status": { "type": "string", "enum": ["ok", "degraded"], "title": "Status" },
-          "version": { "type": "string", "title": "Version" },
-          "checks": { "$ref": "#/components/schemas/HealthChecks" }
+          "status": {
+            "enum": [
+              "ok",
+              "degraded"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "string"
+          },
+          "checks": {
+            "$ref": "#/components/schemas/HealthChecks"
+          }
         },
-        "required": ["status", "version", "checks"]
+        "required": [
+          "status",
+          "version",
+          "checks"
+        ],
+        "title": "HealthOut",
+        "type": "object"
       }
     }
-  }
+  },
+  "servers": []
 }
