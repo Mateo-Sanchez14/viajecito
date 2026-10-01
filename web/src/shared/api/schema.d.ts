@@ -179,6 +179,115 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/trips/{trip_id}/decisions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Decisions
+         * @description Newest first. 400 codes: `invalid_request` (unknown `status`).
+         */
+        get: operations["decisions_api_list_decisions"];
+        put?: never;
+        /**
+         * Open Decision
+         * @description Any member may open a dates decision. 400 codes: `invalid_request`, `invalid_window`.
+         *     409: `decision_already_open`.
+         */
+        post: operations["decisions_api_open_decision"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/decisions/{decision_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Decision */
+        get: operations["decisions_api_get_decision"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Update Decision
+         * @description 400 codes: `invalid_request`, `invalid_window`. 409: `decision_closed`.
+         */
+        patch: operations["decisions_api_update_decision"];
+        trace?: never;
+    };
+    "/api/decisions/{decision_id}/availability": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Availability */
+        get: operations["decisions_api_get_availability"];
+        /**
+         * Set Availability
+         * @description Writes the CALLER's answers only (`null` clears a day). 400 codes: `date_out_of_range`,
+         *     `invalid_request`. 409: `decision_closed`.
+         */
+        put: operations["decisions_api_set_availability"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/decisions/{decision_id}/close": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Close Decision
+         * @description Writes the chosen dates (default: best window #1) to the trip. 400 codes: `invalid_window`,
+         *     `no_window`. 409: `decision_closed`.
+         */
+        post: operations["decisions_api_close_decision"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/decisions/{decision_id}/reopen": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Reopen Decision
+         * @description Trip dates stay untouched. 409: `decision_open`, `decision_already_open`.
+         */
+        post: operations["decisions_api_reopen_decision"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/notifications/vapid_public_key": {
         parameters: {
             query?: never;
@@ -187,8 +296,8 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Vapid Public Key
-         * @description 503 code: `push_unavailable` (VAPID keys not configured).
+         * Get Vapid Public Key
+         * @description 503 `push_unavailable` when the VAPID keys are not configured.
          */
         get: operations["notifications_api_vapid_public_key"];
         put?: never;
@@ -206,19 +315,20 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List Subscriptions */
-        get: operations["notifications_api_list_subscriptions"];
+        /** List Push Subscriptions */
+        get: operations["notifications_api_list_mine"];
         put?: never;
         /**
-         * Register Subscription
-         * @description 201 new, 200 same endpoint already mine (keys refreshed). 400: `invalid_subscription`. 403: `csrf_failed`. 429: `rate_limited` (more than 10 per person per hour).
+         * Register Push Subscription
+         * @description 201 when new, 200 when the endpoint already was mine or is re-assigned to me.
+         *     400 codes: `invalid_subscription`. 429: `rate_limited` (more than 10 new per hour).
          */
-        post: operations["notifications_api_register_subscription"];
+        post: operations["notifications_api_register"];
         /**
-         * Delete Subscription
-         * @description Idempotent; only the caller's own rows are removed.
+         * Unregister Push Subscription
+         * @description Idempotent; only the caller's own rows are ever removed.
          */
-        delete: operations["notifications_api_delete_subscription"];
+        delete: operations["notifications_api_unregister"];
         options?: never;
         head?: never;
         patch?: never;
@@ -231,13 +341,13 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Preferences */
-        get: operations["notifications_api_get_preferences"];
+        /** Get Notification Preferences */
+        get: operations["notifications_api_get_prefs"];
         /**
-         * Put Preferences
-         * @description 400 code: `invalid_request`.
+         * Set Notification Preferences
+         * @description Partial updates are fine; unknown categories are `400 invalid_request`.
          */
-        put: operations["notifications_api_put_preferences"];
+        put: operations["notifications_api_put_prefs"];
         post?: never;
         delete?: never;
         options?: never;
@@ -255,10 +365,10 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Send Test
-         * @description 429 `rate_limited` (1 per minute). 503 `push_unavailable`.
+         * Send Test Push
+         * @description Sends the test notification to the caller's subscriptions (1 per minute).
          */
-        post: operations["notifications_api_send_test"];
+        post: operations["notifications_api_test_push"];
         delete?: never;
         options?: never;
         head?: never;
@@ -511,33 +621,201 @@ export interface components {
              */
             rsvp: "in" | "maybe" | "out" | "pending";
         };
+        /** DecisionOut */
+        DecisionOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Trip Id
+             * Format: uuid
+             */
+            trip_id: string;
+            /**
+             * Kind
+             * @constant
+             */
+            kind: "dates";
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "open" | "closed";
+            /**
+             * Window Start
+             * Format: date
+             */
+            window_start: string;
+            /**
+             * Window End
+             * Format: date
+             */
+            window_end: string;
+            /** Min Days */
+            min_days: number;
+            /** Max Days */
+            max_days: number;
+            /** Maybe Weight */
+            maybe_weight: string;
+            /** Deadline */
+            deadline: string | null;
+            /** Outcome Start */
+            outcome_start: string | null;
+            /** Outcome End */
+            outcome_end: string | null;
+            opened_by: components["schemas"]["PersonRefOut"];
+            closed_by: components["schemas"]["PersonRefOut"] | null;
+            /** Closed At */
+            closed_at: string | null;
+            /** Respondents */
+            respondents: number;
+            /** Eligible */
+            eligible: number;
+        };
+        /** PersonRefOut */
+        PersonRefOut: {
+            /**
+             * Person Id
+             * Format: uuid
+             */
+            person_id: string;
+            /** Display Name */
+            display_name: string;
+        };
+        /** DecisionCreateIn */
+        DecisionCreateIn: {
+            /**
+             * Kind
+             * @constant
+             */
+            kind: "dates";
+            /**
+             * Window Start
+             * Format: date
+             */
+            window_start: string;
+            /**
+             * Window End
+             * Format: date
+             */
+            window_end: string;
+            /** Min Days */
+            min_days: number;
+            /** Max Days */
+            max_days?: number | null;
+            /** Maybe Weight */
+            maybe_weight?: number | string | null;
+            /** Deadline */
+            deadline?: string | null;
+        };
+        /**
+         * DecisionPatchIn
+         * @description Every field optional; only the ones sent change (``null`` clears the deadline).
+         */
+        DecisionPatchIn: {
+            /** Window Start */
+            window_start?: string | null;
+            /** Window End */
+            window_end?: string | null;
+            /** Min Days */
+            min_days?: number | null;
+            /** Max Days */
+            max_days?: number | null;
+            /** Maybe Weight */
+            maybe_weight?: number | string | null;
+            /** Deadline */
+            deadline?: string | null;
+        };
+        /** AvailabilityOut */
+        AvailabilityOut: {
+            decision: components["schemas"]["DecisionOut"];
+            /** Dates */
+            dates: string[];
+            /** People */
+            people: components["schemas"]["GridPersonOut"][];
+            /**
+             * Me
+             * Format: uuid
+             */
+            me: string;
+            /** Best Windows */
+            best_windows: components["schemas"]["WindowOut"][];
+            /** Has Data */
+            has_data: boolean;
+            /** Non Responders */
+            non_responders: components["schemas"]["PersonRefOut"][];
+        };
+        /** GridPersonOut */
+        GridPersonOut: {
+            /**
+             * Person Id
+             * Format: uuid
+             */
+            person_id: string;
+            /** Display Name */
+            display_name: string;
+            /** Rsvp */
+            rsvp: ("in" | "maybe" | "out" | "pending") | null;
+            /** Answers */
+            answers: {
+                [key: string]: "yes" | "maybe" | "no";
+            };
+        };
+        /** WindowOut */
+        WindowOut: {
+            /**
+             * Start
+             * Format: date
+             */
+            start: string;
+            /**
+             * End
+             * Format: date
+             */
+            end: string;
+            /** Days */
+            days: number;
+            /** Avg Score */
+            avg_score: number;
+            /** No Count */
+            no_count: number;
+            /** Blocked People */
+            blocked_people: string[];
+            /** Full People */
+            full_people: string[];
+            /** Weekend Days */
+            weekend_days: number;
+            /** Missing People */
+            missing_people: string[];
+        };
+        /** AvailabilityAnswerIn */
+        AvailabilityAnswerIn: {
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+            /** Answer */
+            answer: ("yes" | "maybe" | "no") | null;
+        };
+        /** AvailabilityIn */
+        AvailabilityIn: {
+            /** Answers */
+            answers: components["schemas"]["AvailabilityAnswerIn"][];
+        };
+        /** CloseDecisionIn */
+        CloseDecisionIn: {
+            /** Start On */
+            start_on?: string | null;
+            /** End On */
+            end_on?: string | null;
+        };
         /** VapidKeyOut */
         VapidKeyOut: {
             /** Public Key */
             public_key: string;
-        };
-        /** SubscriptionKeysIn */
-        SubscriptionKeysIn: {
-            /** P256Dh */
-            p256dh: string;
-            /** Auth */
-            auth: string;
-        };
-        /** SubscriptionIn */
-        SubscriptionIn: {
-            /** Endpoint */
-            endpoint: string;
-            keys: components["schemas"]["SubscriptionKeysIn"];
-            /**
-             * User Agent
-             * @default
-             */
-            user_agent: string;
-        };
-        /** SubscriptionDeleteIn */
-        SubscriptionDeleteIn: {
-            /** Endpoint */
-            endpoint: string;
         };
         /** SubscriptionOut */
         SubscriptionOut: {
@@ -554,15 +832,38 @@ export interface components {
              */
             created_at: string;
         };
-        /** PreferencesIn */
-        PreferencesIn: {
+        /** SubscriptionIn */
+        SubscriptionIn: {
+            /** Endpoint */
+            endpoint: string;
+            keys: components["schemas"]["SubscriptionKeysIn"];
+            /**
+             * User Agent
+             * @default
+             */
+            user_agent: string;
+        };
+        /** SubscriptionKeysIn */
+        SubscriptionKeysIn: {
+            /** P256Dh */
+            p256dh: string;
+            /** Auth */
+            auth: string;
+        };
+        /** UnsubscribeIn */
+        UnsubscribeIn: {
+            /** Endpoint */
+            endpoint: string;
+        };
+        /** PreferencesOut */
+        PreferencesOut: {
             /** Push */
             push: {
                 [key: string]: boolean;
             };
         };
-        /** PreferencesOut */
-        PreferencesOut: {
+        /** PreferencesIn */
+        PreferencesIn: {
             /** Push */
             push: {
                 [key: string]: boolean;
@@ -1064,6 +1365,506 @@ export interface operations {
             };
         };
     };
+    decisions_api_list_decisions: {
+        parameters: {
+            query?: {
+                status?: string | null;
+            };
+            header?: never;
+            path: {
+                trip_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DecisionOut"][];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    decisions_api_open_decision: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                trip_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DecisionCreateIn"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DecisionOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    decisions_api_get_decision: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                decision_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DecisionOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    decisions_api_update_decision: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                decision_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DecisionPatchIn"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DecisionOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    decisions_api_get_availability: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                decision_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AvailabilityOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    decisions_api_set_availability: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                decision_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AvailabilityIn"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AvailabilityOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    decisions_api_close_decision: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                decision_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CloseDecisionIn"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DecisionOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    decisions_api_reopen_decision: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                decision_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DecisionOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
     notifications_api_vapid_public_key: {
         parameters: {
             query?: never;
@@ -1102,7 +1903,7 @@ export interface operations {
             };
         };
     };
-    notifications_api_list_subscriptions: {
+    notifications_api_list_mine: {
         parameters: {
             query?: never;
             header?: never;
@@ -1131,7 +1932,7 @@ export interface operations {
             };
         };
     };
-    notifications_api_register_subscription: {
+    notifications_api_register: {
         parameters: {
             query?: never;
             header?: never;
@@ -1200,7 +2001,7 @@ export interface operations {
             };
         };
     };
-    notifications_api_delete_subscription: {
+    notifications_api_unregister: {
         parameters: {
             query?: never;
             header?: never;
@@ -1209,7 +2010,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["SubscriptionDeleteIn"];
+                "application/json": components["schemas"]["UnsubscribeIn"];
             };
         };
         responses: {
@@ -1240,7 +2041,7 @@ export interface operations {
             };
         };
     };
-    notifications_api_get_preferences: {
+    notifications_api_get_prefs: {
         parameters: {
             query?: never;
             header?: never;
@@ -1269,7 +2070,7 @@ export interface operations {
             };
         };
     };
-    notifications_api_put_preferences: {
+    notifications_api_put_prefs: {
         parameters: {
             query?: never;
             header?: never;
@@ -1320,7 +2121,7 @@ export interface operations {
             };
         };
     };
-    notifications_api_send_test: {
+    notifications_api_test_push: {
         parameters: {
             query?: never;
             header?: never;
