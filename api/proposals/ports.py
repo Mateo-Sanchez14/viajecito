@@ -84,3 +84,18 @@ class ProposalStore(Protocol):
 
 PreviewResolver = Callable[[str], PreviewSummary]
 """Resolves a (tracking-free) URL into its stored preview, unfurling it when needed."""
+
+
+_default_factory: Callable[[], ProposalStore] | None = None
+
+
+def set_default_store(factory: Callable[[], ProposalStore]) -> None:
+    """Composition root hook installed by ``ProposalsConfig.ready()``."""
+    global _default_factory
+    _default_factory = factory
+
+
+def default_store() -> ProposalStore:
+    if _default_factory is None:
+        raise RuntimeError("no default proposal store configured (is the proposals app installed?)")
+    return _default_factory()
