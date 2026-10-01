@@ -1,0 +1,62 @@
+{
+  "logistics": {
+    "title": "Logística",
+    "loading": "Cargando…",
+    "loadFailed": "No pudimos cargar la lista",
+    "saveFailed": "No pudimos guardar el cambio. Probá de nuevo.",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "due": "Vence",
+    "notes": "Notas",
+    "quantity": "Cantidad",
+    "tabs": {
+      "tasks": "Tareas",
+      "packing": "Valija"
+    },
+    "filter": {
+      "label": "Mostrar tareas",
+      "all": "Todas",
+      "mine": "Mías"
+    },
+    "task": {
+      "title": "Título",
+      "kindLabel": "Tipo",
+      "owner": "Responsable",
+      "statusLabel": "Estado",
+      "add": "Nueva tarea",
+      "noOwner": "Sin dueño",
+      "kind": {
+        "todo": "Pendiente",
+        "bring": "Llevar",
+        "booking": "Reserva"
+      },
+      "status": {
+        "open": "Abierta",
+        "done": "Hecha",
+        "blocked": "Trabada"
+      },
+      "groups": {
+        "overdue": "Vencidas",
+        "week": "Esta semana",
+        "later": "Más adelante",
+        "noDate": "Sin fecha",
+        "done": "Hechas"
+      }
+    },
+    "packing": {
+      "apply": "Usar la lista {template}",
+      "progress": "{packed} de {total} en la valija",
+      "item": "Ítem",
+      "add": "Agregar a la valija",
+      "edit": "Editar {item}",
+      "crew": "Valijas del grupo"
+    },
+    "empty": {
+      "tasks": "No hay tareas. ¡Qué organizados!",
+      "packing": "Arrancá con una lista armada"
+    },
+    "overview": "{overdue} tareas vencidas · {mine} tuyas"
+  }
+}
