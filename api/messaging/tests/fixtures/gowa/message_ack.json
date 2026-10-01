@@ -1,0 +1,12 @@
+{
+  "event": "message.ack",
+  "device_id": "5491100000009@s.whatsapp.net",
+  "timestamp": "2025-10-15T10:31:00Z",
+  "payload": {
+    "ids": ["3EB0AAAA0000000001"],
+    "chat_id": "120363000000000000@g.us",
+    "from": "5491100000001@s.whatsapp.net",
+    "receipt_type": "read",
+    "receipt_type_description": "the user opened the chat and saw the message."
+  }
+}
