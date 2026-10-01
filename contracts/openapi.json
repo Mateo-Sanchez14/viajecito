@@ -655,6 +655,762 @@
           }
         ]
       }
+    },
+    "/api/trips/{trip_id}/decisions": {
+      "get": {
+        "operationId": "decisions_api_list_decisions",
+        "summary": "decisions_api_list_decisions",
+        "description": "DRAFT (m2-web): derived from docs/contracts/m2-decisions.md; the orchestrator regenerates from the real api.",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "trip_id",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "required": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DecisionOut"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "decisions"
+        ],
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ]
+      },
+      "post": {
+        "operationId": "decisions_api_open_decision",
+        "summary": "decisions_api_open_decision",
+        "description": "DRAFT (m2-web): derived from docs/contracts/m2-decisions.md; the orchestrator regenerates from the real api.",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "trip_id",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DecisionOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "decisions"
+        ],
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DecisionCreateIn"
+              }
+            }
+          },
+          "required": true
+        }
+      }
+    },
+    "/api/decisions/{decision_id}": {
+      "get": {
+        "operationId": "decisions_api_get_decision",
+        "summary": "decisions_api_get_decision",
+        "description": "DRAFT (m2-web): derived from docs/contracts/m2-decisions.md; the orchestrator regenerates from the real api.",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "decision_id",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DecisionOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "decisions"
+        ],
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ]
+      },
+      "patch": {
+        "operationId": "decisions_api_update_decision",
+        "summary": "decisions_api_update_decision",
+        "description": "DRAFT (m2-web): derived from docs/contracts/m2-decisions.md; the orchestrator regenerates from the real api.",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "decision_id",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DecisionOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "decisions"
+        ],
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DecisionPatchIn"
+              }
+            }
+          },
+          "required": true
+        }
+      }
+    },
+    "/api/decisions/{decision_id}/availability": {
+      "get": {
+        "operationId": "decisions_api_get_availability",
+        "summary": "decisions_api_get_availability",
+        "description": "DRAFT (m2-web): derived from docs/contracts/m2-decisions.md; the orchestrator regenerates from the real api.",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "decision_id",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AvailabilityOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "decisions"
+        ],
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ]
+      },
+      "put": {
+        "operationId": "decisions_api_set_availability",
+        "summary": "decisions_api_set_availability",
+        "description": "DRAFT (m2-web): derived from docs/contracts/m2-decisions.md; the orchestrator regenerates from the real api.",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "decision_id",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AvailabilityOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "decisions"
+        ],
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AvailabilityIn"
+              }
+            }
+          },
+          "required": true
+        }
+      }
+    },
+    "/api/decisions/{decision_id}/close": {
+      "post": {
+        "operationId": "decisions_api_close_decision",
+        "summary": "decisions_api_close_decision",
+        "description": "DRAFT (m2-web): derived from docs/contracts/m2-decisions.md; the orchestrator regenerates from the real api.",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "decision_id",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DecisionOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "decisions"
+        ],
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CloseDecisionIn"
+              }
+            }
+          },
+          "required": true
+        }
+      }
+    },
+    "/api/decisions/{decision_id}/reopen": {
+      "post": {
+        "operationId": "decisions_api_reopen_decision",
+        "summary": "decisions_api_reopen_decision",
+        "description": "DRAFT (m2-web): derived from docs/contracts/m2-decisions.md; the orchestrator regenerates from the real api.",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "decision_id",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DecisionOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "decisions"
+        ],
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ]
+      }
     }
   },
   "components": {
@@ -1320,6 +2076,516 @@
         ],
         "title": "ParticipantIn",
         "type": "object"
+      },
+      "PersonRefOut": {
+        "title": "PersonRefOut",
+        "type": "object",
+        "description": "DRAFT (m2-web): derived from docs/contracts/m2-decisions.md; the orchestrator regenerates from the real api.",
+        "properties": {
+          "person_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "display_name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "person_id",
+          "display_name"
+        ]
+      },
+      "DecisionOut": {
+        "title": "DecisionOut",
+        "type": "object",
+        "description": "DRAFT (m2-web): derived from docs/contracts/m2-decisions.md; the orchestrator regenerates from the real api.",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "trip_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "dates"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "open",
+              "closed"
+            ]
+          },
+          "window_start": {
+            "type": "string",
+            "format": "date"
+          },
+          "window_end": {
+            "type": "string",
+            "format": "date"
+          },
+          "min_days": {
+            "type": "integer"
+          },
+          "max_days": {
+            "type": "integer"
+          },
+          "maybe_weight": {
+            "type": "string"
+          },
+          "deadline": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "outcome_start": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "outcome_end": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "opened_by": {
+            "$ref": "#/components/schemas/PersonRefOut"
+          },
+          "closed_by": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PersonRefOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "closed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "respondents": {
+            "type": "integer"
+          },
+          "eligible": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "trip_id",
+          "kind",
+          "status",
+          "window_start",
+          "window_end",
+          "min_days",
+          "max_days",
+          "maybe_weight",
+          "deadline",
+          "outcome_start",
+          "outcome_end",
+          "opened_by",
+          "closed_by",
+          "closed_at",
+          "respondents",
+          "eligible"
+        ]
+      },
+      "WindowOut": {
+        "title": "WindowOut",
+        "type": "object",
+        "description": "DRAFT (m2-web): derived from docs/contracts/m2-decisions.md; the orchestrator regenerates from the real api.",
+        "properties": {
+          "start": {
+            "type": "string",
+            "format": "date"
+          },
+          "end": {
+            "type": "string",
+            "format": "date"
+          },
+          "days": {
+            "type": "integer"
+          },
+          "avg_score": {
+            "type": "number"
+          },
+          "no_count": {
+            "type": "integer"
+          },
+          "blocked_people": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "full_people": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "weekend_days": {
+            "type": "integer"
+          },
+          "missing_people": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        },
+        "required": [
+          "start",
+          "end",
+          "days",
+          "avg_score",
+          "no_count",
+          "blocked_people",
+          "full_people",
+          "weekend_days",
+          "missing_people"
+        ]
+      },
+      "GridPersonOut": {
+        "title": "GridPersonOut",
+        "type": "object",
+        "description": "DRAFT (m2-web): derived from docs/contracts/m2-decisions.md; the orchestrator regenerates from the real api.",
+        "properties": {
+          "person_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "display_name": {
+            "type": "string"
+          },
+          "rsvp": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "in",
+                  "maybe",
+                  "out",
+                  "pending"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "answers": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string",
+              "enum": [
+                "yes",
+                "maybe",
+                "no"
+              ]
+            }
+          }
+        },
+        "required": [
+          "person_id",
+          "display_name",
+          "rsvp",
+          "answers"
+        ]
+      },
+      "AvailabilityOut": {
+        "title": "AvailabilityOut",
+        "type": "object",
+        "description": "DRAFT (m2-web): derived from docs/contracts/m2-decisions.md; the orchestrator regenerates from the real api.",
+        "properties": {
+          "decision": {
+            "$ref": "#/components/schemas/DecisionOut"
+          },
+          "dates": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          "people": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GridPersonOut"
+            }
+          },
+          "me": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "best_windows": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WindowOut"
+            }
+          },
+          "has_data": {
+            "type": "boolean"
+          },
+          "non_responders": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PersonRefOut"
+            }
+          }
+        },
+        "required": [
+          "decision",
+          "dates",
+          "people",
+          "me",
+          "best_windows",
+          "has_data",
+          "non_responders"
+        ]
+      },
+      "DecisionCreateIn": {
+        "title": "DecisionCreateIn",
+        "type": "object",
+        "description": "DRAFT (m2-web): derived from docs/contracts/m2-decisions.md; the orchestrator regenerates from the real api.",
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "dates"
+            ]
+          },
+          "window_start": {
+            "type": "string",
+            "format": "date"
+          },
+          "window_end": {
+            "type": "string",
+            "format": "date"
+          },
+          "min_days": {
+            "type": "integer"
+          },
+          "max_days": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "maybe_weight": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "deadline": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "kind",
+          "window_start",
+          "window_end",
+          "min_days"
+        ]
+      },
+      "DecisionPatchIn": {
+        "title": "DecisionPatchIn",
+        "type": "object",
+        "description": "DRAFT (m2-web): derived from docs/contracts/m2-decisions.md; the orchestrator regenerates from the real api.",
+        "properties": {
+          "window_start": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "window_end": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "min_days": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "max_days": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "maybe_weight": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "deadline": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": []
+      },
+      "AvailabilityAnswerIn": {
+        "title": "AvailabilityAnswerIn",
+        "type": "object",
+        "description": "DRAFT (m2-web): derived from docs/contracts/m2-decisions.md; the orchestrator regenerates from the real api.",
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "answer": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "yes",
+                  "maybe",
+                  "no"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "date",
+          "answer"
+        ]
+      },
+      "AvailabilityIn": {
+        "title": "AvailabilityIn",
+        "type": "object",
+        "description": "DRAFT (m2-web): derived from docs/contracts/m2-decisions.md; the orchestrator regenerates from the real api.",
+        "properties": {
+          "answers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AvailabilityAnswerIn"
+            }
+          }
+        },
+        "required": [
+          "answers"
+        ]
+      },
+      "CloseDecisionIn": {
+        "title": "CloseDecisionIn",
+        "type": "object",
+        "description": "DRAFT (m2-web): derived from docs/contracts/m2-decisions.md; the orchestrator regenerates from the real api.",
+        "properties": {
+          "start_on": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "end_on": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": []
       }
     },
     "securitySchemes": {

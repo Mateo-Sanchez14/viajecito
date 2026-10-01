@@ -179,6 +179,118 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/trips/{trip_id}/decisions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * decisions_api_list_decisions
+         * @description DRAFT (m2-web): derived from docs/contracts/m2-decisions.md; the orchestrator regenerates from the real api.
+         */
+        get: operations["decisions_api_list_decisions"];
+        put?: never;
+        /**
+         * decisions_api_open_decision
+         * @description DRAFT (m2-web): derived from docs/contracts/m2-decisions.md; the orchestrator regenerates from the real api.
+         */
+        post: operations["decisions_api_open_decision"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/decisions/{decision_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * decisions_api_get_decision
+         * @description DRAFT (m2-web): derived from docs/contracts/m2-decisions.md; the orchestrator regenerates from the real api.
+         */
+        get: operations["decisions_api_get_decision"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * decisions_api_update_decision
+         * @description DRAFT (m2-web): derived from docs/contracts/m2-decisions.md; the orchestrator regenerates from the real api.
+         */
+        patch: operations["decisions_api_update_decision"];
+        trace?: never;
+    };
+    "/api/decisions/{decision_id}/availability": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * decisions_api_get_availability
+         * @description DRAFT (m2-web): derived from docs/contracts/m2-decisions.md; the orchestrator regenerates from the real api.
+         */
+        get: operations["decisions_api_get_availability"];
+        /**
+         * decisions_api_set_availability
+         * @description DRAFT (m2-web): derived from docs/contracts/m2-decisions.md; the orchestrator regenerates from the real api.
+         */
+        put: operations["decisions_api_set_availability"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/decisions/{decision_id}/close": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * decisions_api_close_decision
+         * @description DRAFT (m2-web): derived from docs/contracts/m2-decisions.md; the orchestrator regenerates from the real api.
+         */
+        post: operations["decisions_api_close_decision"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/decisions/{decision_id}/reopen": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * decisions_api_reopen_decision
+         * @description DRAFT (m2-web): derived from docs/contracts/m2-decisions.md; the orchestrator regenerates from the real api.
+         */
+        post: operations["decisions_api_reopen_decision"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -424,6 +536,140 @@ export interface components {
              * @enum {string}
              */
             rsvp: "in" | "maybe" | "out" | "pending";
+        };
+        /**
+         * PersonRefOut
+         * @description DRAFT (m2-web): derived from docs/contracts/m2-decisions.md; the orchestrator regenerates from the real api.
+         */
+        PersonRefOut: {
+            /** Format: uuid */
+            person_id: string;
+            display_name: string;
+        };
+        /**
+         * DecisionOut
+         * @description DRAFT (m2-web): derived from docs/contracts/m2-decisions.md; the orchestrator regenerates from the real api.
+         */
+        DecisionOut: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            trip_id: string;
+            /** @enum {string} */
+            kind: "dates";
+            /** @enum {string} */
+            status: "open" | "closed";
+            /** Format: date */
+            window_start: string;
+            /** Format: date */
+            window_end: string;
+            min_days: number;
+            max_days: number;
+            maybe_weight: string;
+            deadline: string | null;
+            outcome_start: string | null;
+            outcome_end: string | null;
+            opened_by: components["schemas"]["PersonRefOut"];
+            closed_by: components["schemas"]["PersonRefOut"] | null;
+            closed_at: string | null;
+            respondents: number;
+            eligible: number;
+        };
+        /**
+         * WindowOut
+         * @description DRAFT (m2-web): derived from docs/contracts/m2-decisions.md; the orchestrator regenerates from the real api.
+         */
+        WindowOut: {
+            /** Format: date */
+            start: string;
+            /** Format: date */
+            end: string;
+            days: number;
+            avg_score: number;
+            no_count: number;
+            blocked_people: string[];
+            full_people: string[];
+            weekend_days: number;
+            missing_people: string[];
+        };
+        /**
+         * GridPersonOut
+         * @description DRAFT (m2-web): derived from docs/contracts/m2-decisions.md; the orchestrator regenerates from the real api.
+         */
+        GridPersonOut: {
+            /** Format: uuid */
+            person_id: string;
+            display_name: string;
+            rsvp: ("in" | "maybe" | "out" | "pending") | null;
+            answers: {
+                [key: string]: "yes" | "maybe" | "no";
+            };
+        };
+        /**
+         * AvailabilityOut
+         * @description DRAFT (m2-web): derived from docs/contracts/m2-decisions.md; the orchestrator regenerates from the real api.
+         */
+        AvailabilityOut: {
+            decision: components["schemas"]["DecisionOut"];
+            dates: string[];
+            people: components["schemas"]["GridPersonOut"][];
+            /** Format: uuid */
+            me: string;
+            best_windows: components["schemas"]["WindowOut"][];
+            has_data: boolean;
+            non_responders: components["schemas"]["PersonRefOut"][];
+        };
+        /**
+         * DecisionCreateIn
+         * @description DRAFT (m2-web): derived from docs/contracts/m2-decisions.md; the orchestrator regenerates from the real api.
+         */
+        DecisionCreateIn: {
+            /** @enum {string} */
+            kind: "dates";
+            /** Format: date */
+            window_start: string;
+            /** Format: date */
+            window_end: string;
+            min_days: number;
+            max_days?: number | null;
+            maybe_weight?: string | null;
+            deadline?: string | null;
+        };
+        /**
+         * DecisionPatchIn
+         * @description DRAFT (m2-web): derived from docs/contracts/m2-decisions.md; the orchestrator regenerates from the real api.
+         */
+        DecisionPatchIn: {
+            window_start?: string | null;
+            window_end?: string | null;
+            min_days?: number | null;
+            max_days?: number | null;
+            maybe_weight?: string | null;
+            deadline?: string | null;
+        };
+        /**
+         * AvailabilityAnswerIn
+         * @description DRAFT (m2-web): derived from docs/contracts/m2-decisions.md; the orchestrator regenerates from the real api.
+         */
+        AvailabilityAnswerIn: {
+            /** Format: date */
+            date: string;
+            answer: ("yes" | "maybe" | "no") | null;
+        };
+        /**
+         * AvailabilityIn
+         * @description DRAFT (m2-web): derived from docs/contracts/m2-decisions.md; the orchestrator regenerates from the real api.
+         */
+        AvailabilityIn: {
+            answers: components["schemas"]["AvailabilityAnswerIn"][];
+        };
+        /**
+         * CloseDecisionIn
+         * @description DRAFT (m2-web): derived from docs/contracts/m2-decisions.md; the orchestrator regenerates from the real api.
+         */
+        CloseDecisionIn: {
+            start_on?: string | null;
+            end_on?: string | null;
         };
     };
     responses: never;
@@ -907,6 +1153,560 @@ export interface operations {
             };
             /** @description Not Found */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    decisions_api_list_decisions: {
+        parameters: {
+            query?: {
+                status?: string | null;
+            };
+            header?: never;
+            path: {
+                trip_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DecisionOut"][];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    decisions_api_open_decision: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                trip_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DecisionCreateIn"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DecisionOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    decisions_api_get_decision: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                decision_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DecisionOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    decisions_api_update_decision: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                decision_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DecisionPatchIn"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DecisionOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    decisions_api_get_availability: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                decision_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AvailabilityOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    decisions_api_set_availability: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                decision_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AvailabilityIn"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AvailabilityOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    decisions_api_close_decision: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                decision_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CloseDecisionIn"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DecisionOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    decisions_api_reopen_decision: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                decision_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DecisionOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };
