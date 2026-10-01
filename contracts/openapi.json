@@ -659,7 +659,7 @@
     "/api/ski/resorts": {
       "get": {
         "operationId": "ski_api_list_resorts",
-        "summary": "List Resorts",
+        "summary": "List Ski Resorts",
         "parameters": [
           {
             "in": "query",
@@ -667,16 +667,17 @@
             "schema": {
               "anyOf": [
                 {
-                  "type": "string",
                   "enum": [
                     "AR",
                     "CL"
-                  ]
+                  ],
+                  "type": "string"
                 },
                 {
                   "type": "null"
                 }
-              ]
+              ],
+              "title": "Country"
             },
             "required": false
           }
@@ -687,16 +688,205 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
                   "items": {
                     "$ref": "#/components/schemas/ResortOut"
-                  }
+                  },
+                  "title": "Response",
+                  "type": "array"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
                 }
               }
             }
           },
           "401": {
             "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          }
+        },
+        "description": "Active seeded resorts, for any authenticated person.",
+        "tags": [
+          "ski"
+        ],
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ]
+      }
+    },
+    "/api/trips/{trip_id}/ski/resorts": {
+      "post": {
+        "operationId": "ski_api_add_trip_resort",
+        "summary": "Add Trip Resort",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "trip_id",
+            "schema": {
+              "format": "uuid",
+              "title": "Trip Id",
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TripResortOut"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          }
+        },
+        "description": "400 `invalid_request` (unknown resort). 409 `resort_already_added`.",
+        "tags": [
+          "ski"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TripResortIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ]
+      }
+    },
+    "/api/trips/{trip_id}/ski/resorts/{resort_id}": {
+      "patch": {
+        "operationId": "ski_api_update_trip_resort",
+        "summary": "Update Trip Resort",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "trip_id",
+            "schema": {
+              "format": "uuid",
+              "title": "Trip Id",
+              "type": "string"
+            },
+            "required": true
+          },
+          {
+            "in": "path",
+            "name": "resort_id",
+            "schema": {
+              "format": "uuid",
+              "title": "Resort Id",
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TripResortOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
             "content": {
               "application/json": {
                 "schema": {
@@ -719,6 +909,96 @@
         "tags": [
           "ski"
         ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TripResortPatchIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ]
+      },
+      "delete": {
+        "operationId": "ski_api_remove_trip_resort",
+        "summary": "Remove Trip Resort",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "trip_id",
+            "schema": {
+              "format": "uuid",
+              "title": "Trip Id",
+              "type": "string"
+            },
+            "required": true
+          },
+          {
+            "in": "path",
+            "name": "resort_id",
+            "schema": {
+              "format": "uuid",
+              "title": "Resort Id",
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          }
+        },
+        "description": "Snow reports of the resort are kept.",
+        "tags": [
+          "ski"
+        ],
         "security": [
           {
             "SessionAuth": []
@@ -728,15 +1008,16 @@
     },
     "/api/trips/{trip_id}/ski": {
       "get": {
-        "operationId": "ski_api_overview",
-        "summary": "Overview",
+        "operationId": "ski_api_get_overview",
+        "summary": "Get Ski Overview",
         "parameters": [
           {
             "in": "path",
             "name": "trip_id",
             "schema": {
-              "type": "string",
-              "format": "uuid"
+              "format": "uuid",
+              "title": "Trip Id",
+              "type": "string"
             },
             "required": true
           }
@@ -752,8 +1033,28 @@
               }
             }
           },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
           "401": {
             "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
             "content": {
               "application/json": {
                 "schema": {
@@ -785,15 +1086,16 @@
     },
     "/api/trips/{trip_id}/ski/conditions": {
       "get": {
-        "operationId": "ski_api_conditions",
-        "summary": "Conditions",
+        "operationId": "ski_api_get_conditions",
+        "summary": "Get Ski Conditions",
         "parameters": [
           {
             "in": "path",
             "name": "trip_id",
             "schema": {
-              "type": "string",
-              "format": "uuid"
+              "format": "uuid",
+              "title": "Trip Id",
+              "type": "string"
             },
             "required": true
           }
@@ -809,65 +1111,18 @@
               }
             }
           },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorOut"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Not Found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorOut"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "ski"
-        ],
-        "security": [
-          {
-            "SessionAuth": []
-          }
-        ]
-      }
-    },
-    "/api/trips/{trip_id}/ski/resorts": {
-      "post": {
-        "operationId": "ski_api_add_resort",
-        "summary": "Add Resort",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "trip_id",
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            },
-            "required": true
-          }
-        ],
-        "responses": {
-          "201": {
-            "description": "Created",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TripResortOut"
-                }
-              }
-            }
-          },
           "400": {
             "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
             "content": {
               "application/json": {
                 "schema": {
@@ -886,26 +1141,6 @@
               }
             }
           },
-          "409": {
-            "description": "Conflict",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorOut"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorOut"
-                }
-              }
-            }
-          },
           "404": {
             "description": "Not Found",
             "content": {
@@ -917,189 +1152,7 @@
             }
           }
         },
-        "tags": [
-          "ski"
-        ],
-        "security": [
-          {
-            "SessionAuth": []
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/TripResortIn"
-              }
-            }
-          },
-          "required": true
-        }
-      }
-    },
-    "/api/trips/{trip_id}/ski/resorts/{resort_id}": {
-      "patch": {
-        "operationId": "ski_api_patch_resort",
-        "summary": "Patch Resort",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "trip_id",
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            },
-            "required": true
-          },
-          {
-            "in": "path",
-            "name": "resort_id",
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            },
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TripResortOut"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorOut"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Forbidden",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorOut"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorOut"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Not Found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorOut"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "ski"
-        ],
-        "security": [
-          {
-            "SessionAuth": []
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/TripResortPatchIn"
-              }
-            }
-          },
-          "required": true
-        }
-      },
-      "delete": {
-        "operationId": "ski_api_remove_resort",
-        "summary": "Remove Resort",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "trip_id",
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            },
-            "required": true
-          },
-          {
-            "in": "path",
-            "name": "resort_id",
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            },
-            "required": true
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "No Content"
-          },
-          "400": {
-            "description": "Bad Request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorOut"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Forbidden",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorOut"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorOut"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Not Found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorOut"
-                }
-              }
-            }
-          }
-        },
+        "description": "Cheap read of the latest report per resort (used by Today).",
         "tags": [
           "ski"
         ],
@@ -1113,14 +1166,15 @@
     "/api/trips/{trip_id}/ski/resorts/{resort_id}/reports": {
       "get": {
         "operationId": "ski_api_list_reports",
-        "summary": "List Reports",
+        "summary": "List Snow Reports",
         "parameters": [
           {
             "in": "path",
             "name": "trip_id",
             "schema": {
-              "type": "string",
-              "format": "uuid"
+              "format": "uuid",
+              "title": "Trip Id",
+              "type": "string"
             },
             "required": true
           },
@@ -1128,8 +1182,9 @@
             "in": "path",
             "name": "resort_id",
             "schema": {
-              "type": "string",
-              "format": "uuid"
+              "format": "uuid",
+              "title": "Resort Id",
+              "type": "string"
             },
             "required": true
           }
@@ -1140,16 +1195,37 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
                   "items": {
                     "$ref": "#/components/schemas/SnowReportOut"
-                  }
+                  },
+                  "title": "Response",
+                  "type": "array"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
                 }
               }
             }
           },
           "401": {
             "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
             "content": {
               "application/json": {
                 "schema": {
@@ -1179,15 +1255,16 @@
         ]
       },
       "post": {
-        "operationId": "ski_api_create_report",
-        "summary": "Create Report",
+        "operationId": "ski_api_post_report",
+        "summary": "Post Manual Snow Report",
         "parameters": [
           {
             "in": "path",
             "name": "trip_id",
             "schema": {
-              "type": "string",
-              "format": "uuid"
+              "format": "uuid",
+              "title": "Trip Id",
+              "type": "string"
             },
             "required": true
           },
@@ -1195,8 +1272,9 @@
             "in": "path",
             "name": "resort_id",
             "schema": {
-              "type": "string",
-              "format": "uuid"
+              "format": "uuid",
+              "title": "Resort Id",
+              "type": "string"
             },
             "required": true
           }
@@ -1212,26 +1290,6 @@
               }
             }
           },
-          "400": {
-            "description": "Bad Request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorOut"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Forbidden",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorOut"
-                }
-              }
-            }
-          },
           "429": {
             "description": "Too Many Requests",
             "content": {
@@ -1242,8 +1300,28 @@
               }
             }
           },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
           "401": {
             "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
             "content": {
               "application/json": {
                 "schema": {
@@ -1263,13 +1341,9 @@
             }
           }
         },
+        "description": "At least one field. 400 `invalid_request`; 429 `rate_limited` (6 per resort per hour).",
         "tags": [
           "ski"
-        ],
-        "security": [
-          {
-            "SessionAuth": []
-          }
         ],
         "requestBody": {
           "content": {
@@ -1280,20 +1354,26 @@
             }
           },
           "required": true
-        }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ]
       }
     },
     "/api/trips/{trip_id}/ski/passes/me": {
       "put": {
-        "operationId": "ski_api_set_my_pass",
-        "summary": "Set My Pass",
+        "operationId": "ski_api_put_my_pass",
+        "summary": "Set My Lift Pass",
         "parameters": [
           {
             "in": "path",
             "name": "trip_id",
             "schema": {
-              "type": "string",
-              "format": "uuid"
+              "format": "uuid",
+              "title": "Trip Id",
+              "type": "string"
             },
             "required": true
           }
@@ -1319,8 +1399,8 @@
               }
             }
           },
-          "403": {
-            "description": "Forbidden",
+          "401": {
+            "description": "Unauthorized",
             "content": {
               "application/json": {
                 "schema": {
@@ -1329,8 +1409,8 @@
               }
             }
           },
-          "401": {
-            "description": "Unauthorized",
+          "403": {
+            "description": "Forbidden",
             "content": {
               "application/json": {
                 "schema": {
@@ -1350,13 +1430,9 @@
             }
           }
         },
+        "description": "Upsert on (trip, me, resort); `resort_id` null means \"any / not decided\".",
         "tags": [
           "ski"
-        ],
-        "security": [
-          {
-            "SessionAuth": []
-          }
         ],
         "requestBody": {
           "content": {
@@ -1367,18 +1443,24 @@
             }
           },
           "required": true
-        }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ]
       },
       "delete": {
         "operationId": "ski_api_delete_my_pass",
-        "summary": "Delete My Pass",
+        "summary": "Delete My Lift Pass",
         "parameters": [
           {
             "in": "path",
             "name": "trip_id",
             "schema": {
-              "type": "string",
-              "format": "uuid"
+              "format": "uuid",
+              "title": "Trip Id",
+              "type": "string"
             },
             "required": true
           },
@@ -1388,13 +1470,14 @@
             "schema": {
               "anyOf": [
                 {
-                  "type": "string",
-                  "format": "uuid"
+                  "format": "uuid",
+                  "type": "string"
                 },
                 {
                   "type": "null"
                 }
-              ]
+              ],
+              "title": "Resort Id"
             },
             "required": false
           }
@@ -1413,8 +1496,8 @@
               }
             }
           },
-          "403": {
-            "description": "Forbidden",
+          "401": {
+            "description": "Unauthorized",
             "content": {
               "application/json": {
                 "schema": {
@@ -1423,8 +1506,8 @@
               }
             }
           },
-          "401": {
-            "description": "Unauthorized",
+          "403": {
+            "description": "Forbidden",
             "content": {
               "application/json": {
                 "schema": {
@@ -1456,15 +1539,16 @@
     },
     "/api/trips/{trip_id}/ski/gear/me": {
       "put": {
-        "operationId": "ski_api_set_my_gear",
-        "summary": "Set My Gear",
+        "operationId": "ski_api_put_my_gear",
+        "summary": "Set My Gear Plan",
         "parameters": [
           {
             "in": "path",
             "name": "trip_id",
             "schema": {
-              "type": "string",
-              "format": "uuid"
+              "format": "uuid",
+              "title": "Trip Id",
+              "type": "string"
             },
             "required": true
           }
@@ -1475,10 +1559,11 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
                   "items": {
                     "$ref": "#/components/schemas/GearRowOut"
-                  }
+                  },
+                  "title": "Response",
+                  "type": "array"
                 }
               }
             }
@@ -1493,8 +1578,8 @@
               }
             }
           },
-          "403": {
-            "description": "Forbidden",
+          "401": {
+            "description": "Unauthorized",
             "content": {
               "application/json": {
                 "schema": {
@@ -1503,8 +1588,8 @@
               }
             }
           },
-          "401": {
-            "description": "Unauthorized",
+          "403": {
+            "description": "Forbidden",
             "content": {
               "application/json": {
                 "schema": {
@@ -1524,13 +1609,9 @@
             }
           }
         },
+        "description": "Replaces all of my rows for the trip.",
         "tags": [
           "ski"
-        ],
-        "security": [
-          {
-            "SessionAuth": []
-          }
         ],
         "requestBody": {
           "content": {
@@ -1541,13 +1622,18 @@
             }
           },
           "required": true
-        }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ]
       }
     },
     "/api/me/ski_profile": {
       "get": {
-        "operationId": "ski_api_get_profile",
-        "summary": "Get Profile",
+        "operationId": "ski_api_get_my_profile",
+        "summary": "Get My Ski Profile",
         "parameters": [],
         "responses": {
           "200": {
@@ -1569,18 +1655,9 @@
                 }
               }
             }
-          },
-          "404": {
-            "description": "Not Found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorOut"
-                }
-              }
-            }
           }
         },
+        "description": "Only the owner reads their profile (it holds sizes and weight).",
         "tags": [
           "ski"
         ],
@@ -1591,8 +1668,8 @@
         ]
       },
       "put": {
-        "operationId": "ski_api_put_profile",
-        "summary": "Put Profile",
+        "operationId": "ski_api_put_my_profile",
+        "summary": "Save My Ski Profile",
         "parameters": [],
         "responses": {
           "200": {
@@ -1615,8 +1692,8 @@
               }
             }
           },
-          "403": {
-            "description": "Forbidden",
+          "401": {
+            "description": "Unauthorized",
             "content": {
               "application/json": {
                 "schema": {
@@ -1625,8 +1702,8 @@
               }
             }
           },
-          "401": {
-            "description": "Unauthorized",
+          "403": {
+            "description": "Forbidden",
             "content": {
               "application/json": {
                 "schema": {
@@ -1649,11 +1726,6 @@
         "tags": [
           "ski"
         ],
-        "security": [
-          {
-            "SessionAuth": []
-          }
-        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -1663,7 +1735,12 @@
             }
           },
           "required": true
-        }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ]
       }
     }
   },
@@ -2331,73 +2408,48 @@
         "title": "ParticipantIn",
         "type": "object"
       },
-      "PersonRefOut": {
-        "title": "PersonRefOut",
-        "type": "object",
-        "properties": {
-          "person_id": {
-            "type": "string",
-            "format": "uuid",
-            "title": "Person Id"
-          },
-          "display_name": {
-            "type": "string",
-            "title": "Display Name"
-          }
-        },
-        "required": [
-          "person_id",
-          "display_name"
-        ]
-      },
       "ResortOut": {
-        "title": "ResortOut",
-        "type": "object",
         "properties": {
           "id": {
-            "type": "string",
             "format": "uuid",
-            "title": "Id"
+            "title": "Id",
+            "type": "string"
           },
           "slug": {
-            "type": "string",
-            "title": "Slug"
+            "title": "Slug",
+            "type": "string"
           },
           "name": {
-            "type": "string",
-            "title": "Name"
+            "title": "Name",
+            "type": "string"
           },
           "country": {
-            "type": "string",
-            "enum": [
-              "AR",
-              "CL"
-            ],
-            "title": "Country"
+            "title": "Country",
+            "type": "string"
           },
           "region": {
-            "type": "string",
-            "title": "Region"
+            "title": "Region",
+            "type": "string"
           },
           "lat": {
-            "type": "number",
-            "title": "Lat"
+            "title": "Lat",
+            "type": "number"
           },
           "lng": {
-            "type": "number",
-            "title": "Lng"
+            "title": "Lng",
+            "type": "number"
           },
           "base_elev_m": {
-            "type": "integer",
-            "title": "Base Elev M"
+            "title": "Base Elev M",
+            "type": "integer"
           },
           "summit_elev_m": {
-            "type": "integer",
-            "title": "Summit Elev M"
+            "title": "Summit Elev M",
+            "type": "integer"
           },
           "website_url": {
-            "type": "string",
-            "title": "Website Url"
+            "title": "Website Url",
+            "type": "string"
           }
         },
         "required": [
@@ -2411,34 +2463,49 @@
           "base_elev_m",
           "summit_elev_m",
           "website_url"
-        ]
+        ],
+        "title": "ResortOut",
+        "type": "object"
+      },
+      "PersonRefOut": {
+        "properties": {
+          "person_id": {
+            "format": "uuid",
+            "title": "Person Id",
+            "type": "string"
+          },
+          "display_name": {
+            "title": "Display Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "person_id",
+          "display_name"
+        ],
+        "title": "PersonRefOut",
+        "type": "object"
       },
       "SnowReportOut": {
-        "title": "SnowReportOut",
-        "type": "object",
         "properties": {
           "id": {
-            "type": "string",
             "format": "uuid",
-            "title": "Id"
+            "title": "Id",
+            "type": "string"
           },
           "source": {
-            "type": "string",
-            "enum": [
-              "open_meteo",
-              "manual"
-            ],
-            "title": "Source"
+            "title": "Source",
+            "type": "string"
           },
           "observed_at": {
-            "type": "string",
             "format": "date-time",
-            "title": "Observed At"
+            "title": "Observed At",
+            "type": "string"
           },
           "fetched_at": {
-            "type": "string",
             "format": "date-time",
-            "title": "Fetched At"
+            "title": "Fetched At",
+            "type": "string"
           },
           "base_cm": {
             "anyOf": [
@@ -2448,7 +2515,8 @@
               {
                 "type": "null"
               }
-            ]
+            ],
+            "title": "Base Cm"
           },
           "new_24h_cm": {
             "anyOf": [
@@ -2458,7 +2526,8 @@
               {
                 "type": "null"
               }
-            ]
+            ],
+            "title": "New 24H Cm"
           },
           "forecast_72h_cm": {
             "anyOf": [
@@ -2468,7 +2537,8 @@
               {
                 "type": "null"
               }
-            ]
+            ],
+            "title": "Forecast 72H Cm"
           },
           "temp_c": {
             "anyOf": [
@@ -2478,7 +2548,8 @@
               {
                 "type": "null"
               }
-            ]
+            ],
+            "title": "Temp C"
           },
           "lifts_open": {
             "anyOf": [
@@ -2488,7 +2559,8 @@
               {
                 "type": "null"
               }
-            ]
+            ],
+            "title": "Lifts Open"
           },
           "lifts_total": {
             "anyOf": [
@@ -2498,7 +2570,8 @@
               {
                 "type": "null"
               }
-            ]
+            ],
+            "title": "Lifts Total"
           },
           "runs_open": {
             "anyOf": [
@@ -2508,7 +2581,8 @@
               {
                 "type": "null"
               }
-            ]
+            ],
+            "title": "Runs Open"
           },
           "runs_total": {
             "anyOf": [
@@ -2518,11 +2592,12 @@
               {
                 "type": "null"
               }
-            ]
+            ],
+            "title": "Runs Total"
           },
           "status_text": {
-            "type": "string",
-            "title": "Status Text"
+            "title": "Status Text",
+            "type": "string"
           },
           "reporter": {
             "anyOf": [
@@ -2535,12 +2610,12 @@
             ]
           },
           "stale": {
-            "type": "boolean",
-            "title": "Stale"
+            "title": "Stale",
+            "type": "boolean"
           },
           "age_hours": {
-            "type": "integer",
-            "title": "Age Hours"
+            "title": "Age Hours",
+            "type": "integer"
           }
         },
         "required": [
@@ -2560,11 +2635,11 @@
           "reporter",
           "stale",
           "age_hours"
-        ]
+        ],
+        "title": "SnowReportOut",
+        "type": "object"
       },
       "TripResortOut": {
-        "title": "TripResortOut",
-        "type": "object",
         "properties": {
           "resort": {
             "$ref": "#/components/schemas/ResortOut"
@@ -2577,11 +2652,12 @@
               {
                 "type": "null"
               }
-            ]
+            ],
+            "title": "Nights"
           },
           "position": {
-            "type": "integer",
-            "title": "Position"
+            "title": "Position",
+            "type": "integer"
           },
           "latest_report": {
             "anyOf": [
@@ -2599,20 +2675,380 @@
           "nights",
           "position",
           "latest_report"
-        ]
+        ],
+        "title": "TripResortOut",
+        "type": "object"
       },
-      "ConditionsResortOut": {
-        "title": "ConditionsResortOut",
-        "type": "object",
+      "TripResortIn": {
         "properties": {
           "resort_id": {
-            "type": "string",
             "format": "uuid",
+            "title": "Resort Id",
+            "type": "string"
+          },
+          "nights": {
+            "anyOf": [
+              {
+                "maximum": 365,
+                "minimum": 0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nights"
+          }
+        },
+        "required": [
+          "resort_id"
+        ],
+        "title": "TripResortIn",
+        "type": "object"
+      },
+      "TripResortPatchIn": {
+        "description": "Only the fields sent are applied.",
+        "properties": {
+          "nights": {
+            "anyOf": [
+              {
+                "maximum": 365,
+                "minimum": 0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nights"
+          },
+          "position": {
+            "anyOf": [
+              {
+                "maximum": 1000,
+                "minimum": 0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Position"
+          }
+        },
+        "title": "TripResortPatchIn",
+        "type": "object"
+      },
+      "GearRollupOut": {
+        "properties": {
+          "rows": {
+            "items": {
+              "$ref": "#/components/schemas/GearRowOut"
+            },
+            "title": "Rows",
+            "type": "array"
+          },
+          "rent_counts": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Rent Counts",
+            "type": "object"
+          },
+          "sizes": {
+            "items": {
+              "$ref": "#/components/schemas/SizeOut"
+            },
+            "title": "Sizes",
+            "type": "array"
+          },
+          "sizes_hidden": {
+            "title": "Sizes Hidden",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "rows",
+          "rent_counts",
+          "sizes",
+          "sizes_hidden"
+        ],
+        "title": "GearRollupOut",
+        "type": "object"
+      },
+      "GearRowOut": {
+        "properties": {
+          "person": {
+            "$ref": "#/components/schemas/PersonRefOut"
+          },
+          "item": {
+            "title": "Item",
+            "type": "string"
+          },
+          "mode": {
+            "title": "Mode",
+            "type": "string"
+          },
+          "price": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Price"
+          },
+          "currency": {
+            "title": "Currency",
+            "type": "string"
+          },
+          "note": {
+            "title": "Note",
+            "type": "string"
+          }
+        },
+        "required": [
+          "person",
+          "item",
+          "mode",
+          "price",
+          "currency",
+          "note"
+        ],
+        "title": "GearRowOut",
+        "type": "object"
+      },
+      "LevelGroupOut": {
+        "properties": {
+          "discipline": {
+            "title": "Discipline",
+            "type": "string"
+          },
+          "level": {
+            "title": "Level",
+            "type": "string"
+          },
+          "people": {
+            "items": {
+              "$ref": "#/components/schemas/PersonRefOut"
+            },
+            "title": "People",
+            "type": "array"
+          }
+        },
+        "required": [
+          "discipline",
+          "level",
+          "people"
+        ],
+        "title": "LevelGroupOut",
+        "type": "object"
+      },
+      "MissingPassOut": {
+        "properties": {
+          "person": {
+            "$ref": "#/components/schemas/PersonRefOut"
+          },
+          "resort_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resort Id"
+          }
+        },
+        "required": [
+          "person",
+          "resort_id"
+        ],
+        "title": "MissingPassOut",
+        "type": "object"
+      },
+      "PassRowOut": {
+        "properties": {
+          "person": {
+            "$ref": "#/components/schemas/PersonRefOut"
+          },
+          "resort_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Resort Id"
           },
+          "product": {
+            "title": "Product",
+            "type": "string"
+          },
+          "days": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Days"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "price": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Price"
+          },
+          "currency": {
+            "title": "Currency",
+            "type": "string"
+          }
+        },
+        "required": [
+          "person",
+          "resort_id",
+          "product",
+          "days",
+          "status",
+          "price",
+          "currency"
+        ],
+        "title": "PassRowOut",
+        "type": "object"
+      },
+      "PassSummaryOut": {
+        "properties": {
+          "rows": {
+            "items": {
+              "$ref": "#/components/schemas/PassRowOut"
+            },
+            "title": "Rows",
+            "type": "array"
+          },
+          "missing": {
+            "items": {
+              "$ref": "#/components/schemas/MissingPassOut"
+            },
+            "title": "Missing",
+            "type": "array"
+          }
+        },
+        "required": [
+          "rows",
+          "missing"
+        ],
+        "title": "PassSummaryOut",
+        "type": "object"
+      },
+      "SizeOut": {
+        "properties": {
+          "person": {
+            "$ref": "#/components/schemas/PersonRefOut"
+          },
+          "boot_size_eu": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Boot Size Eu"
+          },
+          "height_cm": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Height Cm"
+          },
+          "weight_kg": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Weight Kg"
+          }
+        },
+        "required": [
+          "person",
+          "boot_size_eu",
+          "height_cm",
+          "weight_kg"
+        ],
+        "title": "SizeOut",
+        "type": "object"
+      },
+      "SkiOverviewOut": {
+        "properties": {
+          "resorts": {
+            "items": {
+              "$ref": "#/components/schemas/TripResortOut"
+            },
+            "title": "Resorts",
+            "type": "array"
+          },
+          "passes": {
+            "$ref": "#/components/schemas/PassSummaryOut"
+          },
+          "gear": {
+            "$ref": "#/components/schemas/GearRollupOut"
+          },
+          "levels": {
+            "items": {
+              "$ref": "#/components/schemas/LevelGroupOut"
+            },
+            "title": "Levels",
+            "type": "array"
+          }
+        },
+        "required": [
+          "resorts",
+          "passes",
+          "gear",
+          "levels"
+        ],
+        "title": "SkiOverviewOut",
+        "type": "object"
+      },
+      "ConditionsResortOut": {
+        "properties": {
+          "resort_id": {
+            "format": "uuid",
+            "title": "Resort Id",
+            "type": "string"
+          },
           "name": {
-            "type": "string",
-            "title": "Name"
+            "title": "Name",
+            "type": "string"
           },
           "latest_report": {
             "anyOf": [
@@ -2629,710 +3065,236 @@
           "resort_id",
           "name",
           "latest_report"
-        ]
+        ],
+        "title": "ConditionsResortOut",
+        "type": "object"
       },
       "SkiConditionsOut": {
-        "title": "SkiConditionsOut",
-        "type": "object",
         "properties": {
           "resorts": {
-            "type": "array",
             "items": {
               "$ref": "#/components/schemas/ConditionsResortOut"
             },
-            "title": "Resorts"
+            "title": "Resorts",
+            "type": "array"
           }
         },
         "required": [
           "resorts"
-        ]
-      },
-      "PassRowOut": {
-        "title": "PassRowOut",
-        "type": "object",
-        "properties": {
-          "person": {
-            "$ref": "#/components/schemas/PersonRefOut"
-          },
-          "resort_id": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "uuid"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "product": {
-            "type": "string",
-            "title": "Product"
-          },
-          "days": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "status": {
-            "type": "string",
-            "enum": [
-              "needed",
-              "bought",
-              "season_pass",
-              "not_needed"
-            ],
-            "title": "Status"
-          },
-          "price": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "currency": {
-            "type": "string",
-            "title": "Currency"
-          }
-        },
-        "required": [
-          "person",
-          "resort_id",
-          "product",
-          "days",
-          "status",
-          "price",
-          "currency"
-        ]
-      },
-      "MissingPassOut": {
-        "title": "MissingPassOut",
-        "type": "object",
-        "properties": {
-          "person": {
-            "$ref": "#/components/schemas/PersonRefOut"
-          },
-          "resort_id": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "uuid"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          }
-        },
-        "required": [
-          "person",
-          "resort_id"
-        ]
-      },
-      "PassSummaryOut": {
-        "title": "PassSummaryOut",
-        "type": "object",
-        "properties": {
-          "rows": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/PassRowOut"
-            },
-            "title": "Rows"
-          },
-          "missing": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/MissingPassOut"
-            },
-            "title": "Missing"
-          }
-        },
-        "required": [
-          "rows",
-          "missing"
-        ]
-      },
-      "GearRowOut": {
-        "title": "GearRowOut",
-        "type": "object",
-        "properties": {
-          "person": {
-            "$ref": "#/components/schemas/PersonRefOut"
-          },
-          "item": {
-            "type": "string",
-            "enum": [
-              "skis",
-              "board",
-              "boots",
-              "poles",
-              "helmet",
-              "goggles",
-              "jacket",
-              "pants",
-              "other"
-            ],
-            "title": "Item"
-          },
-          "mode": {
-            "type": "string",
-            "enum": [
-              "own",
-              "rent",
-              "borrow"
-            ],
-            "title": "Mode"
-          },
-          "price": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "currency": {
-            "type": "string",
-            "title": "Currency"
-          },
-          "note": {
-            "type": "string",
-            "title": "Note"
-          }
-        },
-        "required": [
-          "person",
-          "item",
-          "mode",
-          "price",
-          "currency",
-          "note"
-        ]
-      },
-      "SharedSizeOut": {
-        "title": "SharedSizeOut",
-        "type": "object",
-        "properties": {
-          "person": {
-            "$ref": "#/components/schemas/PersonRefOut"
-          },
-          "boot_size_eu": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "height_cm": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "weight_kg": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          }
-        },
-        "required": [
-          "person",
-          "boot_size_eu",
-          "height_cm",
-          "weight_kg"
-        ]
-      },
-      "GearRollupOut": {
-        "title": "GearRollupOut",
-        "type": "object",
-        "properties": {
-          "rows": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/GearRowOut"
-            },
-            "title": "Rows"
-          },
-          "rent_counts": {
-            "type": "object",
-            "additionalProperties": {
-              "type": "integer"
-            },
-            "title": "Rent Counts"
-          },
-          "sizes": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SharedSizeOut"
-            },
-            "title": "Sizes"
-          },
-          "sizes_hidden": {
-            "type": "integer",
-            "title": "Sizes Hidden"
-          }
-        },
-        "required": [
-          "rows",
-          "rent_counts",
-          "sizes",
-          "sizes_hidden"
-        ]
-      },
-      "LevelGroupOut": {
-        "title": "LevelGroupOut",
-        "type": "object",
-        "properties": {
-          "discipline": {
-            "type": "string",
-            "enum": [
-              "ski",
-              "snowboard",
-              "both"
-            ],
-            "title": "Discipline"
-          },
-          "level": {
-            "type": "string",
-            "enum": [
-              "first_time",
-              "beginner",
-              "intermediate",
-              "advanced",
-              "expert"
-            ],
-            "title": "Level"
-          },
-          "people": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/PersonRefOut"
-            },
-            "title": "People"
-          }
-        },
-        "required": [
-          "discipline",
-          "level",
-          "people"
-        ]
-      },
-      "SkiOverviewOut": {
-        "title": "SkiOverviewOut",
-        "type": "object",
-        "properties": {
-          "resorts": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/TripResortOut"
-            },
-            "title": "Resorts"
-          },
-          "passes": {
-            "$ref": "#/components/schemas/PassSummaryOut"
-          },
-          "gear": {
-            "$ref": "#/components/schemas/GearRollupOut"
-          },
-          "levels": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/LevelGroupOut"
-            },
-            "title": "Levels"
-          }
-        },
-        "required": [
-          "resorts",
-          "passes",
-          "gear",
-          "levels"
-        ]
-      },
-      "SkiProfileOut": {
-        "title": "SkiProfileOut",
-        "type": "object",
-        "properties": {
-          "discipline": {
-            "type": "string",
-            "enum": [
-              "ski",
-              "snowboard",
-              "both"
-            ],
-            "title": "Discipline"
-          },
-          "level": {
-            "type": "string",
-            "enum": [
-              "first_time",
-              "beginner",
-              "intermediate",
-              "advanced",
-              "expert"
-            ],
-            "title": "Level"
-          },
-          "owns_gear": {
-            "type": "boolean",
-            "title": "Owns Gear"
-          },
-          "boot_size_eu": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "height_cm": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "weight_kg": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "share_sizes_with_trip": {
-            "type": "boolean",
-            "title": "Share Sizes With Trip"
-          }
-        },
-        "required": [
-          "discipline",
-          "level",
-          "owns_gear",
-          "boot_size_eu",
-          "height_cm",
-          "weight_kg",
-          "share_sizes_with_trip"
-        ]
-      },
-      "SkiProfileIn": {
-        "title": "SkiProfileIn",
-        "type": "object",
-        "properties": {
-          "discipline": {
-            "type": "string",
-            "enum": [
-              "ski",
-              "snowboard",
-              "both"
-            ],
-            "title": "Discipline"
-          },
-          "level": {
-            "type": "string",
-            "enum": [
-              "first_time",
-              "beginner",
-              "intermediate",
-              "advanced",
-              "expert"
-            ],
-            "title": "Level"
-          },
-          "owns_gear": {
-            "type": "boolean",
-            "title": "Owns Gear"
-          },
-          "boot_size_eu": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "height_cm": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "weight_kg": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "share_sizes_with_trip": {
-            "type": "boolean",
-            "title": "Share Sizes With Trip"
-          }
-        },
-        "required": [
-          "discipline",
-          "level",
-          "owns_gear",
-          "boot_size_eu",
-          "height_cm",
-          "weight_kg",
-          "share_sizes_with_trip"
-        ]
-      },
-      "TripResortIn": {
-        "title": "TripResortIn",
-        "type": "object",
-        "properties": {
-          "resort_id": {
-            "type": "string",
-            "format": "uuid",
-            "title": "Resort Id"
-          },
-          "nights": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          }
-        },
-        "required": [
-          "resort_id"
-        ]
-      },
-      "TripResortPatchIn": {
-        "title": "TripResortPatchIn",
-        "type": "object",
-        "properties": {
-          "nights": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "position": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          }
-        },
-        "required": []
+        ],
+        "title": "SkiConditionsOut",
+        "type": "object"
       },
       "ManualReportIn": {
-        "title": "ManualReportIn",
-        "type": "object",
         "properties": {
           "base_cm": {
             "anyOf": [
               {
+                "maximum": 1000,
+                "minimum": 0,
                 "type": "integer"
               },
               {
                 "type": "null"
               }
-            ]
+            ],
+            "title": "Base Cm"
           },
           "new_24h_cm": {
             "anyOf": [
               {
+                "maximum": 300.0,
+                "minimum": 0.0,
                 "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d{0,1}0*$",
+                "type": "string"
               },
               {
                 "type": "null"
               }
-            ]
+            ],
+            "title": "New 24H Cm"
           },
           "temp_c": {
             "anyOf": [
               {
+                "maximum": 30.0,
+                "minimum": -40.0,
                 "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d{0,1}0*$",
+                "type": "string"
               },
               {
                 "type": "null"
               }
-            ]
+            ],
+            "title": "Temp C"
           },
           "lifts_open": {
             "anyOf": [
               {
+                "maximum": 500,
+                "minimum": 0,
                 "type": "integer"
               },
               {
                 "type": "null"
               }
-            ]
+            ],
+            "title": "Lifts Open"
           },
           "lifts_total": {
             "anyOf": [
               {
+                "maximum": 500,
+                "minimum": 0,
                 "type": "integer"
               },
               {
                 "type": "null"
               }
-            ]
+            ],
+            "title": "Lifts Total"
           },
           "runs_open": {
             "anyOf": [
               {
+                "maximum": 500,
+                "minimum": 0,
                 "type": "integer"
               },
               {
                 "type": "null"
               }
-            ]
+            ],
+            "title": "Runs Open"
           },
           "runs_total": {
             "anyOf": [
               {
+                "maximum": 500,
+                "minimum": 0,
                 "type": "integer"
               },
               {
                 "type": "null"
               }
-            ]
+            ],
+            "title": "Runs Total"
           },
           "status_text": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ]
+            "default": "",
+            "maxLength": 1000,
+            "title": "Status Text",
+            "type": "string"
           }
         },
-        "required": []
+        "title": "ManualReportIn",
+        "type": "object"
       },
       "PassIn": {
-        "title": "PassIn",
-        "type": "object",
         "properties": {
           "resort_id": {
             "anyOf": [
               {
-                "type": "string",
-                "format": "uuid"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "product": {
-            "anyOf": [
-              {
+                "format": "uuid",
                 "type": "string"
               },
               {
                 "type": "null"
               }
-            ]
+            ],
+            "title": "Resort Id"
+          },
+          "product": {
+            "default": "",
+            "maxLength": 120,
+            "title": "Product",
+            "type": "string"
           },
           "days": {
             "anyOf": [
               {
+                "maximum": 365,
+                "minimum": 1,
                 "type": "integer"
               },
               {
                 "type": "null"
               }
-            ]
+            ],
+            "title": "Days"
           },
           "status": {
-            "type": "string",
             "enum": [
               "needed",
               "bought",
               "season_pass",
               "not_needed"
             ],
-            "title": "Status"
+            "title": "Status",
+            "type": "string"
           },
           "price": {
             "anyOf": [
               {
+                "maximum": 9999999999.99,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
                 "type": "string"
               },
               {
                 "type": "null"
               }
-            ]
+            ],
+            "title": "Price"
           },
           "currency": {
             "anyOf": [
               {
+                "maxLength": 8,
                 "type": "string"
               },
               {
                 "type": "null"
               }
-            ]
+            ],
+            "title": "Currency"
           }
         },
         "required": [
           "status"
-        ]
+        ],
+        "title": "PassIn",
+        "type": "object"
+      },
+      "GearIn": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/GearItemIn"
+            },
+            "maxItems": 9,
+            "title": "Items",
+            "type": "array"
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "title": "GearIn",
+        "type": "object"
       },
       "GearItemIn": {
-        "title": "GearItemIn",
-        "type": "object",
         "properties": {
           "item": {
-            "type": "string",
             "enum": [
               "skis",
               "board",
@@ -3344,68 +3306,205 @@
               "pants",
               "other"
             ],
-            "title": "Item"
+            "title": "Item",
+            "type": "string"
           },
           "mode": {
-            "type": "string",
             "enum": [
               "own",
               "rent",
               "borrow"
             ],
-            "title": "Mode"
+            "title": "Mode",
+            "type": "string"
           },
           "price": {
             "anyOf": [
               {
+                "maximum": 9999999999.99,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
                 "type": "string"
               },
               {
                 "type": "null"
               }
-            ]
+            ],
+            "title": "Price"
           },
           "currency": {
             "anyOf": [
               {
+                "maxLength": 8,
                 "type": "string"
               },
               {
                 "type": "null"
               }
-            ]
+            ],
+            "title": "Currency"
           },
           "note": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ]
+            "default": "",
+            "maxLength": 200,
+            "title": "Note",
+            "type": "string"
           }
         },
         "required": [
           "item",
           "mode"
-        ]
+        ],
+        "title": "GearItemIn",
+        "type": "object"
       },
-      "GearIn": {
-        "title": "GearIn",
-        "type": "object",
+      "SkiProfileOut": {
         "properties": {
-          "items": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/GearItemIn"
-            },
-            "title": "Items"
+          "discipline": {
+            "title": "Discipline",
+            "type": "string"
+          },
+          "level": {
+            "title": "Level",
+            "type": "string"
+          },
+          "owns_gear": {
+            "title": "Owns Gear",
+            "type": "boolean"
+          },
+          "boot_size_eu": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Boot Size Eu"
+          },
+          "height_cm": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Height Cm"
+          },
+          "weight_kg": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Weight Kg"
+          },
+          "share_sizes_with_trip": {
+            "title": "Share Sizes With Trip",
+            "type": "boolean"
           }
         },
         "required": [
-          "items"
-        ]
+          "discipline",
+          "level",
+          "owns_gear",
+          "boot_size_eu",
+          "height_cm",
+          "weight_kg",
+          "share_sizes_with_trip"
+        ],
+        "title": "SkiProfileOut",
+        "type": "object"
+      },
+      "SkiProfileIn": {
+        "properties": {
+          "discipline": {
+            "default": "ski",
+            "enum": [
+              "ski",
+              "snowboard",
+              "both"
+            ],
+            "title": "Discipline",
+            "type": "string"
+          },
+          "level": {
+            "default": "beginner",
+            "enum": [
+              "first_time",
+              "beginner",
+              "intermediate",
+              "advanced",
+              "expert"
+            ],
+            "title": "Level",
+            "type": "string"
+          },
+          "owns_gear": {
+            "default": false,
+            "title": "Owns Gear",
+            "type": "boolean"
+          },
+          "boot_size_eu": {
+            "anyOf": [
+              {
+                "maximum": 50.0,
+                "minimum": 30.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d{0,1}0*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Boot Size Eu"
+          },
+          "height_cm": {
+            "anyOf": [
+              {
+                "maximum": 230,
+                "minimum": 100,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Height Cm"
+          },
+          "weight_kg": {
+            "anyOf": [
+              {
+                "maximum": 200,
+                "minimum": 25,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Weight Kg"
+          },
+          "share_sizes_with_trip": {
+            "default": false,
+            "title": "Share Sizes With Trip",
+            "type": "boolean"
+          }
+        },
+        "title": "SkiProfileIn",
+        "type": "object"
       }
     },
     "securitySchemes": {
