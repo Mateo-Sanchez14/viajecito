@@ -17,6 +17,8 @@ services:
         required: false
     environment:
       GOWA_BASE_URL: http://fake-gowa:4000
+      # Dev/e2e must never unfurl public URLs, even without a local .env.
+      LINKPREVIEW_FETCHER: static
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health', timeout=3)"]
       interval: 10s

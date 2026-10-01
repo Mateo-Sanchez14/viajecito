@@ -206,3 +206,22 @@ holds at least one snapshot. Run `SMOKE_SKIP_RESTIC=1` before the first backup (
    `vdc exec api python manage.py bootstrap_crew --name "<crew>" --chat-id <id>@g.us --admin-phone <+E164>`.
 7. Send `/viaje ping` in the group and expect `pong`. Check `vdc logs api` and
    `journalctl -u viajecito-tick.service` if it does not.
+
+## Wave A runtime settings
+
+`env/api.env.example` documents decisions reminder windows, ski limits, push budgets and proposal
+preview/LLM settings. Defaults match the app configuration. Browser push is optional: empty VAPID
+keys disable it; generate a matching pair with `vdc exec api python manage.py generate_vapid_keys`
+and set a `mailto:` contact or HTTPS subject (blank falls back to the HTTPS public origin).
+Leave `NOTIFICATIONS_PUSH_ENDPOINT_HOSTS` empty to use the documented built-in push-service allowlist.
+
+Production uses `LINKPREVIEW_FETCHER=httpx` for SSRF-guarded live previews. The development compose
+stack forces `static` canned previews, including `make e2e` and `make bot-smoke`, even without `.env`.
+LLM classification stays disabled unless explicitly configured and enabled.
+
+Offline platform configuration checks (no containers started):
+
+```sh
+python3 -m unittest deploy/scripts/tests/test_wave_a_config.py
+bash deploy/scripts/tests/test_lib.sh
+```
