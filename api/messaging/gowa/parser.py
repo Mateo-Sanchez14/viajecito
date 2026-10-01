@@ -9,7 +9,7 @@ __all__ = ["GroupMessage", "normalize_jid", "parse_message_event"]
 
 
 def normalize_jid(raw: str | None) -> str:
-    """Strip whitespace and the ``:device`` part of a JID (``123:12@s.whatsapp.net`` → ``123@…``)."""
+    """Strip whitespace and the ``:device`` part (``123:12@s.whatsapp.net`` → ``123@s...``)."""
     if not raw:
         return ""
     jid = raw.strip()
