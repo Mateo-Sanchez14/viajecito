@@ -5,8 +5,9 @@
 # Secrets are split per container: api reads /srv/viajecito/api.env (app variables only), cloudflared
 # receives only TUNNEL_TOKEN (interpolated from pi.env), web receives no secrets.
 # API_ENV_FILE only exists so the file can be checked off the Pi (docker compose config); leave it unset.
-# No ports are published: cloudflared reaches api:8000 and web:3000 over the compose network,
-# (the api joins WAHA's existing network only to talk to WAHA), so nothing can collide with the WAHA / notify services already running on the Pi.
+# No ports are published: cloudflared reaches api:8000 and web:3000 over the compose network, so nothing
+# can collide with the WAHA / notify services already running on the Pi. The api also joins WAHA's existing
+# network, only to talk to WAHA.
 name: viajecito
 
 x-logging: &default-logging

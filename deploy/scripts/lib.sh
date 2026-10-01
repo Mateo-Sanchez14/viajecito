@@ -110,11 +110,23 @@ webhook_signature() {
   printf '%s' "$2" | ALGO="$algo" python3 -c 'import hashlib, hmac, os, sys; print(hmac.new(os.environ["WEBHOOK_SECRET"].encode(), sys.stdin.buffer.read(), getattr(hashlib, os.environ["ALGO"])).hexdigest())'
 }
 
-# webhook_headers PROVIDER SIGNATURE: the signature headers, one per line.
+# webhook_headers PROVIDER SIGNATURE: the signature headers, one per line (every line newline-terminated).
 webhook_headers() {
   case "$1" in
-    gowa) printf 'X-Hub-Signature-256: sha256=%s' "$2" ;;
-    waha) printf 'X-Webhook-Hmac: %s\nX-Webhook-Hmac-Algorithm: sha512' "$2" ;;
+    gowa) printf 'X-Hub-Signature-256: sha256=%s\n' "$2" ;;
+    waha) printf 'X-Webhook-Hmac: %s\nX-Webhook-Hmac-Algorithm: sha512\n' "$2" ;;
     *) die "unknown WHATSAPP_PROVIDER: $1" ;;
   esac
+}
+
+# webhook_curl_header_args PROVIDER SIGNATURE: fill the global array WEBHOOK_CURL_HEADER_ARGS with
+# (-H "Name: value")... for curl. Reads to EOF and keeps an unterminated last line, so no header is dropped.
+# Expand it as ${WEBHOOK_CURL_HEADER_ARGS[@]+"${WEBHOOK_CURL_HEADER_ARGS[@]}"} (safe for empty arrays on bash 3.2).
+webhook_curl_header_args() {
+  local h
+  WEBHOOK_CURL_HEADER_ARGS=()
+  while IFS= read -r h || [[ -n "$h" ]]; do
+    [[ -n "$h" ]] && WEBHOOK_CURL_HEADER_ARGS+=(-H "$h")
+  done < <(webhook_headers "$1" "$2")
+  return 0
 }

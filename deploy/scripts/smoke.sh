@@ -32,11 +32,10 @@ fi
 payload="$(webhook_payload "$provider" "$(date -u +%s)")"
 # The secret travels through the environment, never through argv (argv is world-readable in /proc).
 sig="$(WEBHOOK_SECRET="${!secret_var}" webhook_signature "$provider" "$payload")"
-header_args=()
-while IFS= read -r h; do header_args+=(-H "$h"); done < <(webhook_headers "$provider" "$sig")
+webhook_curl_header_args "$provider" "$sig"
 if resp="$(curl -sS -m 15 -X POST "$origin$hook_path" \
   -H 'Content-Type: application/json' \
-  "${header_args[@]}" \
+  ${WEBHOOK_CURL_HEADER_ARGS[@]+"${WEBHOOK_CURL_HEADER_ARGS[@]}"} \
   --data-binary "$payload" 2>&1)" && [[ "$resp" =~ \"status\"[[:space:]]*:[[:space:]]*\"ignored\" ]]; then
   pass "signed POST $origin$hook_path ($provider) -> ignored"
 else
