@@ -14,7 +14,7 @@ describe("ComingSoon", () => {
 
     expect(screen.getByText(messages.trips.comingSoon.title)).toBeInTheDocument();
     expect(
-      screen.getByText(messages.trips.comingSoon.description.replace("{section}", messages.trips.sections.budget)),
+      screen.getByText(messages.trips.comingSoon.description.replace("{section}", messages.trips.modules.budget)),
     ).toBeInTheDocument();
   });
 

@@ -75,7 +75,7 @@ Spanish and tests read their expectations from the messages.
   `refetch`; the trip lives in the query cache under `["trips", id]`) and `TripShellContainer`, which feeds
   the presentational `ui/organisms/TripShell` (`PageHeader` + `SectionNav`).
 - The section nav is data-driven: an "overview" entry plus one entry per `trip.modules` item, linking to
-  `/crews/{crewId}/trips/{tripId}/{module}`. Labels come from `trips.sections.<module>` (a module without
+  `/crews/{crewId}/trips/{tripId}/{module}`. Labels come from `trips.modules.<module>` (a module without
   copy shows its key). The current section (and its sub-pages) is highlighted via `usePathname`.
 - `[tripId]/page.tsx` is the overview (dates, destination, participants with RSVP badges, `RsvpControl`,
   module cards). `[tripId]/[module]/page.tsx` is the "coming soon" fallback for modules without a page.
@@ -85,7 +85,7 @@ Spanish and tests read their expectations from the messages.
 ### Adding a milestone section
 
 1. Add `messages/es-AR/<feature>.json` with a `<feature>` namespace and append one import line plus the
-   argument to `messages/es-AR/index.ts`. Section labels (`trips.sections.<module>`) are core-owned and
+   argument to `messages/es-AR/index.ts`. Section labels (`trips.modules.<module>`) are core-owned and
    already exist for every known module (`proposals`, `dates`, `logistics`, `itinerary`, `today`,
    `budget`, `documents`, `ski`); a module without copy shows its key.
 2. Create `src/features/<capability>/{api,hooks,containers}` and read the current trip with
@@ -94,6 +94,18 @@ Spanish and tests read their expectations from the messages.
    wins over `[module]`, so the placeholder disappears by itself. Use `params: Promise<...>` for any
    nested dynamic segment.
 4. The nav entry already exists once the api lists the module in `trip.modules`.
+
+### Adding an overview card
+
+The trip overview renders `tripCards` from `src/features/trips/cards/index.ts`, an append-only registry
+(`TripCard = { key, module?, order, Component }`; `Component` receives `{ tripId, crewId }`).
+
+1. Build `src/features/<capability>/containers/<X>OverviewCard.tsx`; read data with your own hooks.
+2. Append one import and one entry to `tripCards`, e.g.
+   `{ key: "budget", module: "budget", order: 40, Component: BudgetOverviewCard }`.
+3. A card with a `module` renders only when the trip has that module; a card without `module` always
+   renders. Cards are sorted by `order` (lower first). Enabled modules that have no card get a core
+   placeholder link to their section, placed after the cards.
 
 ### Trip types
 
