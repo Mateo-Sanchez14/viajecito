@@ -29,7 +29,7 @@ See AGENTS.md → "WAHA provider contract (2026-10-01)".
 
 ## Tasks
 - [ ] **W1 api** — delegated (writer sonnet, worktree `waha-api`; verifier opus). Trigger: 2+ non-trivial files.
-- [ ] **W2 platform** — delegated (writer sonnet, worktree `waha-platform`; verifier opus). Trigger: 2+ files.
+- [x] **W2 platform** — delegated (writer sonnet, worktree `waha-platform`; verifier opus). Trigger: 2+ files.
 - [ ] **W3 integrate** — inline: merge W1 then W2, env parsing, full checks, merge to `main`, push.
 - [ ] **W4 Pi go-live** — inline over `ssh pi` (authorized 2026-10-01): fill env, configure the WAHA session
   webhook (preserving its existing config; needs explicit OK before touching WAHA), restic init, timers,
@@ -47,6 +47,6 @@ See AGENTS.md → "WAHA provider contract (2026-10-01)".
 |---|---|---|
 | Pi prep | done 2026-10-01 | /srv/viajecito layout, env files 600 with generated secrets, restic 0.14, units installed (timers off), images pulled, compose config OK |
 | W1 | pending | — |
-| W2 | pending | — |
+| W2 | done (correction round applied; ready to merge) | `feat/waha-platform` 6c3b125..3f4b9d3; opus verifier: 1 blocker (smoke dropped last header) + minors, fixed in ccceb0f/3f4b9d3; test_lib.sh 33 ok, shellcheck clean, compose config OK; parent spot check test_lib.sh 0 FAIL |
 | W3 | pending | — |
 | W4 | pending (needs TUNNEL_TOKEN, host, WAHA api key handling) | — |
