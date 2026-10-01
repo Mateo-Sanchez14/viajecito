@@ -104,7 +104,7 @@ cookie. Error bodies are `{"code","message"}`; `message` is English and develope
 uv run python manage.py bootstrap_crew --name "Los Pibes" --chat-id 120363000000000001@g.us --admin-phone "+54 9 11 5555-1234"
 ```
 
-Creates the crew, its WhatsApp group link and the admin membership (and the admin person). Re-running
+Creates the crew, its WhatsApp group link and the admin membership (and the admin person, with a `WhatsAppIdentity` for their phone JID unless they already have one, so their first message in the group resolves without a roster sync). Re-running
 it with the same `--chat-id` changes nothing. Invite more people from the Django admin (`Invite`).
 
 ### Accepted risks
