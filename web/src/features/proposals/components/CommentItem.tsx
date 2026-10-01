@@ -8,10 +8,12 @@ type CommentItemProps = {
   comment: ProposalComment;
   onDelete: (comment: ProposalComment) => void;
   deleting?: boolean;
+  /** IANA zone the time is shown in (the trip's), so server and browser agree. */
+  timeZone: string;
 };
 
 /** One comment: author, time, body (plain text) and a delete button only when the api allows it. */
-export function CommentItem({ comment, onDelete, deleting = false }: CommentItemProps) {
+export function CommentItem({ comment, onDelete, deleting = false, timeZone }: CommentItemProps) {
   const t = useTranslations("proposals.comments");
   const format = useFormatter();
 
@@ -22,7 +24,7 @@ export function CommentItem({ comment, onDelete, deleting = false }: CommentItem
         <p className="flex flex-wrap items-baseline gap-x-2 text-sm">
           <span className="font-medium">{comment.author.display_name}</span>
           <time dateTime={comment.created_at} className="text-muted">
-            {format.dateTime(new Date(comment.created_at), { dateStyle: "short", timeStyle: "short" })}
+            {format.dateTime(new Date(comment.created_at), { dateStyle: "short", timeStyle: "short", timeZone })}
           </time>
           {comment.source === "whatsapp" && <span className="text-muted">{t("viaWhatsapp")}</span>}
         </p>

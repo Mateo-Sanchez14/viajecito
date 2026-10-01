@@ -1,6 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { useTripContext } from "@/features/trips/TripProvider";
 import { Skeleton } from "@/ui/atoms/Skeleton";
 import { CommentForm } from "../components/CommentForm";
 import { CommentItem } from "../components/CommentItem";
@@ -12,6 +13,7 @@ import { useErrorMessage } from "../lib/useErrorMessage";
 export function CommentThread({ proposalId }: { proposalId: string }) {
   const t = useTranslations("proposals.comments");
   const errorMessage = useErrorMessage();
+  const { trip } = useTripContext();
   const comments = useComments(proposalId);
   const add = useAddComment(proposalId);
   const remove = useDeleteComment();
@@ -36,6 +38,7 @@ export function CommentThread({ proposalId }: { proposalId: string }) {
             <CommentItem
               key={comment.id}
               comment={comment}
+              timeZone={trip.timezone}
               deleting={remove.isPending && remove.variables === comment.id}
               onDelete={(target) => remove.mutate(target.id)}
             />

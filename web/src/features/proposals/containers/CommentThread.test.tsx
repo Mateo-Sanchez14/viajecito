@@ -2,6 +2,9 @@ import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { HttpResponse } from "msw";
 import { createOpenApiHttp } from "openapi-msw";
 import { afterEach, describe, expect, it } from "vitest";
+import { MeProvider } from "@/features/auth/MeProvider";
+import { makeMe, makeTrip } from "@/features/trips/fixtures";
+import { TripProvider } from "@/features/trips/TripProvider";
 import { resetCsrfToken } from "@/shared/api/csrf";
 import type { components, paths } from "@/shared/api/schema";
 import { renderWithProviders } from "@/test/render";
@@ -39,7 +42,14 @@ function serveComments(initial: Comment[]) {
   return calls;
 }
 
-const setup = () => renderWithProviders(<CommentThread proposalId={PROPOSAL_ID} />);
+const setup = () =>
+  renderWithProviders(
+    <MeProvider me={makeMe()}>
+      <TripProvider trip={makeTrip()}>
+        <CommentThread proposalId={PROPOSAL_ID} />
+      </TripProvider>
+    </MeProvider>,
+  );
 
 describe("CommentThread", () => {
   afterEach(() => resetCsrfToken());
