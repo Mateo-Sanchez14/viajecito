@@ -88,6 +88,7 @@ class ProfileRecord:
     height_cm: int | None
     weight_kg: int | None
     share_sizes_with_trip: bool
+    owns_gear: bool = False
 
 
 @dataclass(frozen=True)
@@ -372,3 +373,114 @@ def parse_nieve_args(args: str) -> NieveArgs:
     except InvalidSkiInputError as exc:
         raise UsageError(args) from exc
     return NieveArgs(" ".join(tokens), base, new)
+
+
+class ResortAlreadyAddedError(Exception):
+    """The resort is already on the trip."""
+
+
+class ResortNotFoundError(LookupError):
+    """No active resort with that id."""
+
+
+MAX_PRICE = Decimal("9999999999.99")
+_CENT = Decimal("0.01")
+
+
+def normalize_currency(raw: str) -> str:
+    cleaned = raw.strip().upper()
+    if len(cleaned) != 3 or not (cleaned.isascii() and cleaned.isalpha()):
+        raise InvalidSkiInputError("currency must be a 3-letter code")
+    return cleaned
+
+
+def _price(value: Decimal | None) -> Decimal | None:
+    if value is None:
+        return None
+    if not value.is_finite() or value < 0 or value > MAX_PRICE:
+        raise InvalidSkiInputError("price must be between 0 and 9999999999.99")
+    return value.quantize(_CENT)
+
+
+@dataclass(frozen=True)
+class PassInput:
+    resort_id: str | None
+    status: str
+    product: str = ""
+    days: int | None = None
+    price: Decimal | None = None
+    currency: str | None = None  # None -> the trip currency
+
+
+def validate_pass(item: PassInput, default_currency: str) -> PassInput:
+    if item.status not in PASS_STATUSES:
+        raise InvalidSkiInputError("unknown pass status")
+    if item.days is not None and not 1 <= item.days <= 365:
+        raise InvalidSkiInputError("days must be between 1 and 365")
+    return PassInput(
+        resort_id=item.resort_id,
+        status=item.status,
+        product=clean_text(item.product, 120),
+        days=item.days,
+        price=_price(item.price),
+        currency=normalize_currency(item.currency or default_currency),
+    )
+
+
+@dataclass(frozen=True)
+class GearInput:
+    item: str
+    mode: str
+    price: Decimal | None = None
+    currency: str | None = None
+    note: str = ""
+
+
+def validate_gear(items: list[GearInput], default_currency: str) -> list[GearInput]:
+    seen: set[str] = set()
+    clean = []
+    for entry in items:
+        if entry.item not in GEAR_ITEMS or entry.mode not in GEAR_MODES:
+            raise InvalidSkiInputError("unknown gear item or mode")
+        if entry.item in seen:
+            raise InvalidSkiInputError(f"gear item {entry.item!r} appears twice")
+        seen.add(entry.item)
+        clean.append(
+            GearInput(
+                item=entry.item,
+                mode=entry.mode,
+                price=_price(entry.price),
+                currency=normalize_currency(entry.currency or default_currency),
+                note=clean_text(entry.note, 200),
+            )
+        )
+    return clean
+
+
+@dataclass(frozen=True)
+class ProfileInput:
+    discipline: str = "ski"
+    level: str = "beginner"
+    owns_gear: bool = False
+    boot_size_eu: Decimal | None = None
+    height_cm: int | None = None
+    weight_kg: int | None = None
+    share_sizes_with_trip: bool = False
+
+
+def validate_profile(profile: ProfileInput) -> ProfileInput:
+    if profile.discipline not in DISCIPLINES or profile.level not in LEVELS:
+        raise InvalidSkiInputError("unknown discipline or level")
+    _in_range("boot_size_eu", profile.boot_size_eu, 30, 50)
+    _in_range("height_cm", profile.height_cm, 100, 230)
+    _in_range("weight_kg", profile.weight_kg, 25, 200)
+    boot = None if profile.boot_size_eu is None else profile.boot_size_eu.quantize(Decimal("0.1"))
+    return ProfileInput(
+        profile.discipline,
+        profile.level,
+        profile.owns_gear,
+        boot,
+        profile.height_cm,
+        profile.weight_kg,
+        profile.share_sizes_with_trip,
+    )

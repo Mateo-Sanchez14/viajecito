@@ -6,6 +6,7 @@ from ski import domain
 from ski.domain import ManualReportInput, ReportView
 from ski.ports import SkiStore
 from ski.use_cases.access import ski_enabled
+from ski.use_cases.trip_resorts import ResortNotOnTripError
 
 
 class TripNotFoundError(LookupError):
@@ -13,10 +14,6 @@ class TripNotFoundError(LookupError):
 
 
 class ModuleNotEnabledError(LookupError):
-    pass
-
-
-class ResortNotOnTripError(LookupError):
     pass
 
 

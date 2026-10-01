@@ -5,7 +5,20 @@ from datetime import datetime
 from decimal import Decimal
 from typing import Any, Protocol
 
-from ski.domain import ManualReportInput, ReportData, TripInfo, TripResortData
+from ski.domain import (
+    GearInput,
+    GearRecord,
+    ManualReportInput,
+    Participant,
+    PassInput,
+    PassRecord,
+    ProfileInput,
+    ProfileRecord,
+    ReportData,
+    ResortData,
+    TripInfo,
+    TripResortData,
+)
 
 
 class ProviderError(Exception):
@@ -101,3 +114,49 @@ class SkiStore(Protocol):
     def add_manual_report(
         self, resort_id: str, reporter_id: str, report: ManualReportInput, now: datetime
     ) -> ReportData: ...
+
+    def list_resorts(self, country: str | None) -> list[ResortData]:
+        """Active resorts, optionally of one country."""
+        ...
+
+    def get_resort(self, resort_id: str) -> ResortData | None:
+        """An ACTIVE resort by id."""
+        ...
+
+    def add_trip_resort(self, trip_id: str, resort_id: str, nights: int | None) -> TripResortData:
+        """Append the resort to the trip. Raises ``ResortAlreadyAddedError``."""
+        ...
+
+    def update_trip_resort(
+        self, trip_id: str, resort_id: str, changes: dict[str, int | None]
+    ) -> TripResortData | None:
+        """Apply ``nights``/``position`` changes; ``None`` when the resort is not on the trip."""
+        ...
+
+    def remove_trip_resort(self, trip_id: str, resort_id: str) -> bool: ...
+
+    def recent_reports(self, resort_id: str, limit: int) -> list[ReportData]:
+        """Newest first."""
+        ...
+
+    def participants(self, trip_id: str) -> list[Participant]:
+        """Every active member of the trip's crew with their RSVP, in a stable order."""
+        ...
+
+    def passes(self, trip_id: str) -> list[PassRecord]: ...
+
+    def upsert_pass(self, trip_id: str, person_id: str, item: PassInput) -> PassRecord: ...
+
+    def delete_pass(self, trip_id: str, person_id: str, resort_id: str | None) -> None: ...
+
+    def gear(self, trip_id: str) -> list[GearRecord]: ...
+
+    def replace_gear(
+        self, trip_id: str, person_id: str, items: list[GearInput]
+    ) -> list[GearRecord]: ...
+
+    def profiles(self, person_ids: list[str]) -> list[ProfileRecord]: ...
+
+    def get_profile(self, person_id: str) -> ProfileRecord | None: ...
+
+    def save_profile(self, person_id: str, profile: ProfileInput) -> ProfileRecord: ...
