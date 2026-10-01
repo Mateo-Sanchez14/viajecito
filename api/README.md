@@ -237,18 +237,23 @@ no-op. Orders: commands 10 (registered by `MessagingConfig`), quoted card 20, li
 
 ## Domain events
 
-`shared/events.py` is a tiny in-process bus: `subscribe(event_name, callback)`, `publish(event_name,
-**payload)` and `clear()` (tests). Subscribers run in registration order; one that raises is logged
-(`logger.exception`) and never stops the others; publishing with no subscribers does nothing. Subscribe
-from `AppConfig.ready()`.
+`shared/events.py` is a tiny in-process bus (pure Python): `subscribe(name, callback)` (the same callable
+twice is a no-op), `publish(name, **payload)`, `subscribers(name)` (introspection), `isolated()` (tests:
+swap in an empty registry for a block) and `clear()`.
 
-- **Names**: `"<app>.<entity>_<past_tense>"`, e.g. `proposals.status_changed`.
-- **Payload**: keyword arguments with ids and plain values only (never model instances).
-- **Inside a transaction** use `shared.events_django.publish_after_commit(...)`: it defers through
-  `transaction.on_commit` (dropped on rollback) and publishes immediately outside an atomic block.
-- **Testing**: pytest-django's default `django_db` wraps the test in a transaction that is never
-  committed, so `on_commit` callbacks never fire. Tests of `publish_after_commit` subscribers must use
-  the `django_capture_on_commit_callbacks(execute=True)` fixture (or `django_db(transaction=True)`).
+- **`publish` is synchronous and transactional.** Subscribers run in registration order in the caller's
+  thread and transaction, and a subscriber exception PROPAGATES: the publisher calls it inside
+  `transaction.atomic()` after its writes, so a failing subscriber rolls the whole change back. Use it for
+  effects that are part of the same user action. Subscribers must be small and idempotent.
+- **`shared.events_django.publish_after_commit(name, **payload)` is the extra for non-critical side
+  effects.** It defers through `transaction.on_commit` (dropped on rollback, immediate outside an atomic
+  block) and isolates every subscriber: failures are logged, never raised.
+- **Names** `<noun>.<past_participle>` (`proposal.status_changed`); **payload** ids as `str(uuid)` and plain
+  values (`str`, `int`, `bool`, `None`, `date`, aware `datetime`), never model instances.
+- **Subscribe** from `AppConfig.ready()`. In tests wrap registrations in `with events.isolated():`.
+- **Testing `publish_after_commit`**: pytest-django's default `django_db` wraps the test in a transaction
+  that is never committed, so `on_commit` callbacks never fire. Use the
+  `django_capture_on_commit_callbacks(execute=True)` fixture (or `django_db(transaction=True)`).
 
 ## Reminder rules and the tick `reminders` phase
 
