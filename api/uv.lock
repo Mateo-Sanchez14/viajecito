@@ -1317,6 +1317,7 @@ dependencies = [
     { name = "django-ninja" },
     { name = "environs" },
     { name = "gunicorn" },
+    { name = "httpx" },
     { name = "phonenumbers" },
     { name = "pywebpush" },
     { name = "whitenoise" },
@@ -1325,7 +1326,6 @@ dependencies = [
 [package.dev-dependencies]
 dev = [
     { name = "factory-boy" },
-    { name = "httpx" },
     { name = "import-linter" },
     { name = "pytest" },
     { name = "pytest-django" },
@@ -1341,6 +1341,7 @@ requires-dist = [
     { name = "django-ninja", specifier = ">=1.7,<2" },
     { name = "environs", specifier = ">=14" },
     { name = "gunicorn", specifier = ">=23" },
+    { name = "httpx", specifier = ">=0.28" },
     { name = "phonenumbers", specifier = ">=9.0.40" },
     { name = "pywebpush", specifier = ">=2.5.0" },
     { name = "whitenoise", specifier = ">=6.9" },
@@ -1349,7 +1350,6 @@ requires-dist = [
 [package.metadata.requires-dev]
 dev = [
     { name = "factory-boy", specifier = ">=3.3" },
-    { name = "httpx", specifier = ">=0.28" },
     { name = "import-linter", specifier = ">=2.3" },
     { name = "pytest", specifier = ">=8" },
     { name = "pytest-django", specifier = ">=4.11" },

@@ -11,6 +11,7 @@ dependencies = [
     "environs>=14",
     "phonenumbers>=9.0.40",
     "pywebpush>=2.5.0",
+    "httpx>=0.28",
 ]
 
 [dependency-groups]
@@ -23,7 +24,6 @@ dev = [
     "factory-boy>=3.3",
     "time-machine>=2.16",
     "respx>=0.22",
-    "httpx>=0.28",
 ]
 
 [tool.uv]
