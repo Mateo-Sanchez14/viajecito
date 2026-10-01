@@ -5,6 +5,7 @@
 # explicit confirmation the stack is stopped, the current DB and media are moved aside (never deleted),
 # the restored copies are swapped in, and the stack is started again.
 set -euo pipefail
+umask 077
 
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source-path=SCRIPTDIR source=lib.sh
@@ -14,7 +15,7 @@ source "$here/lib.sh"
 snapshot_id="$1"
 
 load_env "$PI_ENV_FILE"
-require_cmd docker restic
+require_cmd docker restic flock
 export_restic
 
 data="$VIAJECITO_ROOT/data"
@@ -40,16 +41,14 @@ rm -rf -- "$restore_dir"
 mkdir -p "$restore_dir"
 restic restore "$snapshot_id" --tag viajecito --target "$restore_dir"
 
-restored_db=""
-for f in "$restore_dir$VIAJECITO_ROOT"/backups/db-*.sqlite3; do
-  [[ -e "$f" ]] && restored_db="$f"
-done
-[[ -n "$restored_db" ]] || die "no db-*.sqlite3 found in the snapshot"
+# backup.sh stores the database under the stable path backups/current/db.sqlite3.
+restored_db="$restore_dir$VIAJECITO_ROOT/backups/current/db.sqlite3"
+[[ -s "$restored_db" ]] || die "backups/current/db.sqlite3 not found in the snapshot"
 restored_media="$restore_dir$VIAJECITO_ROOT/data/media"
 
 log "restored database: $restored_db"
 if [[ -d "$restored_media" ]]; then log "restored media:    $restored_media"; else log "snapshot has no media directory"; fi
-printf 'This REPLACES %s and %s/media (the current copies are kept as *.pre-restore-*).\nType "restore" to continue: ' "$data/db.sqlite3" "$data" >&2
+printf 'This REPLACES %s and %s/media (current copies, including -wal/-shm, are kept as *.pre-restore-*).\nType "restore" to continue: ' "$data/db.sqlite3" "$data" >&2
 read -r answer
 [[ "$answer" == "restore" ]] || die "aborted, nothing was changed (extracted files remain in $restore_dir)"
 
@@ -60,7 +59,10 @@ dc stop
 
 mkdir -p "$data"
 if [[ -e "$data/db.sqlite3" ]]; then mv -- "$data/db.sqlite3" "$data/db.sqlite3.pre-restore-$ts"; fi
-rm -f -- "$data/db.sqlite3-wal" "$data/db.sqlite3-shm"
+# A stale -wal/-shm would be replayed onto the restored DB, so they move aside with it.
+for ext in -wal -shm; do
+  if [[ -e "$data/db.sqlite3$ext" ]]; then mv -- "$data/db.sqlite3$ext" "$data/db.sqlite3$ext.pre-restore-$ts"; fi
+done
 cp -- "$restored_db" "$data/db.sqlite3"
 
 if [[ -d "$restored_media" ]]; then

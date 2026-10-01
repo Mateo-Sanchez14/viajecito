@@ -27,8 +27,8 @@ printf 'CRLF=win\r\n' >>"$tmp/pi.env"
 (
   load_env "$tmp/pi.env"
   assert_eq "plain" "abc" "$PLAIN"
-  assert_eq "double quotes stripped" "with space" "$QUOTED"
-  assert_eq "single quotes stripped" "single q" "$SINGLE"
+  assert_eq "double quotes kept literally" '"with space"' "$QUOTED"
+  assert_eq "single quotes kept literally" "'single q'" "$SINGLE"
   assert_eq "empty" "" "$EMPTY"
   # shellcheck disable=SC2016
   assert_eq "no expansion" 'a$HOME$(echo pwned)`id`' "$DOLLAR"

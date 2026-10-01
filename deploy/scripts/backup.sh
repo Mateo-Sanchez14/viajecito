@@ -4,13 +4,14 @@
 # 2. restic backup of that snapshot + the media directory
 # 3. restic retention, keep the last 7 local snapshots, optional healthchecks ping
 set -euo pipefail
+umask 077
 
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source-path=SCRIPTDIR source=lib.sh
 source "$here/lib.sh"
 
 load_env "$PI_ENV_FILE"
-require_cmd docker restic
+require_cmd docker restic flock curl python3
 export_restic
 
 backups="$VIAJECITO_ROOT/backups"
@@ -21,8 +22,16 @@ exec 9>"$backups/.lock"
 flock -n 9 || die "another backup or restore is running"
 
 stamp="$(date -u +%Y-%m-%dT%H%M%SZ)"
+# restic groups snapshots by host+paths (for both `backup` parent selection and `forget` retention).
+# So the path restic sees must be STABLE: the online backup always lands in current/db.sqlite3 and
+# that file is what restic stores. A uniquely named file per run would make every snapshot its own
+# group, so retention would never remove anything and media would never find a parent snapshot.
+# Timestamped local copies are kept separately (and are not given to restic).
+current_dir="$backups/current"
+current="$current_dir/db.sqlite3"
 snapshot="$backups/db-$stamp.sqlite3"
-partial="$snapshot.partial"
+partial="$current_dir/db.sqlite3.partial"
+mkdir -p "$current_dir"
 in_container="/tmp/viajecito-backup.sqlite3"
 
 cleanup() {
@@ -31,7 +40,7 @@ cleanup() {
 }
 trap cleanup EXIT
 
-log "sqlite online backup -> $snapshot"
+log "sqlite online backup -> $current (copy: $snapshot)"
 dc exec -T api python - "$in_container" <<'PY'
 import os
 import sqlite3
@@ -50,9 +59,10 @@ if result != "ok":
 PY
 dc exec -T api cat "$in_container" >"$partial"
 [[ -s "$partial" ]] || die "backup file is empty"
-mv -- "$partial" "$snapshot"
+mv -- "$partial" "$current"
+cp -- "$current" "$snapshot"
 
-paths=("$snapshot")
+paths=("$current")
 if [[ -d "$media" ]]; then
   paths+=("$media")
 else
@@ -68,6 +78,6 @@ restic forget --tag viajecito --keep-daily 7 --keep-weekly 4 --prune
 prune_local_snapshots "$backups" 7
 
 if [[ -n "${HEALTHCHECKS_URL:-}" ]]; then
-  curl -fsS -m 10 --retry 2 "$HEALTHCHECKS_URL" >/dev/null || log "WARN: healthchecks ping failed"
+  curl -fsS -m 10 --retry 3 "$HEALTHCHECKS_URL" >/dev/null || log "WARN: healthchecks ping failed"
 fi
 log "backup done"

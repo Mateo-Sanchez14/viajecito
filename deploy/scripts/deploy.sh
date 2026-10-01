@@ -10,7 +10,7 @@ source "$here/lib.sh"
 
 load_env "$PI_ENV_FILE"
 require_cmd docker
-require_var GHCR_OWNER PUBLIC_ORIGIN
+require_var GHCR_OWNER
 
 timeout="${DEPLOY_TIMEOUT:-240}"
 

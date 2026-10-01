@@ -3,14 +3,16 @@
 # shellcheck shell=bash
 
 VIAJECITO_ROOT="${VIAJECITO_ROOT:-/srv/viajecito}"
+# pi.env holds host-only values (images, tunnel token, backups); api.env holds the api container's variables.
 PI_ENV_FILE="${PI_ENV_FILE:-$VIAJECITO_ROOT/pi.env}"
+API_ENV_FILE="${API_ENV_FILE:-$VIAJECITO_ROOT/api.env}"
 
 log() { printf '%s %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$*" >&2; }
 die() { log "ERROR: $*"; exit 1; }
 
 # load_env FILE: export KEY=VALUE pairs from a docker-style env file WITHOUT executing it.
-# Blank lines and comments are skipped; one pair of matching surrounding quotes is stripped;
-# no expansion of any kind happens (values are taken literally).
+# Blank lines and comments are skipped. Values are taken literally (quotes are kept, nothing is
+# expanded), exactly like compose's `format: raw`, so both parsers agree.
 load_env() {
   local file="$1" line key value
   [[ -r "$file" ]] || die "cannot read env file: $file"
@@ -20,9 +22,6 @@ load_env() {
     if [[ "$line" =~ ^[[:space:]]*([A-Za-z_][A-Za-z0-9_]*)=(.*)$ ]]; then
       key="${BASH_REMATCH[1]}"
       value="${BASH_REMATCH[2]}"
-      if [[ "$value" =~ ^\"(.*)\"$ || "$value" =~ ^\'(.*)\'$ ]]; then
-        value="${BASH_REMATCH[1]}"
-      fi
       export "$key=$value"
     fi
   done <"$file"

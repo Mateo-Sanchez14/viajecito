@@ -24,7 +24,7 @@ Ingress is managed in the Cloudflare dashboard; the container only needs `TUNNEL
    1. Subdomain/domain = your host, Path = `^/(api|hooks|media|admin|static)(/|$)`, Service type HTTP,
       URL `api:8000`.
    2. Same host, empty path, Service type HTTP, URL `web:3000`.
-4. `PUBLIC_ORIGIN` in `pi.env` must be `https://<host>`.
+4. `PUBLIC_ORIGIN` in `api.env` must be `https://<host>`.
 
 The container runs `tunnel --no-autoupdate run` and reads `TUNNEL_TOKEN` from the environment.
 
