@@ -27,7 +27,7 @@
       "errors": {
         "urlInvalid": "Ese link no parece válido",
         "needUrlOrTitle": "Pegá un link o ponele un título",
-        "priceInvalid": "El precio tiene que ser un número, por ejemplo 1500 o 1500,50",
+        "titleRequired": "Ponele un título a la propuesta",
         "currencyInvalid": "La moneda tiene que ser un código de 3 letras, por ejemplo USD",
         "endBeforeStart": "La fecha de fin tiene que ser después del inicio"
       }
@@ -147,6 +147,7 @@
       "score": "{score, plural, =0 {0 puntos} one {# punto} other {# puntos}}"
     },
     "errors": {
+      "invalid_price": "No entendemos ese precio, escribilo como 1500 o 1.500,50",
       "duplicate_proposal": "Esa propuesta ya estaba",
       "invalid_transition": "No se puede cambiar a ese estado",
       "invalid_url": "Ese link no parece válido",

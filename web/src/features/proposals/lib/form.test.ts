@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   emptyValues,
   normalizeUrl,
+  parsePrice,
   toCreateBody,
   toPatchBody,
   validateProposal,
@@ -32,15 +33,39 @@ describe("validateProposal", () => {
     expect(normalizeUrl("www.booking.com/x")).toBe("https://www.booking.com/x");
   });
 
-  it("accepts decimals with a dot or a comma and rejects the rest", () => {
-    for (const ok of ["0", "1500", "1500.5", "1500,50"]) {
-      expect(validateProposal({ ...base, title: "x", price: ok }, { requireUrlOrTitle: true }).price).toBeUndefined();
+  it("reads Argentine and plain decimals without ever shrinking an amount", () => {
+    const cases: Record<string, string> = {
+      "0": "0.00",
+      "1500": "1500.00",
+      "1500.5": "1500.50",
+      "1500,50": "1500.50",
+      "1500,5": "1500.50",
+      "1.500": "1500.00",
+      "1.500,50": "1500.50",
+      "1.234.567": "1234567.00",
+      "12.50": "12.50",
+    };
+    for (const [input, expected] of Object.entries(cases)) {
+      expect(parsePrice(input), input).toBe(expected);
+      expect(validateProposal({ ...base, title: "x", price: input }, { requireUrlOrTitle: true }).price).toBeUndefined();
     }
-    for (const bad of ["-1", "abc", "1.234", "1,2,3"]) {
-      expect(validateProposal({ ...base, title: "x", price: bad }, { requireUrlOrTitle: true }).price).toBe(
-        "priceInvalid",
+  });
+
+  it("rejects ambiguous or malformed prices", () => {
+    for (const bad of ["-1", "abc", "1.5000", "1,2,3", "1.2.3", "1,500.50", "1.500,5,0", "1,234", ".5", "1.", "1 500"]) {
+      expect(parsePrice(bad), bad).toBeNull();
+      expect(validateProposal({ ...base, title: "x", price: bad }, { requireUrlOrTitle: true }).price, bad).toBe(
+        "invalid_price",
       );
     }
+  });
+
+  it("requires a title when editing and never lets it be blank", () => {
+    const values = { ...base, title: "   " };
+
+    expect(validateProposal(values, { requireUrlOrTitle: false, requireTitle: true }).title).toBe("titleRequired");
+    expect(validateProposal({ ...values, title: "ok" }, { requireUrlOrTitle: false, requireTitle: true })).toEqual({});
+    expect(toPatchBody(values)).not.toHaveProperty("title");
   });
 
   it("checks the currency code and the date order", () => {

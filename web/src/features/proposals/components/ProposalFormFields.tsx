@@ -25,7 +25,11 @@ const BASIS_KEY = { total: "total", per_person: "perPerson", per_night: "perNigh
 export function ProposalFormFields({ values, errors, onChange, mode }: ProposalFormFieldsProps) {
   const t = useTranslations("proposals");
   const id = useId();
-  const err = (field: FormField) => (errors[field] ? t(`add.errors.${errors[field]}`) : null);
+  const err = (field: FormField) => {
+    const key = errors[field];
+    if (!key) return null;
+    return key === "invalid_price" ? t("errors.invalid_price") : t(`add.errors.${key}`);
+  };
   const describedBy = (field: FormField) => (errors[field] ? `${id}-${field}-error` : undefined);
   const fieldError = (field: FormField, className = "") =>
     err(field) && (
@@ -66,7 +70,10 @@ export function ProposalFormFields({ values, errors, onChange, mode }: ProposalF
           maxLength={300}
           value={values.title}
           onChange={(e) => onChange({ title: e.target.value })}
+          invalid={Boolean(errors.title)}
+          aria-describedby={describedBy("title")}
         />
+        {fieldError("title")}
       </div>
 
       <div className="flex flex-col gap-1">

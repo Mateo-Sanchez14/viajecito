@@ -12,16 +12,16 @@ export type FormValues = {
   endsOn: string;
 };
 
-export type FormField = "url" | "price" | "currency" | "dates";
+export type FormField = "url" | "title" | "price" | "currency" | "dates";
 export type FormErrorKey =
   | "urlInvalid"
   | "needUrlOrTitle"
-  | "priceInvalid"
+  | "invalid_price"
+  | "titleRequired"
   | "currencyInvalid"
   | "endBeforeStart";
 export type FormErrors = Partial<Record<FormField, FormErrorKey>>;
 
-const PRICE = /^\d+([.,]\d{1,2})?$/;
 const CURRENCY = /^[A-Za-z]{3}$/;
 
 export function emptyValues(currency: string): FormValues {
@@ -67,20 +67,42 @@ function isHttpUrl(value: string): boolean {
   }
 }
 
-/** "1500,5" -> "1500.50": a decimal string with two places, as the api expects. */
-function normalizePrice(value: string): string {
-  return Number(value.trim().replace(",", ".")).toFixed(2);
+const THOUSANDS = /^\d{1,3}(\.\d{3})+$/;
+
+/**
+ * Reads an amount the way an Argentine user types it and returns a two-place decimal string,
+ * or null when it is malformed or ambiguous. `,` is the decimal separator; `.` is a decimal
+ * point only when followed by 1-2 digits, and a thousands separator when followed by 3.
+ * "1.500" is 1500 (never 1.50), "1.500,50" is 1500.50, "1500.5" is 1500.50.
+ */
+export function parsePrice(raw: string): string | null {
+  const value = raw.trim();
+  let integer: string;
+  let fraction = "";
+  if (value.includes(",")) {
+    const parts = value.split(",");
+    if (parts.length !== 2 || !/^\d{1,2}$/.test(parts[1])) return null;
+    [integer, fraction] = parts;
+  } else if (/^\d+\.\d{1,2}$/.test(value)) {
+    [integer, fraction] = value.split(".");
+  } else {
+    integer = value;
+  }
+  if (THOUSANDS.test(integer)) integer = integer.replaceAll(".", "");
+  if (!/^\d+$/.test(integer)) return null;
+  return Number(`${integer}.${fraction || "0"}`).toFixed(2);
 }
 
 export function validateProposal(
   values: FormValues,
-  { requireUrlOrTitle }: { requireUrlOrTitle: boolean },
+  { requireUrlOrTitle, requireTitle = false }: { requireUrlOrTitle: boolean; requireTitle?: boolean },
 ): FormErrors {
   const errors: FormErrors = {};
   const url = normalizeUrl(values.url);
   if (url && !isHttpUrl(url)) errors.url = "urlInvalid";
   else if (requireUrlOrTitle && !url && !values.title.trim()) errors.url = "needUrlOrTitle";
-  if (values.price.trim() && !PRICE.test(values.price.trim())) errors.price = "priceInvalid";
+  if (requireTitle && !values.title.trim()) errors.title = "titleRequired";
+  if (values.price.trim() && parsePrice(values.price) === null) errors.price = "invalid_price";
   if (values.currency.trim() && !CURRENCY.test(values.currency.trim())) errors.currency = "currencyInvalid";
   if (values.startsOn && values.endsOn && values.endsOn < values.startsOn) errors.dates = "endBeforeStart";
   return errors;
@@ -95,7 +117,7 @@ export function toCreateBody(values: FormValues): ProposalCreate {
   if (values.category) body.category = values.category;
   if (values.note.trim()) body.note = values.note.trim();
   if (values.price.trim()) {
-    body.est_price = normalizePrice(values.price);
+    body.est_price = parsePrice(values.price) ?? undefined;
     body.currency = values.currency.trim().toUpperCase();
     body.price_basis = values.basis;
   }
@@ -106,12 +128,12 @@ export function toCreateBody(values: FormValues): ProposalCreate {
 
 /** Edit sends every editable field; an emptied price or date clears it (`null`). */
 export function toPatchBody(values: FormValues): ProposalPatch {
-  const hasPrice = values.price.trim() !== "";
+  const price = values.price.trim() === "" ? null : parsePrice(values.price);
   return {
-    title: values.title.trim(),
+    ...(values.title.trim() ? { title: values.title.trim() } : {}),
     note: values.note.trim(),
     category: values.category || undefined,
-    est_price: hasPrice ? normalizePrice(values.price) : null,
+    est_price: price,
     currency: values.currency.trim().toUpperCase() || undefined,
     price_basis: values.basis,
     starts_on: values.startsOn || null,

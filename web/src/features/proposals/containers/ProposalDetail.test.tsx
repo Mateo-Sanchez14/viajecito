@@ -252,6 +252,28 @@ describe("ProposalDetail", () => {
     expect(screen.queryByRole("form", { name: t.detail.editTitle })).not.toBeInTheDocument();
   });
 
+  it("will not save an edit with a blank title or an ambiguous price", async () => {
+    serve(makeProposal());
+    let patched = false;
+    server.use(
+      http.patch("/api/proposals/{proposal_id}", ({ response }) => {
+        patched = true;
+        return response(200).json(makeProposal());
+      }),
+    );
+    setup();
+
+    fireEvent.click(await screen.findByRole("button", { name: t.detail.edit }));
+    const form = screen.getByRole("form", { name: t.detail.editTitle });
+    fireEvent.change(within(form).getByLabelText(t.add.titleField), { target: { value: " " } });
+    fireEvent.change(within(form).getByLabelText(t.add.price), { target: { value: "1.5000" } });
+    fireEvent.click(within(form).getByRole("button", { name: t.detail.save }));
+
+    expect(await within(form).findByText(t.add.errors.titleRequired)).toBeInTheDocument();
+    expect(within(form).getByText(t.errors.invalid_price)).toBeInTheDocument();
+    expect(patched).toBe(false);
+  });
+
   it("shows a not-found state for an unknown proposal", async () => {
     server.use(
       http.get("/api/proposals/{proposal_id}", ({ response }) =>

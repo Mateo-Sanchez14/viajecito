@@ -25,7 +25,7 @@ export function ProposalEditForm({ proposal, onDone }: ProposalEditFormProps) {
 
   function onSubmit(event: FormEvent) {
     event.preventDefault();
-    const found = validateProposal(values, { requireUrlOrTitle: false });
+    const found = validateProposal(values, { requireUrlOrTitle: false, requireTitle: true });
     setErrors(found);
     if (Object.keys(found).length > 0) return;
     update.mutate(toPatchBody(values), { onSuccess: onDone });
