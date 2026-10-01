@@ -64,3 +64,11 @@ def validate_rsvp(rsvp: str) -> str:
     if rsvp not in RSVP_VALUES:
         raise InvalidTripInputError(f"rsvp must be one of {', '.join(RSVP_VALUES)}")
     return rsvp
+
+
+@dataclass(frozen=True)
+class TripDetail:
+    trip: TripData
+    modules: list[str]
+    participants: list[ParticipantData]
+    my_rsvp: str

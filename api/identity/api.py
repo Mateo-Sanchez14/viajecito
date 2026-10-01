@@ -14,7 +14,6 @@ from identity.domain import InvalidPhoneError, OtpVerificationError, RateLimited
 from identity.models import Person
 from identity.schemas import (
     CsrfOut,
-    ErrorOut,
     MeOut,
     OtpRequestIn,
     OtpRequestOut,
@@ -25,7 +24,7 @@ from identity.use_cases.logout import logout as logout_use_case
 from identity.use_cases.me import me as me_use_case
 from identity.use_cases.request_otp import request_otp as request_otp_use_case
 from identity.use_cases.verify_otp import verify_otp as verify_otp_use_case
-from shared.api_errors import ApiError, CsrfCookie
+from shared.api_errors import ApiError, CsrfCookie, ErrorOut
 
 router = Router(tags=["auth"])
 

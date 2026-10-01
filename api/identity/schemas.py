@@ -6,11 +6,6 @@ from ninja import Schema
 from crews.schemas import CrewSummaryOut
 
 
-class ErrorOut(Schema):
-    code: str
-    message: str
-
-
 class CsrfOut(Schema):
     csrf_token: str
 
