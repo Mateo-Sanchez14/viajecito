@@ -132,7 +132,7 @@ Index `(proposal, created_at)`.
 
 ### Domain rules
 
-#### Status graph (`proposals/domain.py::transition(current, to) -> Transition | raises InvalidTransition`)
+#### Status graph (`proposals/domain/status.py::transition(current, to) -> Transition | raises InvalidTransition`)
 
 | From | Allowed `to` |
 |---|---|
