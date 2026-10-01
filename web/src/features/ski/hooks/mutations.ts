@@ -1,10 +1,14 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
+  addTripResort,
+  createManualReport,
   putSkiProfile,
+  removeTripResort,
   setMyGear,
   setMyPass,
   skiKeys,
   type GearItemIn,
+  type ManualReportIn,
   type PassIn,
   type PersonRef,
   type SkiProfileIn,
@@ -48,5 +52,32 @@ export function useSaveSkiProfile() {
     onSuccess: (saved) => {
       queryClient.setQueryData(skiKeys.profile(), saved);
     },
+  });
+}
+
+/** Adds a resort to the trip; the overview (resorts, conditions) is refetched. */
+export function useAddTripResort(tripId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (resortId: string) => addTripResort(tripId, resortId),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: skiKeys.overview(tripId) }),
+  });
+}
+
+/** Removes a resort from the trip (its reports are kept by the api). */
+export function useRemoveTripResort(tripId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (resortId: string) => removeTripResort(tripId, resortId),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: skiKeys.overview(tripId) }),
+  });
+}
+
+/** Posts a manual snow report for one resort of the trip. */
+export function useManualReport(tripId: string, resortId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (report: ManualReportIn) => createManualReport(tripId, resortId, report),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: skiKeys.overview(tripId) }),
   });
 }

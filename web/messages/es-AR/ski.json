@@ -22,7 +22,9 @@
       "loading": "Cargando centros…",
       "nights": "{count, plural, one {# noche} other {# noches}}",
       "added": "Centros del viaje",
-      "available": "Centros para sumar"
+      "available": "Centros para sumar",
+      "addNamed": "Sumar {name}",
+      "catalogError": "No pudimos cargar la lista de centros"
     },
     "conditions": {
       "title": "Condiciones",
