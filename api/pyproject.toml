@@ -10,6 +10,7 @@ dependencies = [
     "whitenoise>=6.9",
     "environs>=14",
     "phonenumbers>=9.0.40",
+    "pywebpush>=2.5.0",
 ]
 
 [dependency-groups]
@@ -31,7 +32,7 @@ package = false
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "config.settings.test"
 addopts = "--disable-socket --allow-unix-socket -ra"
-testpaths = ["tests", "ops", "shared", "identity", "crews", "messaging", "trips"]
+testpaths = ["tests", "ops", "shared", "identity", "crews", "messaging", "trips", "notifications"]
 python_files = ["test_*.py"]
 
 [tool.ruff]
@@ -46,11 +47,11 @@ select = ["E", "F", "I", "B", "UP"]
 "*/migrations/*.py" = ["E501"]
 
 [tool.ruff.lint.isort]
-known-first-party = ["config", "shared", "ops", "identity", "crews", "messaging", "trips"]
+known-first-party = ["config", "shared", "ops", "identity", "crews", "messaging", "trips", "notifications"]
 
 [tool.importlinter]
 root_packages = [
-    "config", "shared", "ops", "identity", "crews", "messaging", "trips", "django", "ninja",
+    "config", "shared", "ops", "identity", "crews", "messaging", "trips", "notifications", "django", "ninja",
     "httpx",
 ]
 include_external_packages = true
