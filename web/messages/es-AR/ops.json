@@ -1,0 +1,20 @@
+{
+  "ops": {
+    "health": {
+      "title": "Estado del sistema",
+      "loading": "Chequeando…",
+      "error": "No pudimos chequear el estado, probá de nuevo en un rato",
+      "ok": "Todo en orden",
+      "degraded": "Algo anda flojo",
+      "version": "Versión {version}",
+      "checks": {
+        "db": "Base de datos",
+        "media": "Archivos"
+      },
+      "check": {
+        "ok": "ok",
+        "error": "con problemas"
+      }
+    }
+  }
+}
