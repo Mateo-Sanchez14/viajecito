@@ -1,3 +1,4 @@
+import budget from "./budget.json";
 import logistics from "./logistics.json";
 // One import line per message file, alphabetical, and one argument line per file below.
 // A milestone appends its own import and its own argument line (keeps merges conflict-free).
@@ -15,6 +16,7 @@ import ski from "./ski.json";
 import trips from "./trips.json";
 
 export default mergeMessages(
+  budget,
   logistics,
   auth,
   common,
