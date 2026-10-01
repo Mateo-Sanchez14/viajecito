@@ -18,6 +18,8 @@ export function PackingList({ tripId }: { tripId: string }) {
   const packing = usePacking(tripId);
   const update = useUpdatePackingEntry(tripId);
   const [label, setLabel] = useState("");
+  const [section, setSection] = useState("custom");
+  const [quantity, setQuantity] = useState("");
   const refresh = () =>
     cache.invalidateQueries({ queryKey: ["logistics", tripId] });
   const apply = useMutation({
@@ -25,9 +27,15 @@ export function PackingList({ tripId }: { tripId: string }) {
     onSuccess: refresh,
   });
   const add = useMutation({
-    mutationFn: () => addPackingEntry(tripId, { label: label.trim() }),
+    mutationFn: () =>
+      addPackingEntry(tripId, {
+        label: label.trim(),
+        section,
+        quantity: quantity ? Number(quantity) : null,
+      }),
     onSuccess: async () => {
       setLabel("");
+      setQuantity("");
       await refresh();
     },
   });
@@ -135,6 +143,26 @@ export function PackingList({ tripId }: { tripId: string }) {
             maxLength={120}
             required
             onChange={(e) => setLabel(e.target.value)}
+          />
+        </label>
+        <label>
+          {t("quantity")}
+          <input
+            className="block min-h-11 rounded border px-2"
+            type="number"
+            min={1}
+            value={quantity}
+            onChange={(e) => setQuantity(e.target.value)}
+          />
+        </label>
+        <label>
+          {t("packing.section")}
+          <input
+            className="block min-h-11 rounded border px-2"
+            maxLength={32}
+            required
+            value={section}
+            onChange={(e) => setSection(e.target.value)}
           />
         </label>
         <button
