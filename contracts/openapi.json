@@ -3687,6 +3687,10 @@
             "type": "string"
           },
           "country": {
+            "enum": [
+              "AR",
+              "CL"
+            ],
             "title": "Country",
             "type": "string"
           },
@@ -3738,6 +3742,10 @@
             "type": "string"
           },
           "source": {
+            "enum": [
+              "open_meteo",
+              "manual"
+            ],
             "title": "Source",
             "type": "string"
           },
@@ -4019,10 +4027,26 @@
             "$ref": "#/components/schemas/PersonRefOut"
           },
           "item": {
+            "enum": [
+              "skis",
+              "board",
+              "boots",
+              "poles",
+              "helmet",
+              "goggles",
+              "jacket",
+              "pants",
+              "other"
+            ],
             "title": "Item",
             "type": "string"
           },
           "mode": {
+            "enum": [
+              "own",
+              "rent",
+              "borrow"
+            ],
             "title": "Mode",
             "type": "string"
           },
@@ -4060,10 +4084,22 @@
       "LevelGroupOut": {
         "properties": {
           "discipline": {
+            "enum": [
+              "ski",
+              "snowboard",
+              "both"
+            ],
             "title": "Discipline",
             "type": "string"
           },
           "level": {
+            "enum": [
+              "first_time",
+              "beginner",
+              "intermediate",
+              "advanced",
+              "expert"
+            ],
             "title": "Level",
             "type": "string"
           },
@@ -4141,6 +4177,12 @@
             "title": "Days"
           },
           "status": {
+            "enum": [
+              "needed",
+              "bought",
+              "season_pass",
+              "not_needed"
+            ],
             "title": "Status",
             "type": "string"
           },
@@ -4425,7 +4467,7 @@
           },
           "status_text": {
             "default": "",
-            "maxLength": 1000,
+            "maxLength": 280,
             "title": "Status Text",
             "type": "string"
           }
@@ -4496,7 +4538,7 @@
           "currency": {
             "anyOf": [
               {
-                "maxLength": 8,
+                "maxLength": 3,
                 "type": "string"
               },
               {
@@ -4575,7 +4617,7 @@
           "currency": {
             "anyOf": [
               {
-                "maxLength": 8,
+                "maxLength": 3,
                 "type": "string"
               },
               {
@@ -4601,10 +4643,22 @@
       "SkiProfileOut": {
         "properties": {
           "discipline": {
+            "enum": [
+              "ski",
+              "snowboard",
+              "both"
+            ],
             "title": "Discipline",
             "type": "string"
           },
           "level": {
+            "enum": [
+              "first_time",
+              "beginner",
+              "intermediate",
+              "advanced",
+              "expert"
+            ],
             "title": "Level",
             "type": "string"
           },

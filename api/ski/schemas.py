@@ -6,6 +6,7 @@ from uuid import UUID
 from ninja import Field, Schema
 
 Country = Literal["AR", "CL"]
+SnowSource = Literal["open_meteo", "manual"]
 Discipline = Literal["ski", "snowboard", "both"]
 Level = Literal["first_time", "beginner", "intermediate", "advanced", "expert"]
 PassStatus = Literal["needed", "bought", "season_pass", "not_needed"]
@@ -24,7 +25,7 @@ class ResortOut(Schema):
     id: UUID
     slug: str
     name: str
-    country: str
+    country: Country
     region: str
     lat: float
     lng: float
@@ -35,7 +36,7 @@ class ResortOut(Schema):
 
 class SnowReportOut(Schema):
     id: UUID
-    source: str
+    source: SnowSource
     observed_at: datetime
     fetched_at: datetime
     base_cm: int | None
@@ -74,7 +75,7 @@ class PassRowOut(Schema):
     resort_id: UUID | None
     product: str
     days: int | None
-    status: str
+    status: PassStatus
     price: str | None
     currency: str
 
@@ -91,8 +92,8 @@ class PassSummaryOut(Schema):
 
 class GearRowOut(Schema):
     person: PersonRefOut
-    item: str
-    mode: str
+    item: GearItem
+    mode: GearMode
     price: str | None
     currency: str
     note: str
@@ -113,8 +114,8 @@ class GearRollupOut(Schema):
 
 
 class LevelGroupOut(Schema):
-    discipline: str
-    level: str
+    discipline: Discipline
+    level: Level
     people: list[PersonRefOut]
 
 
@@ -145,7 +146,7 @@ class ManualReportIn(Schema):
     lifts_total: int | None = Field(None, ge=0, le=500)
     runs_open: int | None = Field(None, ge=0, le=500)
     runs_total: int | None = Field(None, ge=0, le=500)
-    status_text: str = Field("", max_length=1000)
+    status_text: str = Field("", max_length=280)
 
 
 class PassIn(Schema):
@@ -154,14 +155,14 @@ class PassIn(Schema):
     days: int | None = Field(None, ge=1, le=365)
     status: PassStatus
     price: Decimal | None = Field(None, ge=0, le=Decimal("9999999999.99"))
-    currency: str | None = Field(None, max_length=8)
+    currency: str | None = Field(None, max_length=3)
 
 
 class GearItemIn(Schema):
     item: GearItem
     mode: GearMode
     price: Decimal | None = Field(None, ge=0, le=Decimal("9999999999.99"))
-    currency: str | None = Field(None, max_length=8)
+    currency: str | None = Field(None, max_length=3)
     note: str = Field("", max_length=200)
 
 
@@ -180,8 +181,8 @@ class SkiProfileIn(Schema):
 
 
 class SkiProfileOut(Schema):
-    discipline: str
-    level: str
+    discipline: Discipline
+    level: Level
     owns_gear: bool
     boot_size_eu: float | None
     height_cm: int | None

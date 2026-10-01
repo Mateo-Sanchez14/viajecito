@@ -1,7 +1,6 @@
 """Django persistence adapter of the ski ports."""
 
 from datetime import datetime, timedelta
-from decimal import Decimal
 
 from django.apps import apps
 from django.db import IntegrityError, transaction
@@ -122,9 +121,6 @@ class DjangoSnowStore:
             source=SnowReport.Source.OPEN_METEO, observed_at__lt=before
         ).delete()
         return deleted
-
-
-__all__ = ["DjangoSnowStore", "Decimal", "resort_ref"]
 
 
 def _person_ref(person) -> PersonRef | None:

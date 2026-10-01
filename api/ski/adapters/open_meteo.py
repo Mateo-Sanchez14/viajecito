@@ -74,8 +74,6 @@ def _local_time(text: Any, zone: tzinfo) -> datetime:
 def parse_forecast(payload: Any, *, timezone: str, now: datetime) -> SnowReading:
     """Turn an Open-Meteo forecast response into a ``SnowReading``; ``ProviderError("malformed")``
     when the shape or the units are not what we asked for."""
-    from ski.ports import SnowReading
-
     if not isinstance(payload, dict):
         raise _malformed()
     hourly, daily = payload.get("hourly"), payload.get("daily")
