@@ -376,3 +376,8 @@ This supersedes the Gowa go-live steps (droplet webhook, gastito change); the Go
   `WAHA_WEBHOOK_HMAC_KEY`. `smoke.sh` signs its webhook probe for the configured provider. The deploy README
   replaces the droplet/gastito go-live steps with "configure the WAHA session webhook" (preserving the
   session's existing config, e.g. other webhooks used by `notify`).
+- Amendments after W1/W2 verification (2026-10-01): prod with `WHATSAPP_PROVIDER=waha` also requires
+  `WAHA_API_KEY` (fails at settings import); the WAHA adapter reduces message ids to the stanza id
+  (sendText ids `true_<chat>_<stanza>[_<participant>]`, `replyTo.id` in any form), so quoted-card matching
+  is provider-agnostic; jids in WAHA URL paths are percent-encoded. GOWS group payload fields are still
+  doc-derived: replace the fixtures with a live capture after go-live.
