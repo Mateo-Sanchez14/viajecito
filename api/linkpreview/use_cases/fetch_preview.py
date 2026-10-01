@@ -1,6 +1,10 @@
+import logging
+
 from linkpreview import ports
 from linkpreview.domain.urls import canonical_after_redirect
 from linkpreview.ports import LinkPreviewFetcher, PreviewRef, PreviewStore
+
+logger = logging.getLogger(__name__)
 
 
 def fetch_preview(
@@ -19,7 +23,13 @@ def fetch_preview(
     ref = store.get(preview_id)
     if ref is None:
         raise LookupError(preview_id)
-    data = fetcher.unfurl(ref.url)
+    try:
+        data = fetcher.unfurl(ref.url)
+    except Exception:
+        # A fetcher is meant to return failures as values; if it raises anyway, count the attempt
+        # so the row cannot stay pending (and hog the retry job) forever.
+        logger.exception("unfurling preview %s raised", preview_id)
+        return store.record_failure(preview_id, "fetch_error")
     canonical = canonical_after_redirect(ref.url, data.final_url)
     saved = store.save_result(preview_id, data, canonical)
     if saved.canonical_url != canonical:

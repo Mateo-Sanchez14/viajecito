@@ -61,6 +61,11 @@ class PreviewStore(Protocol):
         """Put a settled preview back in ``pending`` (a manual refresh is queued)."""
         ...
 
+    def record_failure(self, preview_id: str, error: str) -> PreviewRef:
+        """Count a failed attempt (status ``failed``, ``updated_at`` bumped): the safety net for a
+        fetcher that raised, so a row can never stay ``pending`` at zero attempts."""
+        ...
+
     def retry_candidates(self, now: datetime, limit: int) -> list[PreviewRef]: ...
 
 

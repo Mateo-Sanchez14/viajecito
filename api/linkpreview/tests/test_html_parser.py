@@ -1,6 +1,8 @@
 from decimal import Decimal
 from pathlib import Path
 
+import pytest
+
 from linkpreview.adapters.html_parser import parse_page
 from linkpreview.domain.preview import PreviewData, blocked_preview, finalize
 
@@ -125,3 +127,42 @@ def test_challenge_pages_are_treated_as_blocked():
     assert preview.fetch_status == "blocked"
     assert preview.fetch_error == "challenge_page"
     assert preview.title == "x"
+
+
+# --- hostile input ---------------------------------------------------------------------------
+
+
+def jsonld(payload: str) -> str:
+    script = f'<script type="application/ld+json">{payload}</script>'
+    return f'<meta property="og:title" content="T">{script}'
+
+
+def test_5000_nested_brackets_in_json_ld_do_not_raise():
+    meta = parse_page(jsonld("[" * 5000 + "]" * 5000), "https://a.example/x")
+    assert meta.title == "T" and meta.price_amount is None
+
+
+def test_deeply_nested_objects_are_bounded_not_fatal():
+    deep = '{"a":' * 3000 + "1" + "}" * 3000
+    assert parse_page(jsonld(deep), "https://a.example/x").title == "T"
+
+
+def test_the_walk_is_depth_bounded_at_32_levels():
+    def nest(levels: int) -> str:
+        return '{"x":' * levels + '{"priceCurrency":"ARS","price":"5"}' + "}" * levels
+
+    assert parse_page(jsonld(nest(10)), "https://a.example/").price_amount == Decimal("5.00")
+    assert parse_page(jsonld(nest(60)), "https://a.example/").price_amount is None
+
+
+@pytest.mark.parametrize(
+    "image", ["javascript:alert(1)", "data:image/png;base64,AAAA", "ftp://x/i.png"]
+)
+def test_only_http_images_are_kept(image):
+    html = f'<meta property="og:title" content="T"><meta property="og:image" content="{image}">'
+    assert parse_page(html, "https://a.example/x").image_url == ""
+
+
+def test_relative_images_still_resolve():
+    html = '<meta property="og:image" content="/i.png">'
+    assert parse_page(html, "https://a.example/x").image_url == "https://a.example/i.png"

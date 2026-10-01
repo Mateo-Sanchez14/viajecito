@@ -271,3 +271,68 @@ def test_retry_counts_the_attempt_and_can_still_fail(fake):
     assert (row.fetch_status, row.fetch_attempts, row.fetch_error) == ("failed", 3, "timeout")
     with time_machine.travel(NOW + timedelta(hours=1), tick=False):
         assert retry_pending(NOW + timedelta(hours=1)) == {"retried": 0}
+
+
+# --- a failing fetcher can never wedge the retry job -------------------------------------------
+
+
+class Exploding:
+    def __init__(self, bad=()):
+        self.bad, self.calls = set(bad), []
+
+    def unfurl(self, url):
+        self.calls.append(url)
+        if url in self.bad:
+            raise RecursionError("poison")
+        return ok_preview(url)
+
+
+def test_a_raising_fetcher_records_a_failed_attempt(fake):
+    from linkpreview.use_cases.fetch_preview import fetch_preview
+
+    row = make_row("https://a.example/poison", "pending", 0, timedelta(minutes=5))
+    with time_machine.travel(NOW, tick=False):
+        ref = fetch_preview(str(row.pk), fetcher=Exploding({row.url}))
+    row.refresh_from_db()
+    assert (row.fetch_status, row.fetch_attempts, ref.fetch_status) == ("failed", 1, "failed")
+    assert row.fetch_error == "fetch_error"
+    assert row.updated_at == NOW
+
+
+def test_three_poison_rows_do_not_starve_the_retry_job(fake, monkeypatch):
+    from linkpreview import ports
+
+    poison = [
+        make_row(f"https://a.example/poison{i}", "pending", 0, timedelta(hours=1, minutes=i))
+        for i in range(3)
+    ]
+    healthy = make_row("https://a.example/healthy", "pending", 0, timedelta(minutes=10))
+    exploding = Exploding({r.url for r in poison})
+    monkeypatch.setattr(ports, "_default_fetcher", lambda: exploding)
+    with time_machine.travel(NOW, tick=False):
+        assert retry_pending(NOW) == {"retried": 3}
+        assert (
+            LinkPreview.objects.filter(pk__in=[r.pk for r in poison], fetch_attempts=1).count() == 3
+        )
+        assert retry_pending(NOW + timedelta(minutes=1)) == {"retried": 1}
+    healthy.refresh_from_db()
+    assert healthy.fetch_status == "ok"
+
+
+def test_marking_pending_bumps_updated_at(fake):
+    from linkpreview.adapters.django_store import DjangoPreviewStore
+
+    row = make_row("https://a.example/m", "ok", 1, timedelta(days=2))
+    with time_machine.travel(NOW, tick=False):
+        DjangoPreviewStore().mark_pending(str(row.pk))
+    row.refresh_from_db()
+    assert (row.fetch_status, row.updated_at) == ("pending", NOW)
+
+
+def test_retry_stops_when_the_tick_deadline_is_near(fake):
+    for i in range(3):
+        make_row(f"https://a.example/d{i}", "pending", 0, timedelta(minutes=10 + i))
+    calls = iter([True])
+    with time_machine.travel(NOW, tick=False):
+        summary = retry_pending(NOW, out_of_time=lambda: next(calls))
+    assert summary == {"retried": 1}

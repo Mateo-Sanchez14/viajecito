@@ -4,7 +4,7 @@ from decimal import Decimal
 
 from django.core.files.base import ContentFile
 from django.db import transaction
-from django.db.models import Q
+from django.db.models import F, Q
 
 from linkpreview.domain.preview import FAILED, PENDING, PreviewData
 from linkpreview.models import LinkPreview
@@ -97,7 +97,20 @@ class DjangoPreviewStore:
         return to_ref(row)
 
     def mark_pending(self, preview_id: str) -> PreviewRef:
-        LinkPreview.objects.filter(pk=preview_id).update(fetch_status=PENDING)
+        LinkPreview.objects.filter(pk=preview_id).update(
+            fetch_status=PENDING, updated_at=SystemClock().now()
+        )
+        return to_ref(LinkPreview.objects.get(pk=preview_id))
+
+    def record_failure(self, preview_id: str, error: str) -> PreviewRef:
+        now = SystemClock().now()
+        LinkPreview.objects.filter(pk=preview_id).update(
+            fetch_status=FAILED,
+            fetch_error=error[:200],
+            fetch_attempts=F("fetch_attempts") + 1,
+            fetched_at=now,
+            updated_at=now,
+        )
         return to_ref(LinkPreview.objects.get(pk=preview_id))
 
     def retry_candidates(self, now: datetime, limit: int) -> list[PreviewRef]:

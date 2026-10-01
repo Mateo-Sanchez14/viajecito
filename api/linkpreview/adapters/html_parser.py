@@ -5,7 +5,7 @@ import re
 from collections.abc import Iterator
 from decimal import Decimal, InvalidOperation
 from typing import Any
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlsplit
 
 from selectolax.lexbor import LexborHTMLParser
 
@@ -21,6 +21,7 @@ from linkpreview.domain.preview import (
 from linkpreview.domain.urls import host_of, parse_maps_coordinates
 
 MAX_JSON_LD_CHARS = 200_000
+MAX_JSON_DEPTH = 32
 _RAW_PREFIXES = ("og:", "twitter:", "product:", "place:", "description")
 _PRICE_KEYS = ("price", "lowPrice")
 _MAX_PRICE = Decimal("9999999999.99")
@@ -72,14 +73,18 @@ def _coordinates(lat: object, lng: object) -> tuple[float, float] | None:
     return la, ln
 
 
-def _walk(node: Any) -> Iterator[dict[str, Any]]:
-    if isinstance(node, dict):
-        yield node
-        for value in node.values():
-            yield from _walk(value)
-    elif isinstance(node, list):
-        for item in node:
-            yield from _walk(item)
+def _walk(root: Any) -> Iterator[dict[str, Any]]:
+    """Every dict of a JSON document, iteratively and at most ``MAX_JSON_DEPTH`` levels deep."""
+    stack: list[tuple[Any, int]] = [(root, 0)]
+    while stack:
+        node, depth = stack.pop()
+        if depth > MAX_JSON_DEPTH:
+            continue
+        if isinstance(node, dict):
+            yield node
+            stack.extend((value, depth + 1) for value in reversed(list(node.values())))
+        elif isinstance(node, list):
+            stack.extend((item, depth + 1) for item in reversed(node))
 
 
 def _json_ld(tree: LexborHTMLParser) -> list[dict[str, Any]]:
@@ -90,7 +95,7 @@ def _json_ld(tree: LexborHTMLParser) -> list[dict[str, Any]]:
             continue
         try:
             objects.extend(_walk(json.loads(text)))
-        except ValueError:
+        except (ValueError, RecursionError):  # hostile or broken JSON-LD is simply ignored
             continue
     return objects
 
@@ -129,6 +134,14 @@ def _raw(meta: dict[str, str]) -> dict[str, str]:
     return raw
 
 
+def _image_url(page_url: str, raw: str) -> str:
+    """The absolute http(s) image URL, or ``""`` (``javascript:``/``data:`` never get stored)."""
+    if not raw.strip():
+        return ""
+    url = urljoin(page_url, raw.strip())[:URL_MAX]
+    return url if urlsplit(url).scheme in ("http", "https") else ""
+
+
 def parse_page(html: bytes | str, page_url: str) -> PageMeta:
     """Extract the preview metadata of an HTML page. Never raises on malformed input."""
     tree = LexborHTMLParser(html)
@@ -158,7 +171,7 @@ def parse_page(html: bytes | str, page_url: str) -> PageMeta:
         description=clean_text(
             _first(meta, "og:description", "twitter:description", "description"), DESCRIPTION_MAX
         ),
-        image_url=urljoin(page_url, image.strip())[:URL_MAX] if image.strip() else "",
+        image_url=_image_url(page_url, image),
         site_name=clean_text(_first(meta, "og:site_name") or host_of(page_url), SITE_NAME_MAX),
         price_amount=price[0] if price else None,
         price_currency=price[1] if price else "",
