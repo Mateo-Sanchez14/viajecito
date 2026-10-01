@@ -1,0 +1,134 @@
+"""Open-Meteo adapter of the ``SnowReportProvider`` port (no API key).
+
+Docs: https://open-meteo.com/en/docs (``hourly=snowfall,snow_depth,temperature_2m`` in cm/h, m and
+degrees C; ``daily=snowfall_sum`` in cm; ``elevation`` selects the grid cell; ``timezone`` makes the
+timestamps local and naive ISO 8601).
+"""
+
+import json
+from datetime import UTC, date, datetime, timedelta
+from decimal import ROUND_HALF_UP, Decimal
+from typing import Any
+from zoneinfo import ZoneInfo
+
+from ski.ports import ProviderError, SnowReading
+
+RAW_MAX_BYTES = 32 * 1024
+_TENTH = Decimal("0.1")
+_DEPTH_TO_CM = {"m": Decimal(100), "cm": Decimal(1)}
+
+
+def _malformed() -> ProviderError:
+    return ProviderError("malformed")
+
+
+def _number(value: Any) -> Decimal | None:
+    if value is None:
+        return None
+    if isinstance(value, bool) or not isinstance(value, int | float):
+        raise _malformed()
+    return Decimal(str(value))
+
+
+def _series(block: dict, key: str, length: int) -> list[Decimal | None]:
+    values = block.get(key)
+    if not isinstance(values, list) or len(values) != length:
+        raise _malformed()
+    return [_number(v) for v in values]
+
+
+def _tenths(values: list[Decimal | None]) -> Decimal | None:
+    present = [v for v in values if v is not None]
+    if not present:
+        return None
+    return sum(present, Decimal(0)).quantize(_TENTH, rounding=ROUND_HALF_UP)
+
+
+def _local_time(text: Any, zone: ZoneInfo) -> datetime:
+    if not isinstance(text, str):
+        raise _malformed()
+    try:
+        return datetime.fromisoformat(text).replace(tzinfo=zone).astimezone(UTC)
+    except ValueError as exc:
+        raise _malformed() from exc
+
+
+def parse_forecast(payload: Any, *, timezone: str, now: datetime) -> SnowReading:
+    """Turn an Open-Meteo forecast response into a ``SnowReading``; ``ProviderError("malformed")``
+    when the shape or the units are not what we asked for."""
+    from ski.ports import SnowReading
+
+    if not isinstance(payload, dict):
+        raise _malformed()
+    hourly, daily = payload.get("hourly"), payload.get("daily")
+    if not isinstance(hourly, dict) or not isinstance(daily, dict):
+        raise _malformed()
+    zone = ZoneInfo(timezone)
+    times = hourly.get("time")
+    if not isinstance(times, list) or not times:
+        raise _malformed()
+    stamps = [_local_time(t, zone) for t in times]
+    snowfall = _series(hourly, "snowfall", len(times))
+    depth = _series(hourly, "snow_depth", len(times))
+    temperature = _series(hourly, "temperature_2m", len(times))
+
+    units = payload.get("hourly_units")
+    depth_unit = units.get("snow_depth", "m") if isinstance(units, dict) else "m"
+    if depth_unit not in _DEPTH_TO_CM:
+        raise _malformed()
+
+    observed = max((i for i, t in enumerate(stamps) if t <= now), default=None)
+    if observed is None:
+        raise _malformed()
+    window = slice(max(observed - 23, 0), observed + 1)
+    new_24h = _tenths(snowfall[window]) if observed >= 23 else None
+
+    base_cm = None
+    if depth[observed] is not None:
+        base_cm = max(int((depth[observed] * _DEPTH_TO_CM[depth_unit]).to_integral_value()), 0)
+    temp = temperature[observed]
+
+    forecast = _forecast_72h(daily, now.astimezone(zone).date())
+    elevation = payload.get("elevation")
+    return SnowReading(
+        observed_at=stamps[observed],
+        elevation_m=round(elevation) if isinstance(elevation, int | float) else None,
+        base_cm=base_cm,
+        new_24h_cm=new_24h,
+        forecast_72h_cm=forecast,
+        temp_c=None if temp is None else temp.quantize(_TENTH, rounding=ROUND_HALF_UP),
+        raw=_trim_raw(payload, window),
+    )
+
+
+def _forecast_72h(daily: dict, today: date) -> Decimal | None:
+    days = daily.get("time")
+    if not isinstance(days, list):
+        raise _malformed()
+    sums = _series(daily, "snowfall_sum", len(days))
+    wanted = {today + timedelta(days=n) for n in (1, 2, 3)}
+    chosen: list[Decimal | None] = []
+    for text, value in zip(days, sums, strict=True):
+        try:
+            if date.fromisoformat(text) in wanted:
+                chosen.append(value)
+        except (TypeError, ValueError) as exc:
+            raise _malformed() from exc
+    return _tenths(chosen)
+
+
+def _trim_raw(payload: dict, window: slice) -> dict:
+    hourly = payload["hourly"]
+    raw = {
+        "elevation": payload.get("elevation"),
+        "utc_offset_seconds": payload.get("utc_offset_seconds"),
+        "hourly_units": payload.get("hourly_units"),
+        "daily_units": payload.get("daily_units"),
+        "hourly": {
+            key: values[window] for key, values in hourly.items() if isinstance(values, list)
+        },
+        "daily": payload["daily"],
+    }
+    if len(json.dumps(raw)) > RAW_MAX_BYTES:
+        raw = {"elevation": payload.get("elevation"), "truncated": True}
+    return raw
