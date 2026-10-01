@@ -78,6 +78,7 @@ def test_test_settings_use_file_based_database():
 
 def test_prod_settings_enable_secure_cookies(monkeypatch):
     monkeypatch.setenv("DJANGO_SECRET_KEY", "x" * 50)
+    monkeypatch.setenv("OTP_PEPPER", "p" * 32)
     import config.settings.prod as prod
 
     prod = importlib.reload(prod)
@@ -100,3 +101,38 @@ def test_only_api_env_file_is_read(monkeypatch):
     )
     base = _reload_base(monkeypatch)
     assert calls == [((base.BASE_DIR / ".env",), {"recurse": False})]
+
+
+def test_otp_defaults_and_prod_requires_a_pepper(monkeypatch):
+    base = _reload_base(monkeypatch)
+    assert base.OTP_DELIVERY_ENABLED is True
+    assert (base.OTP_CODE_TTL_SECONDS, base.OTP_MAX_ATTEMPTS) == (300, 5)
+    assert base.OTP_SEND_SYNC is False
+    monkeypatch.setenv("DJANGO_SECRET_KEY", "x" * 50)
+    monkeypatch.delenv("OTP_PEPPER", raising=False)
+    import config.settings.prod as prod
+
+    with pytest.raises(Exception, match="OTP_PEPPER"):
+        importlib.reload(prod)
+
+
+def test_prod_rejects_an_empty_pepper(monkeypatch):
+    from django.core.exceptions import ImproperlyConfigured
+
+    monkeypatch.setenv("DJANGO_SECRET_KEY", "x" * 50)
+    monkeypatch.setenv("OTP_PEPPER", "")
+    import config.settings.prod as prod
+
+    with pytest.raises(ImproperlyConfigured, match="OTP_PEPPER"):
+        importlib.reload(prod)
+
+
+def test_trust_cf_connecting_ip_defaults_off_and_on_in_prod(monkeypatch):
+    assert _reload_base(monkeypatch).TRUST_CF_CONNECTING_IP is False
+    monkeypatch.setenv("DJANGO_SECRET_KEY", "x" * 50)
+    monkeypatch.setenv("OTP_PEPPER", "p" * 32)
+    import config.settings.prod as prod
+
+    assert importlib.reload(prod).TRUST_CF_CONNECTING_IP is True
+    monkeypatch.setenv("TRUST_CF_CONNECTING_IP", "0")
+    assert importlib.reload(prod).TRUST_CF_CONNECTING_IP is False

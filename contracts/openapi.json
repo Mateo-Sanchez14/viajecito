@@ -3,7 +3,7 @@
   "info": {
     "title": "viajecito",
     "version": "0.1.0",
-    "description": "Health is exported from the real API. Auth paths are an M0b DRAFT; the api regenerates this file at integration (T8)."
+    "description": ""
   },
   "paths": {
     "/api/health": {
@@ -42,9 +42,7 @@
       "get": {
         "operationId": "identity_api_csrf",
         "summary": "Csrf",
-        "tags": [
-          "auth"
-        ],
+        "parameters": [],
         "responses": {
           "200": {
             "description": "OK",
@@ -56,26 +54,17 @@
               }
             }
           }
-        }
+        },
+        "tags": [
+          "auth"
+        ]
       }
     },
     "/api/auth/otp/request": {
       "post": {
         "operationId": "identity_api_request_otp",
         "summary": "Request Otp",
-        "tags": [
-          "auth"
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/OtpRequestIn"
-              }
-            }
-          }
-        },
+        "parameters": [],
         "responses": {
           "202": {
             "description": "Accepted",
@@ -117,6 +106,19 @@
               }
             }
           }
+        },
+        "tags": [
+          "auth"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OtpRequestIn"
+              }
+            }
+          },
+          "required": true
         }
       }
     },
@@ -124,19 +126,7 @@
       "post": {
         "operationId": "identity_api_verify_otp",
         "summary": "Verify Otp",
-        "tags": [
-          "auth"
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/OtpVerifyIn"
-              }
-            }
-          }
-        },
+        "parameters": [],
         "responses": {
           "200": {
             "description": "OK",
@@ -158,6 +148,19 @@
               }
             }
           }
+        },
+        "tags": [
+          "auth"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OtpVerifyIn"
+              }
+            }
+          },
+          "required": true
         }
       }
     },
@@ -165,9 +168,7 @@
       "post": {
         "operationId": "identity_api_logout",
         "summary": "Logout",
-        "tags": [
-          "auth"
-        ],
+        "parameters": [],
         "responses": {
           "204": {
             "description": "No Content"
@@ -182,16 +183,22 @@
               }
             }
           }
-        }
+        },
+        "tags": [
+          "auth"
+        ],
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ]
       }
     },
     "/api/me": {
       "get": {
         "operationId": "identity_api_me",
         "summary": "Me",
-        "tags": [
-          "auth"
-        ],
+        "parameters": [],
         "responses": {
           "200": {
             "description": "OK",
@@ -213,7 +220,15 @@
               }
             }
           }
-        }
+        },
+        "tags": [
+          "auth"
+        ],
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ]
       }
     }
   },
@@ -271,126 +286,75 @@
         "title": "HealthOut",
         "type": "object"
       },
-      "ErrorOut": {
-        "type": "object",
-        "title": "ErrorOut",
-        "properties": {
-          "code": {
-            "type": "string",
-            "title": "Code"
-          },
-          "message": {
-            "type": "string",
-            "title": "Message"
-          }
-        },
-        "required": [
-          "code",
-          "message"
-        ]
-      },
       "CsrfOut": {
-        "type": "object",
-        "title": "CsrfOut",
         "properties": {
           "csrf_token": {
-            "type": "string",
-            "title": "Csrf Token"
+            "title": "Csrf Token",
+            "type": "string"
           }
         },
         "required": [
           "csrf_token"
-        ]
-      },
-      "OtpRequestIn": {
-        "type": "object",
-        "title": "OtpRequestIn",
-        "properties": {
-          "phone": {
-            "type": "string",
-            "title": "Phone"
-          }
-        },
-        "required": [
-          "phone"
-        ]
+        ],
+        "title": "CsrfOut",
+        "type": "object"
       },
       "OtpRequestOut": {
-        "type": "object",
-        "title": "OtpRequestOut",
         "properties": {
           "status": {
-            "type": "string",
-            "enum": [
-              "sent"
-            ],
-            "title": "Status"
+            "const": "sent",
+            "title": "Status",
+            "type": "string"
           },
           "retry_after_seconds": {
-            "type": "integer",
-            "title": "Retry After Seconds"
+            "title": "Retry After Seconds",
+            "type": "integer"
           },
           "expires_in_seconds": {
-            "type": "integer",
-            "title": "Expires In Seconds"
+            "title": "Expires In Seconds",
+            "type": "integer"
           }
         },
         "required": [
           "status",
           "retry_after_seconds",
           "expires_in_seconds"
-        ]
+        ],
+        "title": "OtpRequestOut",
+        "type": "object"
       },
-      "OtpVerifyIn": {
-        "type": "object",
-        "title": "OtpVerifyIn",
+      "ErrorOut": {
         "properties": {
-          "phone": {
-            "type": "string",
-            "title": "Phone"
-          },
           "code": {
-            "type": "string",
-            "title": "Code"
+            "title": "Code",
+            "type": "string"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
           }
         },
         "required": [
-          "phone",
-          "code"
-        ]
+          "code",
+          "message"
+        ],
+        "title": "ErrorOut",
+        "type": "object"
       },
-      "PersonOut": {
-        "type": "object",
-        "title": "PersonOut",
+      "OtpRequestIn": {
         "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid",
-            "title": "Id"
-          },
           "phone": {
-            "type": "string",
-            "title": "Phone"
-          },
-          "display_name": {
-            "type": "string",
-            "title": "Display Name"
-          },
-          "locale": {
-            "type": "string",
-            "title": "Locale"
+            "title": "Phone",
+            "type": "string"
           }
         },
         "required": [
-          "id",
-          "phone",
-          "display_name",
-          "locale"
-        ]
+          "phone"
+        ],
+        "title": "OtpRequestIn",
+        "type": "object"
       },
       "OtpVerifyOut": {
-        "type": "object",
-        "title": "OtpVerifyOut",
         "properties": {
           "person": {
             "$ref": "#/components/schemas/PersonOut"
@@ -398,28 +362,75 @@
         },
         "required": [
           "person"
-        ]
+        ],
+        "title": "OtpVerifyOut",
+        "type": "object"
       },
-      "CrewSummaryOut": {
-        "type": "object",
-        "title": "CrewSummaryOut",
+      "PersonOut": {
         "properties": {
           "id": {
-            "type": "string",
             "format": "uuid",
-            "title": "Id"
+            "title": "Id",
+            "type": "string"
+          },
+          "phone": {
+            "title": "Phone",
+            "type": "string"
+          },
+          "display_name": {
+            "title": "Display Name",
+            "type": "string"
+          },
+          "locale": {
+            "title": "Locale",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "phone",
+          "display_name",
+          "locale"
+        ],
+        "title": "PersonOut",
+        "type": "object"
+      },
+      "OtpVerifyIn": {
+        "properties": {
+          "phone": {
+            "title": "Phone",
+            "type": "string"
+          },
+          "code": {
+            "title": "Code",
+            "type": "string"
+          }
+        },
+        "required": [
+          "phone",
+          "code"
+        ],
+        "title": "OtpVerifyIn",
+        "type": "object"
+      },
+      "CrewSummaryOut": {
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
           },
           "name": {
-            "type": "string",
-            "title": "Name"
+            "title": "Name",
+            "type": "string"
           },
           "role": {
-            "type": "string",
             "enum": [
               "admin",
               "member"
             ],
-            "title": "Role"
+            "title": "Role",
+            "type": "string"
           },
           "gastito_group_url": {
             "anyOf": [
@@ -435,8 +446,8 @@
           "default_trip_id": {
             "anyOf": [
               {
-                "type": "string",
-                "format": "uuid"
+                "format": "uuid",
+                "type": "string"
               },
               {
                 "type": "null"
@@ -451,27 +462,36 @@
           "role",
           "gastito_group_url",
           "default_trip_id"
-        ]
+        ],
+        "title": "CrewSummaryOut",
+        "type": "object"
       },
       "MeOut": {
-        "type": "object",
-        "title": "MeOut",
         "properties": {
           "person": {
             "$ref": "#/components/schemas/PersonOut"
           },
           "crews": {
-            "type": "array",
             "items": {
               "$ref": "#/components/schemas/CrewSummaryOut"
             },
-            "title": "Crews"
+            "title": "Crews",
+            "type": "array"
           }
         },
         "required": [
           "person",
           "crews"
-        ]
+        ],
+        "title": "MeOut",
+        "type": "object"
+      }
+    },
+    "securitySchemes": {
+      "SessionAuth": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "sessionid"
       }
     }
   },

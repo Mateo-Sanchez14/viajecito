@@ -9,6 +9,7 @@ dependencies = [
     "gunicorn>=23",
     "whitenoise>=6.9",
     "environs>=14",
+    "phonenumbers>=9.0.40",
 ]
 
 [dependency-groups]
@@ -30,7 +31,7 @@ package = false
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "config.settings.test"
 addopts = "--disable-socket --allow-unix-socket -ra"
-testpaths = ["tests", "ops", "shared"]
+testpaths = ["tests", "ops", "shared", "identity", "crews", "messaging"]
 python_files = ["test_*.py"]
 
 [tool.ruff]
@@ -41,14 +42,48 @@ extend-exclude = ["data"]
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP"]
 
+[tool.ruff.lint.per-file-ignores]
+"*/migrations/*.py" = ["E501"]
+
 [tool.ruff.lint.isort]
-known-first-party = ["config", "shared", "ops"]
+known-first-party = ["config", "shared", "ops", "identity", "crews", "messaging"]
 
 [tool.importlinter]
-root_packages = ["config", "shared", "ops"]
+root_packages = [
+    "config", "shared", "ops", "identity", "crews", "messaging", "django", "ninja", "httpx",
+]
+include_external_packages = true
 
 [[tool.importlinter.contracts]]
 name = "shared depends on no other project package"
 type = "forbidden"
 source_modules = ["shared"]
-forbidden_modules = ["config", "ops"]
+forbidden_modules = ["config", "ops", "identity", "crews", "messaging"]
+
+[[tool.importlinter.contracts]]
+name = "domain, use cases and ports import no framework or HTTP code"
+type = "forbidden"
+source_modules = [
+    "identity.domain", "identity.use_cases", "identity.ports",
+    "crews.domain", "crews.use_cases", "crews.ports",
+    "messaging.use_cases", "messaging.ports",
+    "shared.phone", "shared.clock",
+]
+forbidden_modules = ["django", "ninja", "httpx"]
+
+[[tool.importlinter.contracts]]
+name = "messaging reaches other apps only through their use cases"
+type = "forbidden"
+source_modules = ["messaging"]
+forbidden_modules = [
+    "identity.models", "identity.domain", "identity.ports", "identity.adapters", "identity.api",
+    "identity.schemas", "crews.models", "crews.domain", "crews.ports", "crews.adapters",
+    "crews.api", "crews.schemas",
+]
+
+[[tool.importlinter.contracts]]
+name = "crews does not depend on identity or messaging"
+type = "forbidden"
+source_modules = ["crews"]
+forbidden_modules = ["identity", "messaging"]
+ignore_imports = ["crews.tests.* -> identity.models"]  # tests create the user model
