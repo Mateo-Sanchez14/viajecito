@@ -1,7 +1,7 @@
 import { createBrowserClient } from "@/shared/api/client";
 import { resetCsrfToken } from "@/shared/api/csrf";
 import type { components } from "@/shared/api/schema";
-import { toApiError } from "./errors";
+import { toApiError } from "@/shared/api/errors";
 
 export type OtpRequestOut = components["schemas"]["OtpRequestOut"];
 export type OtpVerifyOut = components["schemas"]["OtpVerifyOut"];

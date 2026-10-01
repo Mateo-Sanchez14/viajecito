@@ -6,7 +6,8 @@ import { useEffect, useRef, useState } from "react";
 import { CodeStep } from "@/ui/molecules/CodeStep";
 import { PhoneStep } from "@/ui/molecules/PhoneStep";
 import { LoginCard } from "@/ui/organisms/LoginCard";
-import { ApiError, errorCodeToMessageKey } from "../api/errors";
+import { ApiError } from "@/shared/api/errors";
+import { errorCodeToMessageKey } from "../api/errors";
 import { requestOtp, verifyOtp } from "../api/otp";
 import { safeNextPath } from "../lib/safeNext";
 

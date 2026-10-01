@@ -1,4 +1,4 @@
-import { toApiError } from "@/features/auth/api/errors";
+import { toApiError } from "@/shared/api/errors";
 import { createBrowserClient } from "@/shared/api/client";
 import type { components } from "@/shared/api/schema";
 
