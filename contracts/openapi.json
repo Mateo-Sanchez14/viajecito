@@ -655,6 +655,401 @@
           }
         ]
       }
+    },
+    "/api/notifications/vapid_public_key": {
+      "get": {
+        "operationId": "notifications_api_vapid_public_key",
+        "summary": "Vapid Public Key",
+        "parameters": [],
+        "tags": [
+          "notifications"
+        ],
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VapidKeyOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          }
+        },
+        "description": "503 code: `push_unavailable` (VAPID keys not configured)."
+      }
+    },
+    "/api/notifications/subscriptions": {
+      "get": {
+        "operationId": "notifications_api_list_subscriptions",
+        "summary": "List Subscriptions",
+        "parameters": [],
+        "tags": [
+          "notifications"
+        ],
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/SubscriptionOut"
+                  },
+                  "title": "Response",
+                  "type": "array"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "notifications_api_register_subscription",
+        "summary": "Register Subscription",
+        "parameters": [],
+        "tags": [
+          "notifications"
+        ],
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubscriptionIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubscriptionOut"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubscriptionOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          }
+        },
+        "description": "201 new, 200 same endpoint already mine (keys refreshed). 400: `invalid_subscription`. 403: `csrf_failed`. 429: `rate_limited` (more than 10 per person per hour)."
+      },
+      "delete": {
+        "operationId": "notifications_api_delete_subscription",
+        "summary": "Delete Subscription",
+        "parameters": [],
+        "tags": [
+          "notifications"
+        ],
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubscriptionDeleteIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          }
+        },
+        "description": "Idempotent; only the caller's own rows are removed."
+      }
+    },
+    "/api/notifications/preferences": {
+      "get": {
+        "operationId": "notifications_api_get_preferences",
+        "summary": "Get Preferences",
+        "parameters": [],
+        "tags": [
+          "notifications"
+        ],
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreferencesOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "operationId": "notifications_api_put_preferences",
+        "summary": "Put Preferences",
+        "parameters": [],
+        "tags": [
+          "notifications"
+        ],
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PreferencesIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreferencesOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          }
+        },
+        "description": "400 code: `invalid_request`."
+      }
+    },
+    "/api/notifications/test": {
+      "post": {
+        "operationId": "notifications_api_send_test",
+        "summary": "Send Test",
+        "parameters": [],
+        "tags": [
+          "notifications"
+        ],
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TestPushOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          }
+        },
+        "description": "429 `rate_limited` (1 per minute). 503 `push_unavailable`."
+      }
     }
   },
   "components": {
@@ -1319,6 +1714,165 @@
           "rsvp"
         ],
         "title": "ParticipantIn",
+        "type": "object"
+      },
+      "VapidKeyOut": {
+        "properties": {
+          "public_key": {
+            "title": "Public Key",
+            "type": "string"
+          }
+        },
+        "required": [
+          "public_key"
+        ],
+        "title": "VapidKeyOut",
+        "type": "object"
+      },
+      "SubscriptionKeysIn": {
+        "properties": {
+          "p256dh": {
+            "maxLength": 200,
+            "title": "P256Dh",
+            "type": "string"
+          },
+          "auth": {
+            "maxLength": 64,
+            "title": "Auth",
+            "type": "string"
+          }
+        },
+        "required": [
+          "p256dh",
+          "auth"
+        ],
+        "title": "SubscriptionKeysIn",
+        "type": "object"
+      },
+      "SubscriptionIn": {
+        "properties": {
+          "endpoint": {
+            "maxLength": 1000,
+            "title": "Endpoint",
+            "type": "string"
+          },
+          "keys": {
+            "$ref": "#/components/schemas/SubscriptionKeysIn"
+          },
+          "user_agent": {
+            "default": "",
+            "maxLength": 300,
+            "title": "User Agent",
+            "type": "string"
+          }
+        },
+        "required": [
+          "endpoint",
+          "keys"
+        ],
+        "title": "SubscriptionIn",
+        "type": "object"
+      },
+      "SubscriptionDeleteIn": {
+        "properties": {
+          "endpoint": {
+            "maxLength": 1000,
+            "title": "Endpoint",
+            "type": "string"
+          }
+        },
+        "required": [
+          "endpoint"
+        ],
+        "title": "SubscriptionDeleteIn",
+        "type": "object"
+      },
+      "SubscriptionOut": {
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "endpoint_host": {
+            "title": "Endpoint Host",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "endpoint_host",
+          "created_at"
+        ],
+        "title": "SubscriptionOut",
+        "type": "object"
+      },
+      "PreferencesIn": {
+        "properties": {
+          "push": {
+            "additionalProperties": {
+              "type": "boolean"
+            },
+            "propertyNames": {
+              "enum": [
+                "all",
+                "reminders",
+                "digest",
+                "countdown",
+                "proposals"
+              ]
+            },
+            "title": "Push",
+            "type": "object"
+          }
+        },
+        "required": [
+          "push"
+        ],
+        "title": "PreferencesIn",
+        "type": "object"
+      },
+      "PreferencesOut": {
+        "properties": {
+          "push": {
+            "additionalProperties": {
+              "type": "boolean"
+            },
+            "propertyNames": {
+              "enum": [
+                "all",
+                "reminders",
+                "digest",
+                "countdown",
+                "proposals"
+              ]
+            },
+            "title": "Push",
+            "type": "object"
+          }
+        },
+        "required": [
+          "push"
+        ],
+        "title": "PreferencesOut",
+        "type": "object"
+      },
+      "TestPushOut": {
+        "properties": {
+          "sent": {
+            "title": "Sent",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "sent"
+        ],
+        "title": "TestPushOut",
         "type": "object"
       }
     },
