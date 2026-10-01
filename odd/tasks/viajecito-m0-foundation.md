@@ -121,8 +121,8 @@ Legend: route = `inline` (orchestrator) | `delegated` (one bounded writer + one 
 | Task | Status | Route | Branch / commits | Checks observed |
 |---|---|---|---|---|
 | T1 | writer done, opus verifier running | delegated | `feat/m0a-api`: 88ddcdd, 3ecc6a7, d89d7cb, 1e28b08 | writer: `uv run pytest` 23 passed; `ruff check` + `ruff format --check` clean; `lint-imports` 1 kept/0 broken; `manage.py check` ok; `migrate` ok on fresh path; schema export idempotent (same md5 twice). RED observed per unit (collection errors before implementation). |
-| T2 | in progress (writer launched 2026-10-01) | delegated | `feat/m0a-web` | — |
-| T3 | in progress (writer launched 2026-10-01) | delegated | `feat/m0a-platform` | — |
+| T2 | writer done, opus verifier running | delegated | `feat/m0a-web`: 1cfd2d6, 982219c, b2acb63, db2f519, 458df7e, d00d114, 05894a9 | writer: `pnpm lint` clean; `pnpm typecheck` clean (also from fresh checkout); `pnpm test` 5 files / 14 passed; `pnpm api:types:check` exit 0 (exit 1 on drift); `pnpm build` ok (Next 16.3.8, standalone server.js present); no Spanish outside es-AR.json. RED observed per unit (unresolved imports before implementation). Not run: Playwright. |
+| T3 | writer done, opus verifier running | delegated | `feat/m0a-platform`: 531058f, 1d2f473, 7990fb6, 02f50b1, fa9e762 | writer: fake-gowa `uv run pytest` 13 passed; `docker build` fake-gowa ok + `/health` answers; `docker compose config -q` ok; 4 workflows parse; `make help` 15 targets; `make -n up/test` ok. RED observed (ModuleNotFoundError app before implementation). Not built: api/web images (no api/web in that worktree). |
 | T4 | pending | inline | `feat/m0-foundation` | — |
 | T5–T11 | pending | — | — | — |
 
@@ -139,3 +139,5 @@ Launch T1, T2, T3 writers in parallel (isolated worktrees), then one opus verifi
 
 - 2026-10-01 — workspace candidate (this document only): START → `approved`, risk `low`
   (`non_executable_only`), no lenses; acknowledged, authority burned (lineage `review-5563843267c76319`).
+- 2026-10-01 — committed range `main..HEAD` (docs + `.gitignore`): assess → risk `medium`
+  (`executable_change` .gitignore), `review_due: false`, reason `under_budget`; boundary stays `main`.
