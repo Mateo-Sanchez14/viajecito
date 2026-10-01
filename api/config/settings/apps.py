@@ -6,4 +6,5 @@ PROJECT_APPS = [
     "crews",
     "messaging",
     "trips",
+    "notifications",
 ]

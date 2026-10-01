@@ -101,3 +101,11 @@ def validate_subscription(
         auth=_key(auth, AUTH_BYTES, "auth"),
         user_agent=user_agent[:MAX_USER_AGENT_CHARS],
     )
+
+
+class RateLimitedError(Exception):
+    """Too many new subscriptions registered by one person in the last hour."""
+
+    def __init__(self, retry_after_seconds: int) -> None:
+        super().__init__("rate limited")
+        self.retry_after_seconds = retry_after_seconds
