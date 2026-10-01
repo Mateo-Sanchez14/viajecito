@@ -2,7 +2,7 @@
 
 - Feature id: `viajecito-premium-ui`; mirror: `odd/viajecito-premium-ui/tasks`.
 - Authorized by user 2026-10-01: faster parallel progress and a beautiful, fun, PREMIUM page redesign.
-- Branch: `codex/premium-trip-ui`; isolated worktree `~/Development/viajecito-worktrees/premium-trip-ui` from main4f314bb.
+- Branch: `codex/premium-trip-ui`; isolated worktree `~/Development/viajecito-worktrees/premium-trip-ui` from main8c03445.
 
 ## Objective and problem
 Give the working group-trip product a distinctive, polished travel-club identity without changing business behavior. Source audit found neutral-only hierarchy, equally weighted bordered boxes, a utility shell, uncomposed home/login and incomplete focus/pressed/touch/reduced-motion treatments. This is a product UI, not a marketing landing page.
@@ -43,3 +43,6 @@ RDD clone-local OFF: disabled/unmanaged, ordinary independent verification. Esti
 - V0 source audit complete. No source implementation yet; no browser appearance verified.
 - Main concurrently coordinates M3/M4 independent API verification and M6 map writer. Visual writer will work in isolated premium-trip-ui subtree ownership above.
 - Next: launch V1/V2 writer, then independent verifier when candidate ready. Record exact commits and observed checks before checking tasks off.
+
+### Writer dispatch
+- V1/V2 writer wave_b_mapping launched in premium-trip-ui at8c03445 after read-only audit closure. Parent reconciled full mirror2817; separate DIFFERENT verifier required. Source implementation and browser checks pending; no premium result claimed yet.
