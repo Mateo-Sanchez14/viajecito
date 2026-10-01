@@ -120,9 +120,9 @@ Legend: route = `inline` (orchestrator) | `delegated` (one bounded writer + one 
 
 | Task | Status | Route | Branch / commits | Checks observed |
 |---|---|---|---|---|
-| T1 | pending | delegated | `feat/m0a-api` | — |
-| T2 | pending | delegated | `feat/m0a-web` | — |
-| T3 | pending | delegated | `feat/m0a-platform` | — |
+| T1 | writer done, opus verifier running | delegated | `feat/m0a-api`: 88ddcdd, 3ecc6a7, d89d7cb, 1e28b08 | writer: `uv run pytest` 23 passed; `ruff check` + `ruff format --check` clean; `lint-imports` 1 kept/0 broken; `manage.py check` ok; `migrate` ok on fresh path; schema export idempotent (same md5 twice). RED observed per unit (collection errors before implementation). |
+| T2 | in progress (writer launched 2026-10-01) | delegated | `feat/m0a-web` | — |
+| T3 | in progress (writer launched 2026-10-01) | delegated | `feat/m0a-platform` | — |
 | T4 | pending | inline | `feat/m0-foundation` | — |
 | T5–T11 | pending | — | — | — |
 
@@ -134,3 +134,8 @@ chain strategy to be asked before the first PR. Slice boundaries will be recorde
 ## Next step
 
 Launch T1, T2, T3 writers in parallel (isolated worktrees), then one opus verifier per worktree.
+
+## RDD log
+
+- 2026-10-01 — workspace candidate (this document only): START → `approved`, risk `low`
+  (`non_executable_only`), no lenses; acknowledged, authority burned (lineage `review-5563843267c76319`).
