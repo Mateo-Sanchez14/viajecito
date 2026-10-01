@@ -20,7 +20,7 @@ Tasks with owners and due dates (todo / bring / booking), packing templates per 
 - Models: writers sonnet, verifiers opus (one correction round). Delivery: merge to `main` + push per milestone.
 
 ## Tasks
-- [ ] **B0 proposals bridge** — delegated orchestrator-owned prerequisite: pure store-free get_proposal_snapshot/list_trip_proposals returning existing ProposalRecord, default store configured in proposals AppConfig. Strict RED/GREEN, independent verifier, parent spot/export/pytest before merge.
+- [x] **B0 proposals bridge** — delegated orchestrator-owned prerequisite: pure store-free get_proposal_snapshot/list_trip_proposals returning existing ProposalRecord, default store configured in proposals AppConfig. Strict RED/GREEN, independent verifier, parent spot/export/pytest before merge.
 - [ ] **B1 api** — delegated (writer sonnet; verifier opus).
 - [ ] **B2 web** — delegated (writer sonnet; verifier opus). Builds against the contract's API table with a draft
   added to `contracts/openapi.json` (orchestrator regenerates from the real api at integration).
@@ -75,3 +75,9 @@ Tasks with owners and due dates (todo / bring / booking), packing templates per 
 - M3 web writer (actor wave_b_mapping) accepted role change to authorized writer, firstRED5missingmodule suites observed, feature-owned draft paths/client underway. M4 API/domain/CRUD underway; M4 web launched. M6 map queued behind runtime4child slots, not dropped.
 - Required core integration remaining: OutboundMessage.subject_id TextField + migration/regression for >6 UUIDs; vault env parsing/stable dev/test keys/requiredprod/limits/MIME/examples. Parent must delegate bounded API core writer when slot opens; never allow milestone writer to edit core.
 - Real contract conflict: nag says every due task in one message, core body max4000. Writer proposes bounded titles then, only if still oversized, owner/unowned grouped counts + board link with ALL exact task IDs in subject. This is UNACCEPTED pending one user question; do not silently implement fallback. M3 safe independent units continue.
+
+### Candidate handoff and parallel verification
+- B0 outcome observed and integrated: snapshots7c4aa56, packing328a784; independent1840 full API checks. B0 marked complete.
+- B1 candidate feat/m3-api d363ed4 clean:1900 API tests, Ruff/imports10/export/migration checks; RED evidence per work unit. Independent verifier is former M4 author m4_api_writer (did not author M3). Pending one correction/parent spot/integration; not completed yet.
+- B2 candidate feat/m3-web7f43ede clean:601 tests, frozen install/lint/typecheck/drift/build; draft schema/client cleanup remains parent integration. Independent verification/e2e not yet run.
+- User requested faster parallel work and premium/fun visual redesign. UI audit runs separately; M3/M4 feature ownership stays exclusive. No changes to pending nag overflow product decision.

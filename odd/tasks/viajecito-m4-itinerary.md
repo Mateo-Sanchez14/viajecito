@@ -58,3 +58,9 @@ Day-by-day itinerary with an unscheduled tray, meeting points and quick notes; t
 - B1 API actor m4_api_writer in m4-api: selectorcommit12c05f8 REDmissingmodule→GREEN10 timezone/DST tests; CRUDRED11→GREEN21focused, fullchecks running. Parent snapshots approved main7c4aa56/packing328a784 ready for fixed-SHA ingestion.
 - B2 web actor m4_web_writer launched m4-web with contract-local draft paths/client + external document types strategy, strictTDD and own boundaries.
 - Product clarification for M3 long nag affects neither M4 safe work nor its contract. No milestone merge/push yet.
+
+### Candidate handoff and parallel verification
+- B1 candidate feat/m4-api a2d90c1 clean:71 focused/1907 full tests, frozen sync/Ruff/imports/export/migrations. Independent verifier is former M3 author m3_api_writer (did not author M4). Pending one correction/parent spot/integration; not completed yet.
+- Parent-owned integration request: extend global import-linter contracts to itinerary and new M3 apps; milestone writers only appended allowed app lists.
+- B2 writer m4_web_writer candidate7891dea:23 focused tests, typecheck/lint/build/drift green; final full checks pending. Runtime browser e2e deferred until integrated API/exclusive compose window.
+- User authorized faster parallel progress and separate premium/fun visual redesign; audit underway without touching itinerary/Today ownership.
