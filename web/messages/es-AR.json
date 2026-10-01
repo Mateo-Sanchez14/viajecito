@@ -39,7 +39,7 @@
     },
     "errors": {
       "invalid_phone": "Ese número no parece válido",
-      "invalid_code": "Ese código no es",
+      "invalid_code": "Ese código no es correcto",
       "expired_code": "El código venció, pedí otro",
       "too_many_attempts": "Demasiados intentos, pedí un código nuevo",
       "rate_limited": "Esperá un toque antes de pedir otro",
@@ -51,12 +51,18 @@
   "home": {
     "greeting": "Hola, {name}",
     "crews": {
-      "title": "Tu grupo",
+      "title": "Tus grupos",
       "empty": "Todavía no estás en ningún grupo",
       "role": {
         "admin": "Admin",
         "member": "Miembro"
       }
+    }
+  },
+  "errors": {
+    "unexpected": {
+      "title": "Algo salió mal",
+      "retry": "Probar de nuevo"
     }
   }
 }

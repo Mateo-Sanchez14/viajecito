@@ -16,6 +16,7 @@ export class ApiError extends Error {
   constructor(
     readonly code: string,
     readonly status: number,
+    readonly retryAfterSeconds?: number,
   ) {
     super(`API error ${status}: ${code}`);
     this.name = "ApiError";
@@ -23,7 +24,7 @@ export class ApiError extends Error {
 }
 
 /** Builds an ApiError from whatever openapi-fetch put in `error` (object, text or nothing). */
-export function toApiError(error: unknown, status: number): ApiError {
+export function toApiError(error: unknown, response: Response): ApiError {
   const code =
     typeof error === "object" &&
     error !== null &&
@@ -31,7 +32,15 @@ export function toApiError(error: unknown, status: number): ApiError {
     typeof error.code === "string"
       ? error.code
       : "unknown";
-  return new ApiError(code, status);
+  const retryAfter = Number.parseInt(
+    response.headers.get("Retry-After") ?? "",
+    10,
+  );
+  return new ApiError(
+    code,
+    response.status,
+    Number.isFinite(retryAfter) && retryAfter > 0 ? retryAfter : undefined,
+  );
 }
 
 /** Maps an api error code to its i18n key; anything unrecognised is `auth.errors.unknown`. */

@@ -201,9 +201,93 @@ describe("LoginFlow", () => {
       screen.getByRole("button", { name: messages.auth.code.changeNumber }),
     );
 
+    expect(screen.getByLabelText(messages.auth.phone.label)).toHaveValue(
+      "+54 9 11 5555 1234",
+    );
+  });
+
+  it("links the hints to their inputs for assistive tech", async () => {
+    useHandlers(otpRequestOk());
+
+    renderWithProviders(<LoginFlow />);
+    const phoneInput = screen.getByLabelText(messages.auth.phone.label);
+    expect(phoneInput).toHaveAccessibleDescription(messages.auth.phone.hint);
+
+    const codeInput = await goToCodeStep();
+    expect(codeInput).toHaveAccessibleDescription(
+      messages.auth.code.hint.replace("{phone}", "+54 9 11 5555 1234"),
+    );
+  });
+
+  it("restarts the countdown from Retry-After when resend is rate limited", async () => {
+    vi.useFakeTimers({ toFake: ["setInterval", "clearInterval"] });
+    let requests = 0;
+    useHandlers(
+      http.untyped.post(`${origin}/api/auth/otp/request`, () => {
+        requests += 1;
+        if (requests === 1) {
+          return HttpResponse.json(
+            { status: "sent", retry_after_seconds: 2, expires_in_seconds: 300 },
+            { status: 202 },
+          );
+        }
+        return HttpResponse.json(
+          { code: "rate_limited", message: "slow" },
+          { status: 429, headers: { "Retry-After": "7" } },
+        );
+      }),
+    );
+
+    renderWithProviders(<LoginFlow />);
+    await goToCodeStep();
+    act(() => {
+      vi.advanceTimersByTime(2000);
+    });
+    fireEvent.click(
+      screen.getByRole("button", { name: messages.auth.code.resendNow }),
+    );
+
     expect(
-      screen.getByLabelText(messages.auth.phone.label),
-    ).toBeInTheDocument();
+      await screen.findByRole("button", {
+        name: messages.auth.code.resend.replace("{seconds}", "7"),
+      }),
+    ).toBeDisabled();
+    expect(screen.getByText(messages.auth.errors.rate_limited)).toBeInTheDocument();
+  });
+
+  it("falls back to the last retry_after_seconds when Retry-After is missing", async () => {
+    vi.useFakeTimers({ toFake: ["setInterval", "clearInterval"] });
+    let requests = 0;
+    useHandlers(
+      http.untyped.post(`${origin}/api/auth/otp/request`, () => {
+        requests += 1;
+        if (requests === 1) {
+          return HttpResponse.json(
+            { status: "sent", retry_after_seconds: 4, expires_in_seconds: 300 },
+            { status: 202 },
+          );
+        }
+        return HttpResponse.json(
+          { code: "rate_limited", message: "slow" },
+          { status: 429 },
+        );
+      }),
+    );
+
+    renderWithProviders(<LoginFlow />);
+    await goToCodeStep();
+    act(() => {
+      vi.advanceTimersByTime(4000);
+    });
+    fireEvent.click(
+      screen.getByRole("button", { name: messages.auth.code.resendNow }),
+    );
+
+    expect(
+      await screen.findByRole("button", {
+        name: messages.auth.code.resend.replace("{seconds}", "4"),
+      }),
+    ).toBeDisabled();
   });
 
   it("disables resend until the retry_after countdown ends", async () => {

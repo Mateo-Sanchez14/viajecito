@@ -66,7 +66,7 @@ describe("requireMe", () => {
   it("redirects to a bare /login when the path is the root or unknown", async () => {
     get.mockResolvedValue({ error: {}, response: { status: 401 } });
 
-    await expect(requireMe()).rejects.toThrow("REDIRECT:/login");
+    await expect(requireMe()).rejects.toThrow(/^REDIRECT:\/login$/);
 
     currentPath = "/";
     await expect(requireMe()).rejects.toThrow(/^REDIRECT:\/login$/);

@@ -31,6 +31,7 @@ export function CodeStep({
   const [code, setCode] = useState("");
   const inputId = useId();
   const errorId = useId();
+  const hintId = useId();
 
   function handleSubmit(event: FormEvent) {
     event.preventDefault();
@@ -53,10 +54,12 @@ export function CodeStep({
             setCode(event.target.value.replace(/\D/g, "").slice(0, CODE_LENGTH))
           }
           invalid={Boolean(errorMessage)}
-          aria-describedby={errorMessage ? errorId : undefined}
+          aria-describedby={errorMessage ? `${hintId} ${errorId}` : hintId}
           className="text-center font-mono text-2xl tracking-[0.5em]"
         />
-        <p className="text-sm text-muted">{t("hint", { phone })}</p>
+        <p id={hintId} className="text-sm text-muted">
+          {t("hint", { phone })}
+        </p>
       </div>
       {errorMessage && (
         <p id={errorId} role="alert" className="text-sm text-warn">

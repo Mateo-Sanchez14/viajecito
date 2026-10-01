@@ -9,5 +9,5 @@ export async function logout(): Promise<void> {
   );
   resetCsrfToken();
   if (response.ok || response.status === 401) return;
-  throw toApiError(error, response.status);
+  throw toApiError(error, response);
 }

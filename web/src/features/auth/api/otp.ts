@@ -13,7 +13,7 @@ export async function requestOtp(phone: string): Promise<OtpRequestOut> {
     { body: { phone } },
   );
   if (response.ok && data) return data;
-  throw toApiError(error, response.status);
+  throw toApiError(error, response);
 }
 
 /** Exchanges the code for a session cookie. */
@@ -30,5 +30,5 @@ export async function verifyOtp(
     resetCsrfToken();
     return data;
   }
-  throw toApiError(error, response.status);
+  throw toApiError(error, response);
 }

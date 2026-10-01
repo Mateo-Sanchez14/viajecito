@@ -6,17 +6,24 @@ import { Button } from "@/ui/atoms/Button";
 import { Input } from "@/ui/atoms/Input";
 
 type PhoneStepProps = {
+  initialPhone?: string;
   pending: boolean;
   errorMessage?: string;
   onSubmit: (phone: string) => void;
 };
 
 /** Presentational: asks for the WhatsApp number; validation is the api's job. */
-export function PhoneStep({ pending, errorMessage, onSubmit }: PhoneStepProps) {
+export function PhoneStep({
+  initialPhone = "",
+  pending,
+  errorMessage,
+  onSubmit,
+}: PhoneStepProps) {
   const t = useTranslations("auth.phone");
-  const [phone, setPhone] = useState("");
+  const [phone, setPhone] = useState(initialPhone);
   const inputId = useId();
   const errorId = useId();
+  const hintId = useId();
 
   function handleSubmit(event: FormEvent) {
     event.preventDefault();
@@ -38,9 +45,11 @@ export function PhoneStep({ pending, errorMessage, onSubmit }: PhoneStepProps) {
           value={phone}
           onChange={(event) => setPhone(event.target.value)}
           invalid={Boolean(errorMessage)}
-          aria-describedby={errorMessage ? errorId : undefined}
+          aria-describedby={errorMessage ? `${hintId} ${errorId}` : hintId}
         />
-        <p className="text-sm text-muted">{t("hint")}</p>
+        <p id={hintId} className="text-sm text-muted">
+          {t("hint")}
+        </p>
       </div>
       {errorMessage && (
         <p id={errorId} role="alert" className="text-sm text-warn">

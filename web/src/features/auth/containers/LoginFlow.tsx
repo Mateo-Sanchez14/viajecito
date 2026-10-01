@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { CodeStep } from "@/ui/molecules/CodeStep";
 import { PhoneStep } from "@/ui/molecules/PhoneStep";
 import { LoginCard } from "@/ui/organisms/LoginCard";
@@ -20,6 +20,7 @@ export function LoginFlow({ next }: { next?: string | null }) {
   const [phone, setPhone] = useState("");
   const [pending, setPending] = useState(false);
   const [secondsLeft, setSecondsLeft] = useState(0);
+  const lastRetryAfter = useRef(60);
   const [errorCode, setErrorCode] = useState<string | null>(null);
 
   const counting = secondsLeft > 0;
@@ -29,20 +30,25 @@ export function LoginFlow({ next }: { next?: string | null }) {
     return () => clearInterval(id);
   }, [counting]);
 
-  const send = useCallback(async (target: string) => {
+  async function send(target: string) {
     setPending(true);
     setErrorCode(null);
     try {
       const sent = await requestOtp(target);
+      lastRetryAfter.current = sent.retry_after_seconds;
       setPhone(target);
       setSecondsLeft(sent.retry_after_seconds);
       setStep("code");
     } catch (error) {
       setErrorCode(error instanceof ApiError ? error.code : "unknown");
+      if (error instanceof ApiError && error.code === "rate_limited") {
+        // Resend was too early: restart the countdown from the server's hint.
+        setSecondsLeft(error.retryAfterSeconds ?? lastRetryAfter.current);
+      }
     } finally {
       setPending(false);
     }
-  }, []);
+  }
 
   async function verify(code: string) {
     setPending(true);
@@ -64,6 +70,7 @@ export function LoginFlow({ next }: { next?: string | null }) {
     <LoginCard>
       {step === "phone" ? (
         <PhoneStep
+          initialPhone={phone}
           pending={pending}
           errorMessage={errorMessage}
           onSubmit={send}
