@@ -245,3 +245,65 @@ call is deduplicated per request) before fetching. The api enforces auth on ever
 - Restic snapshots are grouped so retention works (stable backup path or `--group-by host,tags`);
   `deploy/scripts/restic.sh` wraps the CLI with the host env. HMAC signatures in scripts are computed with
   the secret in the environment, never on a command line.
+
+## Core contract: trips, trip-type plugins and parallel milestone work (M-core)
+
+### trips (api)
+- Models: `Trip(crew FK, name, type key default "generic", status idea|planning|booked|ongoing|done
+  default planning, start_on/end_on nullable dates (end_on >= start_on), destination_label "",
+  timezone default crew.timezone, currency 3-letter default "USD", fx_rates JSON {})`;
+  `Participation(trip, person, rsvp in|maybe|out|pending default pending, joined_at)` unique (trip, person).
+  `crews.Crew.default_trip` FK nullable `SET_NULL` (migration in crews).
+- Plugin registry `trips/plugins.py`: frozen dataclass `TripTypePlugin(key, label_key, modules:
+  tuple[str, ...], packing_templates: tuple[str, ...] = (), reminder_rules: tuple[str, ...] = ())`;
+  `register(plugin)`, `get(key)`, `all()`; core registers `generic` with modules
+  `("proposals", "dates", "logistics", "itinerary", "today", "budget", "documents")`. Other apps register
+  in `AppConfig.ready()`; `ski` registers type `ski` = generic modules + `"ski"`.
+- Authorization: `crews/use_cases/authz.py` `require_active_member(person_id, crew_id)`; Ninja helpers in
+  `shared/api_auth.py`: `member_of_crew(request, crew_id)` / `member_of_trip(request, trip_id)` return the
+  membership or raise → `404 {"code":"not_found"}` for non-members (never reveal existence), `401
+  unauthenticated` when anonymous. Every milestone endpoint goes through one of them.
+- Endpoints (all `django_auth`, snake_case, errors `{code,message}`):
+  `GET /api/crews/{crew_id}/trips` → `200 [TripSummaryOut]`;
+  `POST /api/crews/{crew_id}/trips {name, type?, start_on?, end_on?, destination_label?, currency?}` →
+  `201 TripOut` (sets `crew.default_trip` when null; creator gets `Participation(rsvp=in)`);
+  `GET /api/trips/{trip_id}` → `200 TripOut {id, crew_id, name, type, status, start_on, end_on,
+  destination_label, timezone, currency, modules: [str], participants: [ParticipantOut {person_id,
+  display_name, rsvp}], my_rsvp}`; `PATCH /api/trips/{trip_id}` (any member; same fields as POST plus
+  `status`) → `200 TripOut`; `PUT /api/trips/{trip_id}/participation {rsvp}` → `200 ParticipantOut`.
+- Router auto-discovery: `config/api.py` mounts every `INSTALLED_APPS` member that exposes `api.router`
+  (a ninja `Router`) at `api.PREFIX` (default `""`). Apps never edit `config/api.py`.
+- Handler registry: `messaging/router.py` exposes `register_handler(order: int, handler)`; apps register
+  their inbound handlers from `AppConfig.ready()` and never edit `router.py`. Orders: commands 10,
+  quoted card 20, link capture 30, fallback 100.
+- Settings: `config/settings/apps.py` holds `PROJECT_APPS` (one per line; append yours at the end);
+  `[tool.importlinter] root_packages` in `pyproject.toml` (append yours). The orchestrator resolves
+  append conflicts at integration.
+
+### web core
+- i18n is split: `web/messages/es-AR/<feature>.json`, deep-merged by `web/messages/es-AR/index.ts`
+  (one import line per file; append yours). Keys stay namespaced by feature (`proposals.*`, `dates.*`…).
+- Routes: `src/app/(app)/page.tsx` (crews, trips list, create trip); `src/app/(app)/crews/[crewId]/trips/[tripId]/layout.tsx`
+  (server: `requireMe` + `GET /api/trips/{id}` → `TripProvider` + `TripShell` with a `SectionNav` built
+  from `modules`); `.../[tripId]/page.tsx` overview (dates, participants + RSVP control, module cards);
+  `.../[tripId]/[module]/page.tsx` placeholder ("Próximamente") for modules without a page yet. Each
+  milestone adds its own static `<section>/page.tsx` (a static segment wins over the dynamic one).
+- `features/trips/`: `api/` (listTrips, createTrip, getTrip, patchTrip, setRsvp), `hooks/` (`useTrip`,
+  query key `["trips", id]`), `containers/` (`TripList`, `CreateTripForm`, `TripOverview`, `RsvpControl`),
+  `TripProvider` (client context: trip, modules, participants, me).
+- Shared UI provided by core (presentational, under `src/ui`): atoms `Card`, `Avatar`, `Select`,
+  `Textarea`, `Skeleton`; molecules `PageHeader`, `EmptyState`, `SectionNav`, `ConfirmDialog`.
+
+### Rules for parallel milestone work
+- One milestone owns: its api app(s), its web `features/<capability>/` folder, its `<section>/page.tsx`
+  folder(s), its `messages/es-AR/<feature>.json`, its bot handler module(s), its tests and fixtures.
+  Ownership is listed in each contract under `docs/contracts/`.
+- Shared files you may APPEND one line to: `config/settings/apps.py`, `pyproject.toml` root_packages,
+  `web/messages/es-AR/index.ts`. Nothing else shared is edited. Never edit another milestone's files or
+  core files (`trips`, `crews`, `identity`, `messaging` core, existing `src/ui` files). A core change you
+  need goes into your report as a request; the orchestrator makes it.
+- Wave A milestones (M1, M2, M5, M6) may reference only core models (`Trip`, `Participation`, `Person`,
+  `Crew`). Wave B (M3, M4) may also reference `proposals.Proposal` and `documents.Document`.
+- Regenerate `contracts/openapi.json` and `web/src/shared/api/schema.d.ts` in your branch; the
+  orchestrator regenerates them at integration.
+- Same TDD, language, commit and boundary rules as everywhere else in this file.
