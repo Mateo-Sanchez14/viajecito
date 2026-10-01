@@ -50,7 +50,12 @@ uv run python manage.py export_openapi_schema --api config.api.api --output ../c
 | `DATABASE_PATH` | `<repo>/data/db.sqlite3` | SQLite file (WAL, `IMMEDIATE` transactions) |
 | `MEDIA_ROOT` | `<repo>/data/media` | |
 | `STATIC_ROOT` | `<repo>/data/static` | served by whitenoise |
-| `GOWA_BASE_URL`, `GOWA_BASIC_AUTH_USER`, `GOWA_BASIC_AUTH_PASS`, `GOWA_WEBHOOK_SECRET` | see `.env.example` | WhatsApp gateway (OTP delivery uses the first three) |
+| `GOWA_BASE_URL`, `GOWA_BASIC_AUTH_USER`, `GOWA_BASIC_AUTH_PASS` | see `.env.example` | WhatsApp gateway (OTP delivery, replies, roster sync) |
+| `GOWA_WEBHOOK_SECRET` | empty | HMAC key of `POST /hooks/gowa/`. Empty rejects every delivery (fails closed). **Required in `prod`** |
+| `GOWA_DEVICE_ID` | empty | optional; sent as `X-Device-Id` and used to skip the bot in roster syncs |
+| `MESSAGING_PROCESS_SYNC` | `0` (`1` in tests) | process inbound messages inline instead of on a worker thread |
+| `INBOUND_STUCK_MINUTES` | `2` | `tick` requeues `processing` rows older than this |
+| `ROSTER_SYNC_HOURS` | `24` | `tick` re-syncs a group roster older than this |
 | `OTP_PEPPER` | dev value in `dev`; empty elsewhere | HMAC key for stored OTP codes. **Required in `prod`** (settings import fails without it) |
 | `OTP_DELIVERY_ENABLED` | `1` | kill switch; `0` makes `POST /api/auth/otp/request` return `503 delivery_unavailable` |
 | `OTP_CODE_TTL_SECONDS` | `300` | code lifetime |
@@ -111,3 +116,52 @@ it with the same `--chat-id` changes nothing. Invite more people from the Django
 - Anonymous unsafe routes (`otp/request`, `otp/verify`) are protected by a CSRF-only auth scheme
   (`CsrfCookie`), so a missing token returns `403 csrf_failed` before the body is validated. It shows up
   in the OpenAPI document as an `apiKey` cookie scheme named `csrftoken`.
+
+## Gowa webhook, bot commands and tick
+
+`POST /hooks/gowa/` is a plain Django view (`messaging/webhooks.py`, outside the Ninja mount, CSRF-exempt,
+POST only). It never talks to the network: it verifies and stores, then hands off.
+
+1. **Signature**: HMAC-SHA256 of the raw body with `GOWA_WEBHOOK_SECRET`, header `X-Hub-Signature-256`
+   (`sha256=` prefix optional). Empty secret, missing or wrong signature: `403 {"code":"invalid_signature"}`.
+   Not a JSON object: `400 {"code":"invalid_payload"}`.
+2. **Filters** (nothing is stored): `200 {"status":"ignored","reason":...}` with `event` (not a `message`
+   event), `invalid_message` (no id or chat), `own_message`, `not_group`, `unlinked_group` (no
+   `WhatsAppGroupLink` for the chat).
+3. **Ledger**: `InboundMessage` is unique on `(device_id, gowa_message_id)`, so Gowa's retries answer
+   `200 {"status":"duplicate"}`. A new message answers `200 {"status":"accepted"}` and, after commit,
+   `process_inbound` runs on a small thread pool (inline when `MESSAGING_PROCESS_SYNC=1`).
+
+Processing resolves the sender through `identity` (`WhatsAppIdentity` by JID, then LID). An unknown sender
+triggers one roster sync of the group and a retry; still unknown means status `ignored` with
+`outcome.reason = "unknown_sender"`. Then the handler chain in `messaging/router.py` runs (first match
+wins). Commands: `/viaje <sub>` or `/v <sub>`, case, accent and whitespace tolerant: `ping` replies
+`pong`, `ayuda` lists the commands, anything else replies with a hint; plain text has no handler
+(`outcome.reason = "no_handler"`, status `done`). Replies go to the group as a threaded
+`OutboundMessage(kind="reply")` with a dedupe key per inbound message, so a reprocessed row never
+replies twice. Exceptions are recorded on the row (`failed` + `error`), never raised. Copy is in
+`messaging/copy/es_ar.py`.
+
+**Roster sync** (`crews/use_cases/sync_roster.py`): `GET /group/participants?group_id=` upserts `Person` by
+E.164 phone, their `WhatsAppIdentity` (JID and LID) and a `member` / `group_sync` membership for new
+phones. It never downgrades an admin, never reactivates a `removed` member and never removes members who
+left the group. Participants without a phone (LID only) are skipped.
+
+**`tick`** runs every minute (a systemd timer on the Pi) and is safe to overlap: it takes the
+`JobLock("tick")` and exits silently when another tick holds it. Each pass requeues `processing` rows older
+than `INBOUND_STUCK_MINUTES` (at most 3 attempts, then `failed`), processes `received` rows, sends `queued`
+outbound messages older than 60 s (`attempts` < 3; redacted OTP rows are failed, never resent), refreshes
+rosters older than `ROSTER_SYNC_HOURS`, and prints a one-line JSON summary.
+
+```sh
+uv run python manage.py tick
+uv run python manage.py replay_gowa messaging/tests/fixtures/gowa/group_command_ping.json \
+    --url http://localhost:8000/hooks/gowa/
+```
+
+`replay_gowa` signs the fixture bytes with `GOWA_WEBHOOK_SECRET` and prints the HTTP status and body. The
+fixtures in `messaging/tests/fixtures/gowa/` are derived from the Gowa docs with fake phones until real
+captures replace them.
+
+Production requires `GOWA_WEBHOOK_SECRET` (settings import fails without it) and, for replies and roster
+syncs, `GOWA_BASE_URL` plus the Basic-auth pair of the Gowa instance.
