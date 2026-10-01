@@ -71,3 +71,11 @@ def send(client, method, path, payload=None):
         data=json.dumps(payload if payload is not None else {}),
         content_type="application/json",
     )
+
+
+@pytest.fixture(autouse=True)
+def no_seeded_resorts(db):
+    """The data migration seeds the real resorts; tests build their own."""
+    from ski.models import Resort
+
+    Resort.objects.all().delete()
