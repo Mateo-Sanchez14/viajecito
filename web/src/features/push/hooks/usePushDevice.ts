@@ -4,7 +4,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSyncExternalStore } from "react";
 import { useIsIos, useStandalone } from "@/features/pwa/hooks/useInstallState";
 import { registerServiceWorker } from "@/features/pwa/lib/registerServiceWorker";
-import { deleteSubscription, getVapidPublicKey, pushKeys, registerSubscription } from "../api/push";
+import { deleteSubscription, getVapidPublicKey, pushKeys } from "../api/push";
+import { currentSubscription, registerBrowserSubscription } from "../lib/device";
 import { urlBase64ToUint8Array } from "../lib/applicationServerKey";
 import { notifyPermissionChanged, readPermission, subscribePermission } from "../lib/permission";
 
@@ -31,11 +32,6 @@ async function activeRegistration(): Promise<ServiceWorkerRegistration> {
   ]);
 }
 
-async function currentSubscription(): Promise<PushSubscription | null> {
-  const registration = await navigator.serviceWorker.getRegistration();
-  return (await registration?.pushManager.getSubscription()) ?? null;
-}
-
 async function subscribeThisBrowser(): Promise<"granted" | "denied"> {
   const permission = await Notification.requestPermission();
   notifyPermissionChanged();
@@ -46,13 +42,8 @@ async function subscribeThisBrowser(): Promise<"granted" | "denied"> {
     userVisibleOnly: true,
     applicationServerKey: urlBase64ToUint8Array(publicKey),
   });
-  const { endpoint, keys } = subscription.toJSON();
   try {
-    await registerSubscription({
-      endpoint: endpoint ?? subscription.endpoint,
-      keys: { p256dh: keys?.p256dh ?? "", auth: keys?.auth ?? "" },
-      user_agent: navigator.userAgent.slice(0, 300),
-    });
+    await registerBrowserSubscription(subscription);
   } catch (error) {
     // Keep both sides consistent: no browser subscription without a server record.
     await subscription.unsubscribe().catch(() => false);
@@ -67,7 +58,6 @@ async function unsubscribeThisBrowser(): Promise<void> {
   try {
     await deleteSubscription(subscription.endpoint);
   } finally {
-    // The browser side goes regardless: a dead server row is pruned on the first 410.
     await subscription.unsubscribe().catch(() => false);
   }
 }

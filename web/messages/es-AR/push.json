@@ -1,6 +1,7 @@
 {
   "push": {
     "title": "Notificaciones",
+    "nav": "Notificaciones",
     "subtitle": "Elegí qué avisos querés recibir en este dispositivo",
     "enable": "Activar notificaciones",
     "disable": "Desactivar",
