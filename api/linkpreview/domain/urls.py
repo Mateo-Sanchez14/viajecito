@@ -210,11 +210,16 @@ def canonicalize(url: str) -> str:
     return urlunsplit((scheme, netloc, path, query, ""))
 
 
+def normalize(url: str) -> str:
+    """The dedupe key of a URL: tracking parameters stripped, then canonicalized."""
+    return canonicalize(strip_tracking(url))
+
+
 def canonical_after_redirect(url: str, final_url: str) -> str:
     """Maps short links are canonicalized after their redirect; every other URL as it came."""
     if final_url and is_maps_short_link(url):
-        return canonicalize(final_url)
-    return canonicalize(url)
+        return normalize(final_url)
+    return normalize(url)
 
 
 _EXTENSION = re.compile(r"\.(html?|php|aspx?|jsp|pdf)$", re.IGNORECASE)

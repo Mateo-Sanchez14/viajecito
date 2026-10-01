@@ -57,24 +57,33 @@ class PreviewStore(Protocol):
         """Store a fetch result (attempt counted), the thumbnail included."""
         ...
 
-    def touch_refresh(self, preview_id: str, now: datetime) -> bool:
-        """Mark a manual refresh; False when one happened in the last 10 minutes."""
+    def mark_pending(self, preview_id: str) -> PreviewRef:
+        """Put a settled preview back in ``pending`` (a manual refresh is queued)."""
         ...
 
     def retry_candidates(self, now: datetime, limit: int) -> list[PreviewRef]: ...
 
 
+class FetchScheduler(Protocol):
+    def schedule(self, preview_id: str) -> None:
+        """Run ``fetch_preview(preview_id)`` off the request path (inline in tests)."""
+        ...
+
+
 _default_store: Callable[[], PreviewStore] | None = None
 _default_fetcher: Callable[[], LinkPreviewFetcher] | None = None
+_default_scheduler: Callable[[], FetchScheduler] | None = None
 
 
 def set_defaults(
-    store: Callable[[], PreviewStore], fetcher: Callable[[], LinkPreviewFetcher]
+    store: Callable[[], PreviewStore],
+    fetcher: Callable[[], LinkPreviewFetcher],
+    scheduler: Callable[[], FetchScheduler],
 ) -> None:
     """Composition root hook: ``LinkpreviewConfig.ready()`` installs the adapters here, so the use
     cases other apps call need no adapter import."""
-    global _default_store, _default_fetcher
-    _default_store, _default_fetcher = store, fetcher
+    global _default_store, _default_fetcher, _default_scheduler
+    _default_store, _default_fetcher, _default_scheduler = store, fetcher, scheduler
 
 
 def default_store() -> PreviewStore:
@@ -87,3 +96,9 @@ def default_fetcher() -> LinkPreviewFetcher:
     if _default_fetcher is None:
         raise RuntimeError("no default link preview fetcher configured")
     return _default_fetcher()
+
+
+def default_scheduler() -> FetchScheduler:
+    if _default_scheduler is None:
+        raise RuntimeError("no default fetch scheduler configured")
+    return _default_scheduler()

@@ -1,0 +1,40 @@
+{
+  "booking.com": {
+    "title": "Cabañas del Sur, San Martín de los Andes",
+    "description": "Cabañas con cocina a 5 minutos del cerro Chapelco.",
+    "site_name": "Booking.com",
+    "price_amount": "120.00",
+    "price_currency": "USD",
+    "color": "#1d4e89"
+  },
+  "airbnb.com.ar": {
+    "title": "Depto con vista al lago en Bariloche",
+    "description": "Departamento entero para 4 huéspedes.",
+    "site_name": "Airbnb",
+    "price_amount": "95.00",
+    "price_currency": "USD",
+    "color": "#d9534f"
+  },
+  "google.com": {
+    "title": "Refugio Frey",
+    "description": "Refugio de montaña en Bariloche.",
+    "site_name": "Google Maps",
+    "lat": -41.2044,
+    "lng": -71.4509,
+    "color": "#34a853"
+  },
+  "despegar.com.ar": {
+    "title": "Vuelos Buenos Aires - Bariloche",
+    "description": "Ida y vuelta desde Aeroparque.",
+    "site_name": "Despegar",
+    "price_amount": "210000.00",
+    "price_currency": "ARS",
+    "color": "#ff7f00"
+  },
+  "example.com": {
+    "title": "Página de ejemplo",
+    "description": "Contenido de prueba para la pila de desarrollo.",
+    "site_name": "Example",
+    "color": "#6c757d"
+  }
+}
