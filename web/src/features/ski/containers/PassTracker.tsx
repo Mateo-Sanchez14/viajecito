@@ -9,21 +9,25 @@ import { Card } from "@/ui/atoms/Card";
 import { Input } from "@/ui/atoms/Input";
 import { Select } from "@/ui/atoms/Select";
 import { Skeleton } from "@/ui/atoms/Skeleton";
-import { PASS_STATUSES, type PassRow as PassRowData, type PassStatus } from "../api/ski";
+import { PASS_STATUSES, toPassStatus, type PassRow as PassRowData, type PassStatus } from "../api/ski";
 import { PassRow } from "../components/PassRow";
 import { useSetMyPass } from "../hooks/mutations";
 import { useSkiOverview } from "../hooks/queries";
+import { useSkiErrorMessage } from "../lib/useErrorMessage";
 
 type MyPassProps = {
   tripId: string;
   resortId: string;
+  /** My own row for this resort. */
   row: PassRowData | undefined;
+  /** What applies to me here: my own row, else my resort-less row. */
+  effective: PassRowData | undefined;
 };
 
 /** My pass for one resort: the status applies at once, product and days are saved together. */
-function MyPassDetails({ tripId, resortId, row }: MyPassProps) {
+function MyPassDetails({ tripId, resortId, row, effective }: MyPassProps) {
   const t = useTranslations("ski.passes");
-  const tError = useTranslations("ski.errors");
+  const errorMessage = useSkiErrorMessage();
   const id = useId();
   const me = useMe();
   const setPass = useSetMyPass(tripId, { person_id: me.person.id, display_name: me.person.display_name });
@@ -32,12 +36,12 @@ function MyPassDetails({ tripId, resortId, row }: MyPassProps) {
 
   const base = { resort_id: resortId || null, price: row?.price ?? undefined };
   const choose = (status: PassStatus) =>
-    setPass.mutate({ ...base, status, product: row?.product || undefined, days: row?.days ?? undefined });
+    setPass.mutate({ ...base, status, product: row?.product ?? "", days: row?.days ?? undefined });
   const saveDetails = (event: FormEvent) => {
     event.preventDefault();
     setPass.mutate({
       ...base,
-      status: row?.status ?? "needed",
+      status: toPassStatus(row?.status ?? "needed"),
       product: product.trim(),
       days: days ? Number(days) : null,
     });
@@ -51,10 +55,10 @@ function MyPassDetails({ tripId, resortId, row }: MyPassProps) {
           <button
             key={status}
             type="button"
-            aria-pressed={row?.status === status}
+            aria-pressed={effective?.status === status}
             onClick={() => choose(status)}
             className={`rounded-xl border border-border px-3 py-2 text-sm font-medium ${
-              row?.status === status ? "bg-foreground text-background" : "bg-surface text-foreground"
+              effective?.status === status ? "bg-foreground text-background" : "bg-surface text-foreground"
             }`}
           >
             {t(`status.${status}`)}
@@ -90,7 +94,7 @@ function MyPassDetails({ tripId, resortId, row }: MyPassProps) {
           {t("saveDetails")}
         </Button>
       </form>
-      {setPass.isError && <p role="alert" className="text-sm text-warn">{tError("generic")}</p>}
+      {setPass.isError && <p role="alert" className="text-sm text-warn">{errorMessage(setPass.error)}</p>}
     </div>
   );
 }
@@ -110,9 +114,9 @@ export function PassTracker({ tripId }: { tripId: string }) {
   const resortName = (resortId: string | null) =>
     resorts.find((r) => r.resort.id === resortId)?.resort.name ?? t("anyResort");
   const resortId = chosenResort ?? resorts[0]?.resort.id ?? "";
-  const myRow = passes.rows.find(
-    (row) => row.person.person_id === me.person.id && (row.resort_id ?? "") === resortId,
-  );
+  const mine = passes.rows.filter((row) => row.person.person_id === me.person.id);
+  const myRow = mine.find((row) => (row.resort_id ?? "") === resortId);
+  const effective = myRow ?? mine.find((row) => row.resort_id === null);
 
   return (
     <Card as="section" aria-labelledby={`${id}-title`} className="flex flex-col gap-4">
@@ -148,7 +152,7 @@ export function PassTracker({ tripId }: { tripId: string }) {
             </Select>
           </div>
         )}
-        <MyPassDetails key={`${resortId}|${myRow?.product}|${myRow?.days}`} tripId={tripId} resortId={resortId} row={myRow} />
+        <MyPassDetails key={`${resortId}|${myRow?.product}|${myRow?.days}`} tripId={tripId} resortId={resortId} row={myRow} effective={effective} />
       </div>
 
       <div className="flex flex-col gap-2">

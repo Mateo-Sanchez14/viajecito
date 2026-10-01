@@ -9,7 +9,7 @@ import { renderWithProviders } from "@/test/render";
 import { server } from "@/test/server";
 import messages from "../../../../messages/es-AR";
 import { csrfHandler, http, skiOverviewHandler } from "../test/handlers";
-import { LUCIA_REF, ME_REF, RESORT_ID, makeOverview, makePassRow, makeTripResort } from "../test/fixtures";
+import { LUCIA_REF, ME_REF, RESORT_2_ID, RESORT_ID, makeOverview, makePassRow, makeResort, makeTripResort } from "../test/fixtures";
 import { PassTracker } from "./PassTracker";
 
 const t = messages.ski.passes;
@@ -138,5 +138,52 @@ describe("PassTracker", () => {
     await waitFor(() =>
       expect(body).toMatchObject({ resort_id: RESORT_ID, status: "bought", product: "Pase 7 dias", days: 7 }),
     );
+  });
+
+  it("shows the resort-less pass as my status for a resort without its own row", async () => {
+    server.use(
+      skiOverviewHandler(
+        makeOverview({
+          passes: { rows: [makePassRow({ person: ME_REF, resort_id: null, status: "season_pass" })], missing: [] },
+        }),
+      ),
+    );
+    setup();
+    await screen.findByText(t.allCovered);
+
+    expect(pressed(t.status.season_pass)).toBe("true");
+    expect(pressed(t.status.needed)).toBe("false");
+  });
+
+  it("applies a resort-less pass only to resorts without their own row, like the api", async () => {
+    server.use(
+      csrfHandler,
+      skiOverviewHandler(
+        makeOverview({
+          resorts: [makeTripResort(), makeTripResort({ resort: makeResort({ id: RESORT_2_ID, name: "Las Lenas" }), position: 1 })],
+          passes: {
+            rows: [makePassRow({ person: ME_REF, resort_id: RESORT_ID, status: "needed" })],
+            missing: [
+              { person: ME_REF, resort_id: RESORT_ID },
+              { person: ME_REF, resort_id: RESORT_2_ID },
+            ],
+          },
+        }),
+      ),
+      http.put("/api/trips/{trip_id}/ski/passes/me", async () => {
+        await new Promise(() => {});
+        return HttpResponse.json(makePassRow());
+      }),
+    );
+    setup();
+    await screen.findByRole("list", { name: t.missingTitle });
+
+    fireEvent.change(screen.getByLabelText(t.resort), { target: { value: "" } });
+    fireEvent.click(screen.getByRole("button", { name: t.status.bought }));
+
+    const missing = await screen.findByRole("list", { name: t.missingTitle });
+    await waitFor(() => expect(within(missing).getAllByRole("listitem")).toHaveLength(1));
+    expect(missing).toHaveTextContent("Cerro Catedral");
+    expect(missing).not.toHaveTextContent("Las Lenas");
   });
 });
