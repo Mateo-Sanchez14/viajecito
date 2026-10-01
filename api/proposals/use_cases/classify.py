@@ -1,4 +1,5 @@
 import logging
+from dataclasses import replace
 
 from proposals.domain.classifier import CATEGORIES, Classification, ClassificationInput
 from proposals.ports import ProposalClassifier
@@ -26,4 +27,4 @@ def classify_with_fallback(
     except Exception:
         logger.warning("LLM classifier failed; keeping the rule-based result", exc_info=True)
         return result
-    return answer if answer.category in CATEGORIES else result
+    return replace(answer, source="llm") if answer.category in CATEGORIES else result

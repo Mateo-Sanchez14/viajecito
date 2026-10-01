@@ -36,9 +36,7 @@ class Proposal(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     trip = models.ForeignKey("trips.Trip", on_delete=models.CASCADE, related_name="proposals")
-    author = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="+"
-    )
+    author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="+")
     category = models.CharField(max_length=16, choices=Category.choices, default=Category.OTHER)
     status = models.CharField(max_length=16, choices=Status.choices, default=Status.PROPOSED)
     title = models.CharField(max_length=300)
@@ -130,9 +128,7 @@ class Vote(models.Model):
 class Comment(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     proposal = models.ForeignKey(Proposal, on_delete=models.CASCADE, related_name="comments")
-    author = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="+"
-    )
+    author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="+")
     body = models.TextField(max_length=2000)
     source_message = models.ForeignKey(
         "messaging.InboundMessage",

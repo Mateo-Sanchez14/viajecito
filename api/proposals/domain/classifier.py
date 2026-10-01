@@ -17,6 +17,7 @@ PRIORITY = ("lodging", "transport", "gear", "food", "activity")  # tie-breaker b
 class Classification:
     category: str
     confidence: float
+    source: str = "rules"  # "rules" or "llm": stored as ``Proposal.classified_by``
 
 
 @dataclass(frozen=True)
