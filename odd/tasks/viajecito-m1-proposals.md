@@ -36,5 +36,5 @@ Any link dropped in the group (or pasted on the web) becomes a proposal card wit
 | Task | Status | Evidence |
 |---|---|---|
 | A1 | writer running (sonnet, launched 2026-10-01 after M-core bc1bece) | — |
-| A2 | writer done (14 commits df29570…eeef808; 265 web tests, 95 in proposals; board, detail, votes, status control, comments, add/edit/booking forms, overview card, e2e spec); opus verifier running | writer: lint/typecheck/test/build/api:types:check green |
+| A2 | verifier APPROVE WITH MINORS → correction round running (es-AR price parsing, empty title PATCH, paths-derived input types, rollback test, link scheme guard) | writer: lint/typecheck/test/build/api:types:check green |
 | A3 | pending | — |
