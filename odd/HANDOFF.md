@@ -97,3 +97,10 @@ Read this first, then `AGENTS.md`, then the ODD feature documents in `odd/tasks/
 - Integrated correction merge `dece82f`: self-contained proposal e2e, shared login isolation and accessible home/loading headings. Final API1815 tests, web571 tests; final e2e8passed/2production-only skips; bot-smoke passed. Independent verification and one accessibility correction round completed.
 - See `odd/tasks/viajecito-m1-proposals.md` for evidence/commits. Push pending immediately after this documentation commit; then §2 step2 (Wave B + M6 map). Do not remerge M1.
 - RDD confirmed off clone-local. Source/functional checks green; production-only service worker/offline tests remain pending. Shared main remains no-FF/clean-only, export+pytest before merge commits.
+
+## Current Codex state — clarification boundary
+- M1 successfully pushed ec96636 (after preserving concurrent5b1bc71); final1816API/571web, e2e8pass2production-onlyskip, bot-smoke green.
+- Local main source now328a784 (unpublished Wave B proposal/trip/packing pure seams) + orchestration docs; fullAPI1840/exportgreen. See M3/M4/M6 task docs/mirrors for active work.
+- Active isolated writers: m3_api_writer(m3-api), wave_b_mapping now M3web writer(m3-web), m4_api_writer(m4-api), m4_web_writer(m4-web). M6map queued (4child concurrent slots). Parent orchestrator must continue independent verification/one correction/spot and API-before-web integration.
+- Pending one USER product clarification: nag >4000chars cannot list every due task. Proposed last-resort grouped owner/unowned counts+boardlink, ALL exact included IDs retained, after bounded titles. Not accepted yet; M3 writer told to defer unsafe choice and continue independent units.
+- Pending core API integration writer: widen outbound.subject_id metadata + migration/regression, vault env parsing/stable keys/requiredprod/limits. Parent owns core; no milestone writer bypass.

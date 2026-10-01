@@ -53,3 +53,8 @@ Day-by-day itinerary with an unscheduled tray, meeting points and quick notes; t
 - Web parallel draft JSON/generated paths stay feature-owned, not contracts/openapi.json; feature-local openapi-fetch client uses exported CSRF middleware/credentials. At API integration replace with shared generated paths/client and remove draft artifacts (parent-owned integration). M4 contract-local document types allowed until M3 types exist.
 - Record coherent work-unit slices from contract test list, with RED/GREEN/checks/rollback in reports. Estimates: M3 3000–5000, M4 2000–3500 authored lines; direct-main exception-ok authorized (no PR chain).
 - M3 task numbers require persistent app-owned sequence, never reuse after deleting highest. M4 nullable tray DayOut.date; no bot/push phone fallback.
+
+### Current progress
+- B1 API actor m4_api_writer in m4-api: selectorcommit12c05f8 REDmissingmodule→GREEN10 timezone/DST tests; CRUDRED11→GREEN21focused, fullchecks running. Parent snapshots approved main7c4aa56/packing328a784 ready for fixed-SHA ingestion.
+- B2 web actor m4_web_writer launched m4-web with contract-local draft paths/client + external document types strategy, strictTDD and own boundaries.
+- Product clarification for M3 long nag affects neither M4 safe work nor its contract. No milestone merge/push yet.
