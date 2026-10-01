@@ -10,7 +10,7 @@ from decisions.domain.rules import DecisionError
 from decisions.schemas import (
     AvailabilityIn,
     AvailabilityOut,
-    DecisionCloseIn,
+    CloseDecisionIn,
     DecisionCreateIn,
     DecisionOut,
     DecisionPatchIn,
@@ -268,7 +268,7 @@ def set_availability(request, decision_id: UUID, payload: AvailabilityIn):
     auth=django_auth,
     summary="Close Decision",
 )
-def close_decision(request, decision_id: UUID, payload: DecisionCloseIn):
+def close_decision(request, decision_id: UUID, payload: CloseDecisionIn):
     """Writes the chosen dates (default: best window #1) to the trip. 400 codes: `invalid_window`,
     `no_window`. 409: `decision_closed`."""
     access = authorize(request, decision_id)

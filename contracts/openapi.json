@@ -1268,7 +1268,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/DecisionCloseIn"
+                "$ref": "#/components/schemas/CloseDecisionIn"
               }
             }
           },
@@ -2505,7 +2505,7 @@
         "title": "WindowOut",
         "type": "object"
       },
-      "AnswerIn": {
+      "AvailabilityAnswerIn": {
         "properties": {
           "date": {
             "format": "date",
@@ -2533,14 +2533,14 @@
           "date",
           "answer"
         ],
-        "title": "AnswerIn",
+        "title": "AvailabilityAnswerIn",
         "type": "object"
       },
       "AvailabilityIn": {
         "properties": {
           "answers": {
             "items": {
-              "$ref": "#/components/schemas/AnswerIn"
+              "$ref": "#/components/schemas/AvailabilityAnswerIn"
             },
             "maxItems": 366,
             "minItems": 1,
@@ -2554,7 +2554,7 @@
         "title": "AvailabilityIn",
         "type": "object"
       },
-      "DecisionCloseIn": {
+      "CloseDecisionIn": {
         "properties": {
           "start_on": {
             "anyOf": [
@@ -2581,7 +2581,7 @@
             "title": "End On"
           }
         },
-        "title": "DecisionCloseIn",
+        "title": "CloseDecisionIn",
         "type": "object"
       }
     },

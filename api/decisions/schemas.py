@@ -33,18 +33,18 @@ class DecisionPatchIn(Schema):
     deadline: AwareDatetime | None = None
 
 
-class DecisionCloseIn(Schema):
+class CloseDecisionIn(Schema):
     start_on: dt.date | None = None
     end_on: dt.date | None = None
 
 
-class AnswerIn(Schema):
+class AvailabilityAnswerIn(Schema):
     date: dt.date
     answer: Answer | None  # ``null`` clears the day
 
 
 class AvailabilityIn(Schema):
-    answers: list[AnswerIn] = Field(min_length=1, max_length=366)
+    answers: list[AvailabilityAnswerIn] = Field(min_length=1, max_length=366)
 
 
 class PersonRefOut(Schema):
