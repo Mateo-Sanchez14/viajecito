@@ -10,6 +10,7 @@ dependencies = [
     "whitenoise>=6.9",
     "environs>=14",
     "phonenumbers>=9.0.40",
+    "pywebpush>=2.5.0",
 ]
 
 [dependency-groups]
@@ -32,7 +33,7 @@ package = false
 DJANGO_SETTINGS_MODULE = "config.settings.test"
 addopts = "--disable-socket --allow-unix-socket -ra"
 testpaths = [
-    "tests", "ops", "shared", "identity", "crews", "messaging", "trips", "decisions",
+    "tests", "ops", "shared", "identity", "crews", "messaging", "trips", "decisions", "notifications",
 ]
 python_files = ["test_*.py"]
 
@@ -49,21 +50,21 @@ select = ["E", "F", "I", "B", "UP"]
 
 [tool.ruff.lint.isort]
 known-first-party = [
-    "config", "shared", "ops", "identity", "crews", "messaging", "trips", "decisions",
+    "config", "shared", "ops", "identity", "crews", "messaging", "trips", "decisions", "notifications",
 ]
 
 [tool.importlinter]
 root_packages = [
-    "config", "shared", "ops", "identity", "crews", "messaging", "trips", "decisions", "django",
-    "ninja", "httpx",
+    "config", "shared", "ops", "identity", "crews", "messaging", "trips", "decisions", "notifications", "django", "ninja", "httpx",
 ]
+
 include_external_packages = true
 
 [[tool.importlinter.contracts]]
 name = "shared depends on no other project package"
 type = "forbidden"
 source_modules = ["shared"]
-forbidden_modules = ["config", "ops", "identity", "crews", "messaging", "trips", "decisions"]
+forbidden_modules = ["config", "ops", "identity", "crews", "messaging", "trips", "decisions", "notifications"]
 
 [[tool.importlinter.contracts]]
 name = "domain, use cases and ports import no framework or HTTP code"
@@ -78,8 +79,9 @@ source_modules = [
     "messaging.reminders",
     "shared.phone", "shared.clock", "shared.events",
     "shared.timezones",
+    "notifications.domain", "notifications.use_cases", "notifications.ports",
 ]
-forbidden_modules = ["django", "ninja", "httpx"]
+forbidden_modules = ["django", "ninja", "httpx", "pywebpush", "requests"]
 
 [[tool.importlinter.contracts]]
 name = "messaging reaches other apps only through their use cases"
@@ -101,6 +103,28 @@ ignore_imports = [
     "messaging.adapters.identity_gateway -> identity.adapters.django_repos",
     "messaging.tests.* -> crews.models",
     "messaging.tests.* -> identity.models",
+]
+
+[[tool.importlinter.contracts]]
+name = "notifications reaches other apps only through their use cases"
+type = "forbidden"
+source_modules = ["notifications"]
+forbidden_modules = [
+    "identity.models", "identity.domain", "identity.ports", "identity.adapters", "identity.api",
+    "identity.schemas", "crews.models", "crews.domain", "crews.ports", "crews.adapters",
+    "crews.api", "crews.schemas",
+    "trips.models", "trips.domain", "trips.ports", "trips.adapters", "trips.api", "trips.schemas",
+    "messaging.models", "messaging.domain", "messaging.ports", "messaging.adapters",
+    "messaging.api", "messaging.schemas", "messaging.use_cases", "messaging.handlers",
+]
+# Only direct imports are checked. ``messaging.reminders`` (the registries) is the allowed seam.
+allow_indirect_imports = true
+ignore_imports = [
+    "notifications.tests.* -> crews.models",
+    "notifications.tests.* -> identity.models",
+    "notifications.tests.* -> trips.models",
+    "notifications.tests.* -> trips.domain",
+    "notifications.tests.* -> messaging.models",
 ]
 
 [[tool.importlinter.contracts]]

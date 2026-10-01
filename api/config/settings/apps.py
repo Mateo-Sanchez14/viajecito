@@ -7,4 +7,5 @@ PROJECT_APPS = [
     "messaging",
     "trips",
     "decisions",
+    "notifications",
 ]
