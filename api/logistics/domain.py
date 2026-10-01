@@ -35,6 +35,10 @@ def transition_changes(current, fields, actor_id: str, now: datetime):
             done_at=now if changes["status"] == "done" else None,
             done_by_id=actor_id if changes["status"] == "done" else None,
         )
-    if any(k in changes and changes[k] != current.get(k) for k in ("owner_id", "due_on")):
+    owner_changed = "owner_id" in changes and (
+        str(changes["owner_id"]) if changes["owner_id"] is not None else None
+    ) != (str(current["owner_id"]) if current.get("owner_id") is not None else None)
+    due_changed = "due_on" in changes and changes["due_on"] != current.get("due_on")
+    if owner_changed or due_changed:
         changes.update(nudge_count=0, last_nudged_at=None)
     return changes

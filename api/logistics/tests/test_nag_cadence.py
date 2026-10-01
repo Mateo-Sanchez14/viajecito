@@ -65,3 +65,34 @@ def test_inactive_trip_is_not_nagged(trip, status):
     trip.save()
     Task.objects.create(trip=trip, number=1, title="Food", due_on=date(2026, 10, 1))
     assert list(task_nag(ReminderContext(datetime(2026, 10, 1, 15, tzinfo=UTC)))) == []
+
+
+def test_removed_owner_is_not_mentioned_in_draft_or_rendered_message(trip, ana, beto):
+    from types import SimpleNamespace
+
+    from crews.models import CrewMembership
+    from messaging.use_cases.queue_reminders import render_mentions
+
+    removed_task = Task.objects.create(
+        trip=trip, number=1, title="Removed owner food", owner=ana, due_on=date(2026, 10, 1)
+    )
+    active_task = Task.objects.create(
+        trip=trip, number=2, title="Active owner food", owner=beto, due_on=date(2026, 10, 1)
+    )
+    membership = CrewMembership.objects.get(crew=trip.crew, person=ana)
+    membership.status = "removed"
+    membership.save()
+    draft = list(task_nag(ReminderContext(datetime(2026, 10, 1, 15, tzinfo=UTC))))[0]
+    rendered, jids = render_mentions(
+        draft.body,
+        draft.mention_person_ids,
+        {str(person.pk): SimpleNamespace(phone=person.phone) for person in (ana, beto)},
+        mentions_enabled=True,
+    )
+    assert ana.phone.lstrip("+") not in rendered
+    assert ana.phone.lstrip("+") + "@s.whatsapp.net" not in jids
+    assert "{@" + str(ana.pk) + "}" not in draft.body
+    assert draft.mention_person_ids == (str(beto.pk),)
+    assert "{@" + str(beto.pk) + "}" in draft.body
+    assert "Removed owner food" in rendered and "Sin dueño" in rendered
+    assert set(draft.subject_id.split(",")) == {str(removed_task.pk), str(active_task.pk)}

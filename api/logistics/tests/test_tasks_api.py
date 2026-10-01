@@ -86,3 +86,19 @@ def test_open_first_even_when_blocked_earlier(trip, ana, as_person):
     send(client, "patch", f"/api/tasks/{blocked['id']}", {"status": "blocked"})
     opened = create(client, trip).json()
     assert client.get(f"/api/trips/{trip.pk}/tasks").json()[0]["id"] == opened["id"]
+
+
+def test_same_owner_patch_preserves_nudge_history(trip, ana, as_person):
+    from datetime import UTC, datetime
+
+    from logistics.models import Task
+
+    client = as_person(ana)
+    task = create(client, trip, owner_id=str(ana.id)).json()
+    last_nudged = datetime(2026, 10, 1, 15, tzinfo=UTC)
+    Task.objects.filter(pk=task["id"]).update(nudge_count=3, last_nudged_at=last_nudged)
+    response = send(client, "patch", f"/api/tasks/{task['id']}", {"owner_id": str(ana.id)})
+    assert response.status_code == 200
+    persisted = Task.objects.get(pk=task["id"])
+    assert persisted.nudge_count == 3
+    assert persisted.last_nudged_at == last_nudged

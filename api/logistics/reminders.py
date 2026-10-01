@@ -3,6 +3,7 @@ from zoneinfo import ZoneInfo
 
 from django.db.models import F
 
+from crews.use_cases.active_member_ids import active_member_ids
 from identity.use_cases.display_names import display_names
 from logistics import conf
 from logistics.adapters.django_store import DjangoTaskStore
@@ -22,12 +23,13 @@ def task_nag(ctx):
         ]
         if not tasks:
             continue
+        active_owners = set(active_member_ids(trip.crew_id))
         today = ctx.now.astimezone(ZoneInfo(trip.timezone)).date()
         lines = [es_ar.NAG_HEADER.format(trip=trip.name)]
         unowned = []
         for task in tasks:
             due = due_label(task["due_on"], today)
-            if task["owner_id"]:
+            if task["owner_id"] in active_owners:
                 lines.append(
                     es_ar.NAG_LINE.format(
                         mention="{@" + task["owner_id"] + "}", title=task["title"], due=due
@@ -51,7 +53,9 @@ def task_nag(ctx):
             timezone=trip.timezone,
             subject_type="task_batch",
             subject_id=",".join(t["id"] for t in tasks),
-            mention_person_ids=tuple(dict.fromkeys(t["owner_id"] for t in tasks if t["owner_id"])),
+            mention_person_ids=tuple(
+                dict.fromkeys(t["owner_id"] for t in tasks if t["owner_id"] in active_owners)
+            ),
             url_path=path,
         )
 

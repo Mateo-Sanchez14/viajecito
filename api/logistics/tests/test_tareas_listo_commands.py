@@ -49,3 +49,18 @@ def test_digest_owner_names_never_phone_fallback(trip, ana):
     ana.display_name = ""
     ana.save()
     assert ana.phone not in digest_section(str(trip.pk), date(2026, 10, 1))
+
+
+@pytest.mark.parametrize("number", ["²", "-1", "1.0", "1234567890"])
+def test_malformed_task_number_replies_with_usage(trip, ana, number):
+    from logistics.copy import es_ar
+
+    replies = []
+    ctx = SimpleNamespace(
+        crew_id=str(trip.crew_id),
+        person_id=str(ana.pk),
+        reply=lambda text: replies.append(text) or "sent",
+    )
+    result = listo(ctx, number)
+    assert replies == [es_ar.LISTO_USAGE]
+    assert result is not None

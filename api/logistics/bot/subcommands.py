@@ -41,7 +41,7 @@ def tareas(ctx, args):
 
 
 def listo(ctx, args):
-    if not args.strip().isdigit() or len(args.strip()) > 9:
+    if not args.strip().isdecimal() or len(args.strip()) > 9:
         text = es_ar.LISTO_USAGE
     else:
         number = int(args.strip())
