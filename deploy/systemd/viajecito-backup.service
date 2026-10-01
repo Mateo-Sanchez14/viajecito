@@ -1,6 +1,7 @@
 [Unit]
 Description=viajecito backup (SQLite snapshot + media to restic)
-After=docker.service
+Wants=network-online.target
+After=network-online.target docker.service
 Requires=docker.service
 
 [Service]
