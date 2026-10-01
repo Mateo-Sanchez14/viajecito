@@ -70,4 +70,51 @@ describe("HealthStatus", () => {
       await screen.findByText(messages.ops.health.error),
     ).toBeInTheDocument();
   });
+
+  it("shows the error copy for a 500 with a JSON body", async () => {
+    server.use(
+      http.untyped.get(`${globalThis.location.origin}/api/health`, () =>
+        HttpResponse.json({ detail: "boom" }, { status: 500 }),
+      ),
+    );
+
+    renderWithProviders(<HealthStatus />);
+
+    expect(
+      await screen.findByText(messages.ops.health.error),
+    ).toBeInTheDocument();
+  });
+
+  it("shows the error copy for a 502 html page from the proxy", async () => {
+    server.use(
+      http.untyped.get(
+        `${globalThis.location.origin}/api/health`,
+        () =>
+          new HttpResponse("<html>Bad Gateway</html>", {
+            status: 502,
+            headers: { "Content-Type": "text/html" },
+          }),
+      ),
+    );
+
+    renderWithProviders(<HealthStatus />);
+
+    expect(
+      await screen.findByText(messages.ops.health.error),
+    ).toBeInTheDocument();
+  });
+
+  it("shows the error copy for a 503 whose body is not a health payload", async () => {
+    server.use(
+      http.untyped.get(`${globalThis.location.origin}/api/health`, () =>
+        HttpResponse.json({ detail: "nope" }, { status: 503 }),
+      ),
+    );
+
+    renderWithProviders(<HealthStatus />);
+
+    expect(
+      await screen.findByText(messages.ops.health.error),
+    ).toBeInTheDocument();
+  });
 });
