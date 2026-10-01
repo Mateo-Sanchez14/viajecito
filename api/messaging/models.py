@@ -67,6 +67,7 @@ class InboundMessage(models.Model):
     attempts = models.PositiveIntegerField(default=0)
     error = models.TextField(blank=True)
     outcome = models.JSONField(default=dict, blank=True)
+    sent_at = models.DateTimeField(null=True, blank=True)  # WhatsApp timestamp of the message
     received_at = models.DateTimeField(auto_now_add=True)
     claimed_at = models.DateTimeField(null=True, blank=True)  # when processing last started
     processed_at = models.DateTimeField(null=True, blank=True)

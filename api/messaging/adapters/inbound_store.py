@@ -22,6 +22,7 @@ class DjangoInboundStore:
                     "body": message.body,
                     "replied_to_id": message.replied_to_id,
                     "raw": raw,
+                    "sent_at": message.timestamp,
                 },
             )
         return row.pk, created

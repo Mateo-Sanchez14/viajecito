@@ -1,4 +1,8 @@
+import threading
+from datetime import UTC, datetime
+
 import pytest
+from django.db import connections
 
 from messaging.adapters import wiring
 from messaging.models import InboundMessage
@@ -118,4 +122,47 @@ def test_duplicate_delivery_is_200_with_one_row_and_one_schedule(client, crew, s
     second = post_signed(client, payload)
     assert (first.json(), second.json()) == ({"status": "accepted"}, {"status": "duplicate"})
     assert second.status_code == 200
+    assert InboundMessage.objects.count() == 1 and len(scheduled) == 1
+
+
+@pytest.mark.django_db
+def test_sent_at_is_stored_from_the_payload_timestamp(client, crew, scheduled):
+    post_signed(client, load("group_command_ping.json"))
+    assert InboundMessage.objects.get().sent_at == datetime(2025, 10, 15, 10, 30, tzinfo=UTC)
+
+
+@pytest.mark.django_db
+def test_sent_at_is_null_without_a_timestamp(client, crew, scheduled):
+    payload = load("group_command_ping.json")
+    del payload["payload"]["timestamp"]
+    post_signed(client, payload)
+    assert InboundMessage.objects.get().sent_at is None
+
+
+@pytest.mark.django_db(transaction=True)
+def test_simultaneous_deliveries_of_the_same_message_store_one_row(crew, scheduled):
+    from django.test import Client
+
+    payload = load("group_command_ping.json")
+    barrier = threading.Barrier(2)
+    answers: list[dict] = []
+    errors: list[BaseException] = []
+
+    def deliver():
+        try:
+            client = Client()
+            barrier.wait(timeout=5)
+            answers.append(post_signed(client, payload).json())
+        except BaseException as exc:  # surfaced below
+            errors.append(exc)
+        finally:
+            connections.close_all()
+
+    threads = [threading.Thread(target=deliver) for _ in range(2)]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join(timeout=15)
+    assert errors == []
+    assert sorted(a["status"] for a in answers) == ["accepted", "duplicate"]
     assert InboundMessage.objects.count() == 1 and len(scheduled) == 1
