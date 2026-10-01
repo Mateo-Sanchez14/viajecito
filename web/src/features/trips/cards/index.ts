@@ -1,4 +1,5 @@
 import { DatesOverviewCard } from "@/features/dates/containers/DatesOverviewCard";
+import { SkiOverviewCard } from "@/features/ski/containers/SkiOverviewCard";
 import type { TripCard } from "./types";
 
 export type { TripCard } from "./types";
@@ -11,4 +12,5 @@ export type { TripCard } from "./types";
  */
 export const tripCards: TripCard[] = [
   { key: "dates", module: "dates", order: 20, Component: DatesOverviewCard },
+  { key: "ski", module: "ski", order: 15, Component: SkiOverviewCard },
 ];
