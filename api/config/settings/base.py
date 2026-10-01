@@ -29,6 +29,9 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "ninja",
     "ops",
+    "identity",
+    "crews",
+    "messaging",
 ]
 
 MIDDLEWARE = [
@@ -41,6 +44,8 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
+
+AUTH_USER_MODEL = "identity.Person"
 
 ROOT_URLCONF = "config.urls"
 WSGI_APPLICATION = "config.wsgi.application"

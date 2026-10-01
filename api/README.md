@@ -54,3 +54,9 @@ uv run python manage.py export_openapi_schema --api config.api.api --output ../c
 
 Only `api/.env` is read (no parent-directory lookup); real environment variables always win.
 Data directories are created on settings import if missing.
+
+## Identity and existing databases
+
+`identity.Person` is the Django user model (`AUTH_USER_MODEL`). It replaced the default user model before
+any real deployment, so a development database created earlier (`data/db.sqlite3`) must be deleted and
+re-migrated: `rm data/db.sqlite3 && uv run python manage.py migrate`.

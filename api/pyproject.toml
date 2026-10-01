@@ -9,6 +9,7 @@ dependencies = [
     "gunicorn>=23",
     "whitenoise>=6.9",
     "environs>=14",
+    "phonenumbers>=9.0.40",
 ]
 
 [dependency-groups]
@@ -30,7 +31,7 @@ package = false
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "config.settings.test"
 addopts = "--disable-socket --allow-unix-socket -ra"
-testpaths = ["tests", "ops", "shared"]
+testpaths = ["tests", "ops", "shared", "identity", "crews", "messaging"]
 python_files = ["test_*.py"]
 
 [tool.ruff]
@@ -42,13 +43,13 @@ extend-exclude = ["data"]
 select = ["E", "F", "I", "B", "UP"]
 
 [tool.ruff.lint.isort]
-known-first-party = ["config", "shared", "ops"]
+known-first-party = ["config", "shared", "ops", "identity", "crews", "messaging"]
 
 [tool.importlinter]
-root_packages = ["config", "shared", "ops"]
+root_packages = ["config", "shared", "ops", "identity", "crews", "messaging"]
 
 [[tool.importlinter.contracts]]
 name = "shared depends on no other project package"
 type = "forbidden"
 source_modules = ["shared"]
-forbidden_modules = ["config", "ops"]
+forbidden_modules = ["config", "ops", "identity", "crews", "messaging"]
