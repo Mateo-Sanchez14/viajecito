@@ -190,7 +190,7 @@ reference so `crews` never imports `trips`) is set by the first `POST` when empt
 |---|---|---|
 | `GET /api/crews/{crew_id}/trips` | `200 [TripSummaryOut]` | |
 | `POST /api/crews/{crew_id}/trips` | `201 TripOut` | creator gets `rsvp=in`; `type` must be a registered plugin |
-| `GET /api/trips/{trip_id}` | `200 TripOut` | `modules` from the plugin registry; `my_rsvp` is `pending` without a participation row |
+| `GET /api/trips/{trip_id}` | `200 TripOut` | `modules` from the plugin registry; `participants` lists every active crew member (`pending` without a row; `display_name` falls back to the phone); `my_rsvp` likewise |
 | `PATCH /api/trips/{trip_id}` | `200 TripOut` | any active member; partial; `null` clears a date; dates validated after merging |
 | `PUT /api/trips/{trip_id}/participation` | `200 ParticipantOut` | sets the caller's own RSVP (creates the row) |
 

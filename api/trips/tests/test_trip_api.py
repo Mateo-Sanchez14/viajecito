@@ -3,7 +3,7 @@ import uuid
 import pytest
 
 from trips.models import Participation, Trip
-from trips.tests.conftest import send
+from trips.tests.conftest import join, send
 
 pytestmark = pytest.mark.django_db
 
@@ -247,3 +247,49 @@ def test_put_participation_is_404_for_a_non_member_and_401_when_anonymous(
     assert send(as_person(stranger), "put", url, {"rsvp": "in"}).status_code == 404
     assert send(anon, "put", url, {"rsvp": "in"}).status_code == 401
     assert Participation.objects.filter(person=stranger).count() == 0
+
+
+# --- participants shape ---------------------------------------------------------------------
+
+
+def test_participants_lists_every_active_member_with_pending_when_there_is_no_row(
+    as_person, crew, trip, ana, beto
+):
+    from identity.models import Person
+
+    gone = Person.objects.create_user("+5491155553333", display_name="Gone")
+    join(crew, gone, status="removed")
+    Participation.objects.create(trip=trip, person=gone, rsvp="in")  # no longer a member
+    body = as_person(ana).get(trip_url(trip)).json()
+    assert {(p["person_id"], p["rsvp"]) for p in body["participants"]} == {
+        (str(ana.pk), "in"),
+        (str(beto.pk), "pending"),
+    }
+
+
+def test_participants_follow_a_member_who_responds_and_a_member_who_joins_later(
+    as_person, crew, trip, ana, beto
+):
+    from identity.models import Person
+
+    send(as_person(beto), "put", f"{trip_url(trip)}/participation", {"rsvp": "out"})
+    late = Person.objects.create_user("+5491155554444", display_name="Late")
+    join(crew, late)
+    rsvps = {
+        p["display_name"]: p["rsvp"]
+        for p in as_person(ana).get(trip_url(trip)).json()["participants"]
+    }
+    assert rsvps == {"Ana": "in", "Beto": "out", "Late": "pending"}
+    assert Participation.objects.filter(trip=trip).count() == 2  # rows stay lazy
+
+
+def test_display_name_falls_back_to_the_phone(as_person, crew, trip, ana):
+    from identity.models import Person
+
+    nameless = Person.objects.create_user("+5491155555555")
+    join(crew, nameless)
+    body = as_person(ana).get(trip_url(trip)).json()
+    names = {p["person_id"]: p["display_name"] for p in body["participants"]}
+    assert names[str(nameless.pk)] == "+5491155555555"
+    put = send(as_person(nameless), "put", f"{trip_url(trip)}/participation", {"rsvp": "in"})
+    assert put.json()["display_name"] == "+5491155555555"

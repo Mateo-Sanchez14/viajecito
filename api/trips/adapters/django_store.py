@@ -3,7 +3,7 @@ from typing import Any
 
 from django.db import transaction
 
-from crews.models import Crew
+from crews.models import Crew, CrewMembership
 from trips.domain import ParticipantData, TripData
 from trips.models import Participation, Trip
 
@@ -23,9 +23,9 @@ def trip_data(trip: Trip) -> TripData:
     )
 
 
-def participant_data(row: Participation) -> ParticipantData:
+def participant_data(person, rsvp: str) -> ParticipantData:
     return ParticipantData(
-        person_id=str(row.person_id), display_name=row.person.display_name, rsvp=row.rsvp
+        person_id=str(person.pk), display_name=person.display_name or person.phone, rsvp=rsvp
     )
 
 
@@ -73,11 +73,21 @@ class DjangoTripStore:
         return trip_data(trip)
 
     def participants(self, trip_id: str) -> list[ParticipantData]:
-        rows = Participation.objects.filter(trip_id=trip_id).select_related("person")
-        return [participant_data(row) for row in rows.order_by("joined_at", "pk")]
+        """Every ACTIVE member of the trip's crew; ``pending`` when they have no row yet."""
+        trip = Trip.objects.get(pk=trip_id)
+        rsvps = dict(Participation.objects.filter(trip_id=trip_id).values_list("person_id", "rsvp"))
+        members = (
+            CrewMembership.objects.filter(crew_id=trip.crew_id, status=CrewMembership.Status.ACTIVE)
+            .select_related("person")
+            .order_by("created_at", "pk")
+        )
+        return [
+            participant_data(m.person, rsvps.get(m.person_id, Participation.Rsvp.PENDING))
+            for m in members
+        ]
 
     def set_rsvp(self, trip_id: str, person_id: str, rsvp: str) -> ParticipantData:
         row, _ = Participation.objects.update_or_create(
             trip_id=trip_id, person_id=person_id, defaults={"rsvp": rsvp}
         )
-        return participant_data(row)
+        return participant_data(row.person, row.rsvp)
