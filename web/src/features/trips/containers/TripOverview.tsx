@@ -6,6 +6,7 @@ import { Avatar } from "@/ui/atoms/Avatar";
 import { Badge, type BadgeVariant } from "@/ui/atoms/Badge";
 import { Card } from "@/ui/atoms/Card";
 import type { Rsvp } from "../api/trips";
+import { tripCards, type TripCard } from "../cards";
 import { sectionPath } from "../lib/paths";
 import { useDateRange } from "../lib/useDateRange";
 import { useSectionLabel } from "../lib/useSectionLabel";
@@ -20,11 +21,16 @@ const RSVP_VARIANT: Record<Rsvp, BadgeVariant> = {
 };
 
 /** Container: trip summary, my RSVP, who is going and a card per module. */
-export function TripOverview() {
+export function TripOverview({ cards = tripCards }: { cards?: TripCard[] }) {
   const t = useTranslations("trips");
   const dateRange = useDateRange();
   const sectionLabel = useSectionLabel();
   const { trip, modules, participants } = useTripContext();
+
+  const visible = cards.filter((card) => !card.module || modules.includes(card.module));
+  const covered = new Set(visible.map((card) => card.module));
+  const placeholders = modules.filter((key) => !covered.has(key));
+  const entries = [...visible].sort((a, b) => a.order - b.order);
 
   return (
     <div className="flex flex-col gap-6">
@@ -70,9 +76,14 @@ export function TripOverview() {
 
       <section className="flex flex-col gap-3">
         <h2 className="text-lg font-semibold">{t("overview.modules")}</h2>
-        <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-          {modules.map((key) => (
+        <ul aria-label={t("overview.modules")} className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          {entries.map(({ key, Component }) => (
             <li key={key}>
+              <Component tripId={trip.id} crewId={trip.crew_id} />
+            </li>
+          ))}
+          {placeholders.map((key) => (
+            <li key={`placeholder-${key}`}>
               <Link
                 href={sectionPath(trip.crew_id, trip.id, key)}
                 className="flex h-full items-center rounded-xl border border-border bg-surface px-4 py-4 font-medium hover:border-foreground/40"

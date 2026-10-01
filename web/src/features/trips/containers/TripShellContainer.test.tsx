@@ -43,25 +43,25 @@ describe("TripShellContainer", () => {
     const nav = screen.getByRole("navigation", { name: messages.trips.nav.label });
     const links = Array.from(nav.querySelectorAll("a")).map((a) => [a.textContent, a.getAttribute("href")]);
     expect(links).toEqual([
-      [messages.trips.sections.overview, base],
-      [messages.trips.sections.proposals, `${base}/proposals`],
-      [messages.trips.sections.budget, `${base}/budget`],
+      [messages.trips.modules.overview, base],
+      [messages.trips.modules.proposals, `${base}/proposals`],
+      [messages.trips.modules.budget, `${base}/budget`],
     ]);
   });
 
   it("highlights the overview on the trip root", () => {
     setup();
 
-    expect(screen.getByRole("link", { name: messages.trips.sections.overview })).toHaveAttribute("aria-current", "page");
-    expect(screen.getByRole("link", { name: messages.trips.sections.budget })).not.toHaveAttribute("aria-current");
+    expect(screen.getByRole("link", { name: messages.trips.modules.overview })).toHaveAttribute("aria-current", "page");
+    expect(screen.getByRole("link", { name: messages.trips.modules.budget })).not.toHaveAttribute("aria-current");
   });
 
   it("highlights the current section, including its sub-pages", () => {
     pathname = `${base}/budget/expenses/new`;
     setup();
 
-    expect(screen.getByRole("link", { name: messages.trips.sections.budget })).toHaveAttribute("aria-current", "page");
-    expect(screen.getByRole("link", { name: messages.trips.sections.overview })).not.toHaveAttribute("aria-current");
+    expect(screen.getByRole("link", { name: messages.trips.modules.budget })).toHaveAttribute("aria-current", "page");
+    expect(screen.getByRole("link", { name: messages.trips.modules.overview })).not.toHaveAttribute("aria-current");
   });
 
   it("falls back to the module key when there is no copy for it", () => {

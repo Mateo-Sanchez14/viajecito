@@ -56,17 +56,6 @@
       "pending": "Sin responder",
       "failed": "No pudimos guardar tu respuesta, probá de nuevo"
     },
-    "sections": {
-      "overview": "Resumen",
-      "proposals": "Propuestas",
-      "dates": "Fechas",
-      "logistics": "Logística",
-      "itinerary": "Itinerario",
-      "today": "Hoy",
-      "budget": "Plata",
-      "documents": "Documentos",
-      "ski": "Esquí"
-    },
     "nav": {
       "label": "Secciones del viaje"
     },
@@ -77,6 +66,17 @@
     "dateRange": "{start} al {end}",
     "dateFrom": "Desde el {start}",
     "dateUntil": "Hasta el {end}",
-    "noDates": "Todavía sin fechas"
+    "noDates": "Todavía sin fechas",
+    "modules": {
+      "overview": "Resumen",
+      "proposals": "Propuestas",
+      "dates": "Fechas",
+      "logistics": "Logística",
+      "itinerary": "Itinerario",
+      "today": "Hoy",
+      "budget": "Plata",
+      "documents": "Documentos",
+      "ski": "Ski"
+    }
   }
 }
