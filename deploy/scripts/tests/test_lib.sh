@@ -49,4 +49,24 @@ assert_eq "newest kept" "yes" "$([[ -e "$tmp/b/db-2026-01-10T000000Z.sqlite3" ]]
 prune_local_snapshots "$tmp/empty-does-not-exist" 7
 assert_eq "empty dir ok" "0" "$?"
 
+# Webhook probe helpers: the provider decides path, secret variable, signature and headers.
+assert_eq "gowa path" "/hooks/gowa/" "$(webhook_path gowa)"
+assert_eq "waha path" "/hooks/waha/" "$(webhook_path waha)"
+assert_eq "default provider is gowa" "gowa" "$(provider_of "")"
+assert_eq "provider passthrough" "waha" "$(provider_of waha)"
+assert_eq "gowa secret var" "GOWA_WEBHOOK_SECRET" "$(webhook_secret_var gowa)"
+assert_eq "waha secret var" "WAHA_WEBHOOK_HMAC_KEY" "$(webhook_secret_var waha)"
+body='{"event":"message","payload":{"id":"x"}}'
+expected_waha="$(printf '%s' "$body" | python3 -c 'import hashlib,hmac,sys; print(hmac.new(b"k3y", sys.stdin.buffer.read(), hashlib.sha512).hexdigest())')"
+expected_gowa="$(printf '%s' "$body" | python3 -c 'import hashlib,hmac,sys; print(hmac.new(b"k3y", sys.stdin.buffer.read(), hashlib.sha256).hexdigest())')"
+assert_eq "waha sha512 signature" "$expected_waha" "$(WEBHOOK_SECRET=k3y webhook_signature waha "$body")"
+assert_eq "gowa sha256 signature" "$expected_gowa" "$(WEBHOOK_SECRET=k3y webhook_signature gowa "$body")"
+assert_eq "waha headers" "X-Webhook-Hmac: $expected_waha
+X-Webhook-Hmac-Algorithm: sha512" "$(webhook_headers waha "$expected_waha")"
+assert_eq "gowa headers" "X-Hub-Signature-256: sha256=$expected_gowa" "$(webhook_headers gowa "$expected_gowa")"
+waha_payload="$(webhook_payload waha 123)"
+assert_eq "waha payload is a non-group message" "message|c.us|False" "$(printf '%s' "$waha_payload" | python3 -c 'import json,sys; d=json.load(sys.stdin); p=d["payload"]; print(d["event"], p["from"].split("@")[1], p["fromMe"], sep="|")')"
+assert_eq "waha payload id" "smoke-123" "$(printf '%s' "$waha_payload" | python3 -c 'import json,sys; print(json.load(sys.stdin)["payload"]["id"])')"
+assert_eq "gowa payload id" "smoke-123" "$(webhook_payload gowa 123 | python3 -c 'import json,sys; print(json.load(sys.stdin)["payload"]["id"])')"
+
 exit "$fails"
