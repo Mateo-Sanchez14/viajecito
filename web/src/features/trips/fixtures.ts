@@ -22,6 +22,7 @@ export function makeTrip(overrides: Partial<Schemas["TripOut"]> = {}): Schemas["
     destination_label: "Bariloche",
     timezone: "America/Argentina/Buenos_Aires",
     currency: "USD",
+    fx_rates: {},
     modules: ["proposals", "dates", "logistics", "itinerary", "today", "budget", "documents"],
     participants: [
       makeParticipant(),
