@@ -31,7 +31,7 @@ package = false
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "config.settings.test"
 addopts = "--disable-socket --allow-unix-socket -ra"
-testpaths = ["tests", "ops", "shared", "identity", "crews", "messaging"]
+testpaths = ["tests", "ops", "shared", "identity", "crews", "messaging", "trips"]
 python_files = ["test_*.py"]
 
 [tool.ruff]
@@ -46,7 +46,7 @@ select = ["E", "F", "I", "B", "UP"]
 "*/migrations/*.py" = ["E501"]
 
 [tool.ruff.lint.isort]
-known-first-party = ["config", "shared", "ops", "identity", "crews", "messaging"]
+known-first-party = ["config", "shared", "ops", "identity", "crews", "messaging", "trips"]
 
 [tool.importlinter]
 root_packages = [

@@ -15,6 +15,10 @@ class Crew(models.Model):
     name = models.CharField(max_length=120)
     timezone = models.CharField(max_length=64, default="America/Argentina/Buenos_Aires")
     gastito_group_url = models.URLField(null=True, blank=True)
+    # String reference: trips depends on crews, never the other way round.
+    default_trip = models.ForeignKey(
+        "trips.Trip", null=True, blank=True, on_delete=models.SET_NULL, related_name="+"
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self) -> str:
