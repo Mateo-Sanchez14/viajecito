@@ -58,3 +58,9 @@ Tasks with owners and due dates (todo / bring / booking), packing templates per 
 - Web parallel draft JSON/generated paths stay feature-owned, not contracts/openapi.json; feature-local openapi-fetch client uses exported CSRF middleware/credentials. At API integration replace with shared generated paths/client and remove draft artifacts (parent-owned integration). M4 contract-local document types allowed until M3 types exist.
 - Record coherent work-unit slices from contract test list, with RED/GREEN/checks/rollback in reports. Estimates: M3 3000–5000, M4 2000–3500 authored lines; direct-main exception-ok authorized (no PR chain).
 - M3 task numbers require persistent app-owned sequence, never reuse after deleting highest. M4 nullable tray DayOut.date; no bot/push phone fallback.
+
+### B0 supplemental prerequisite and launch
+- M4 bot requires pure get_trip_snapshot(trip_id:str)->TripData|None for all-status trips, not get_trip requiring injected store. Extended bridge writer ownership to new trips use case/tests/README only; separate RED/GREEN and work-unit commit.
+- Proposal bridge writer commit5462b14: RED missing module → GREEN11 focused; full1827pytest,Ruff/format,10importcontracts,migration drift/export unchanged. Independent verification pending before parent merge.
+- Launched B1 M3 API writer in m3-api and B1 M4 API writer in m4-api. M3 web writer launched in m3-web using completed mapping actor due runtime thread limit; all retain exact writer ownership/no-subagent rules. M4 web/map queued until slot available, not dropped.
+- Vault storage decision: bounded whole-file Fernet with atomic temp-save (15MiB upload cap), avoids unsafe unauthenticated chunk framing; persistent TaskSequence prevents deleted-number reuse. cryptography direct runtime dependency to confirm with Context7.
