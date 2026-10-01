@@ -99,7 +99,7 @@
     },
     "overview": {
       "voted": "Votaron {n} de {total}",
-      "best": "mejor: {start}–{end}",
+      "best": "mejor: {range}",
       "empty": "Todavía no se votó, abrí la votación",
       "fixed": "Fechas fijadas"
     },

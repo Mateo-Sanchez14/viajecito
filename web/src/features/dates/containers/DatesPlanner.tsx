@@ -6,7 +6,6 @@ import { useDateRange } from "@/features/trips/lib/useDateRange";
 import { useTripContext } from "@/features/trips/TripProvider";
 import { Button } from "@/ui/atoms/Button";
 import { Card } from "@/ui/atoms/Card";
-import { Skeleton } from "@/ui/atoms/Skeleton";
 import { ConfirmDialog } from "@/ui/molecules/ConfirmDialog";
 import { EmptyState } from "@/ui/molecules/EmptyState";
 import type { BestWindow, Decision } from "../api/dates";
@@ -16,6 +15,7 @@ import { useDecisions } from "../hooks/queries";
 import { useDatesError } from "../lib/useDatesError";
 import { useDayFormat } from "../lib/useDayFormat";
 import { AvailabilityEditor } from "./AvailabilityEditor";
+import { DatesLoading } from "./DatesLoading";
 import { OpenDecisionForm } from "./OpenDecisionForm";
 
 /** Container of the dates section: form, open voting or closed outcome, depending on the decision. */
@@ -28,10 +28,7 @@ export function DatesPlanner({ tripId }: { tripId: string }) {
     <div className="flex flex-col gap-6">
       <h2 className="text-xl font-semibold">{t("title")}</h2>
       {isPending ? (
-        <div role="status" aria-label={t("loading")} className="flex flex-col gap-3">
-          <Skeleton className="h-24" />
-          <Skeleton className="h-40" />
-        </div>
+        <DatesLoading />
       ) : isError ? (
         <div role="alert" className="flex flex-col items-start gap-2">
           <p className="text-sm text-warn">{errorMessage(error)}</p>

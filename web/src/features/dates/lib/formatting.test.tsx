@@ -23,6 +23,13 @@ describe("useDayFormat", () => {
     expect(result.current.dayOfMonth("2027-07-10")).toBe("10");
   });
 
+  it("compacts a range inside one month", () => {
+    const { result } = renderHook(() => useDayFormat(), { wrapper });
+
+    expect(result.current.range("2027-07-12", "2027-07-19")).toBe("12–19 jul");
+    expect(result.current.range("2027-07-28", "2027-08-04")).toBe("28 jul–4 ago");
+  });
+
   it("formats an instant as a short date and time", () => {
     const { result } = renderHook(() => useDayFormat(), { wrapper });
 
