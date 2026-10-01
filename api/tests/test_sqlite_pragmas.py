@@ -26,4 +26,4 @@ def test_synchronous_normal_and_busy_timeout():
 
 
 def test_transaction_mode_is_immediate():
-    assert connection.settings_dict["OPTIONS"]["transaction_mode"] == "IMMEDIATE"
+    assert connection.transaction_mode == "IMMEDIATE"
