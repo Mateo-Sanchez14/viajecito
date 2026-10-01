@@ -20,10 +20,10 @@ The group converges on dates: availability grid per person, a best-window sugges
 
 ## Tasks
 - [x] **A1 api** — done: 9 commits (16de7f6…a8381ef); verifier APPROVE WITH MINORS → fixed (schema renames, no_window, nameless members, PATCH kind forbidden, maybe_weight 2 decimals, tests); 682 tests; merged into main locally.
-- [ ] **A2 web** — delegated (writer sonnet, worktree `m2-web`; verifier opus; one correction round).
+- [x] **A2 web** — done: verifier REQUEST CHANGES (hover paint) → fixed; 264 tests; merged 66b23bc. — delegated (writer sonnet, worktree `m2-web`; verifier opus; one correction round).
   Builds against the contract's API table; generates types from a draft added to `contracts/openapi.json`
   in its branch; the orchestrator regenerates from the real api at integration.
-- [ ] **A3 integrate** — inline: merge api then web, regenerate contract/types, env parsing for the
+- [x] **A3 integrate** — api 8e3d050 + web 66b23bc merged into main; contract/types regenerated; e2e/bot-smoke pending the shared push. — inline: merge api then web, regenerate contract/types, env parsing for the
   contract's settings, full checks, `make e2e` + `make bot-smoke`, merge to `main`, push.
 
 ## Acceptance (from the contract)

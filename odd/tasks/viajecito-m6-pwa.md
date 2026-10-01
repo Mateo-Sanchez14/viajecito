@@ -20,10 +20,10 @@ Installable PWA with countdown and offline cache of Today and documents list, We
 
 ## Tasks
 - [x] **A1 api** — done: 13 commits; verifier REQUEST CHANGES → fixed (no phones in payloads, config errors classified, per-person caps + fair budget, allowlist fallback, prune once/day, 307 regression test); 701 tests; merged into main locally.
-- [ ] **A2 web** — delegated (writer sonnet, worktree `m6-web`; verifier opus; one correction round).
+- [x] **A2 web** — done: verifier REQUEST CHANGES (shared-device purge, subscription resync, click origin) → fixed; 274 tests; core files providers.tsx/TripOverview.tsx/ShellHeader.tsx edited with permission; merged b843de0. — delegated (writer sonnet, worktree `m6-web`; verifier opus; one correction round).
   Builds against the contract's API table; generates types from a draft added to `contracts/openapi.json`
   in its branch; the orchestrator regenerates from the real api at integration.
-- [ ] **A3 integrate** — inline: merge api then web, regenerate contract/types, env parsing for the
+- [x] **A3 integrate** — api d160f71 + c23bcf0 (safe_path) + web b843de0 merged; map task still pending (after M1). — inline: merge api then web, regenerate contract/types, env parsing for the
   contract's settings, full checks, `make e2e` + `make bot-smoke`, merge to `main`, push.
 
 ## Acceptance (from the contract)
