@@ -320,3 +320,13 @@ call is deduplicated per request) before fetching. The api enforces auth on ever
 - `config/api.py` mounts every app exposing `api.router` at `api.PREFIX`; `trips/plugins.py` registers
   trip types. A new app appends itself to `PROJECT_APPS`, import-linter `root_packages`, ruff
   `known-first-party` and pytest `testpaths` (see `api/README.md` → "Adding an app").
+
+### Core contract clarifications (after C1 verification)
+- `ParticipantOut.display_name` falls back to the member's E.164 phone when the person has no display
+  name yet. Phones are visible to crew members only (they already share the WhatsApp group); never
+  expose them outside member-scoped endpoints.
+- `publish_after_commit` lives in `shared/events_django.py` (keeps `shared/events.py` pure).
+- Reminder `dedupe_key`s are prefixed by the tick with the rule key (`"<rule_key>:<draft key>"`); rules
+  never prefix themselves. Rules run every tick; drafts in quiet hours are dropped, so keys must be stable.
+- The PUT body for RSVP is `ParticipantIn {rsvp}`; `TripSummaryOut` has no `crew_id` (links use the
+  route's `crewId`).

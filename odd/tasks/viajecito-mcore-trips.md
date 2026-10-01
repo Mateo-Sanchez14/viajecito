@@ -27,7 +27,7 @@ api `uv run pytest`, ruff, lint-imports, `makemigrations --check`; web `pnpm lin
 ## Progress
 | Task | Status | Evidence |
 |---|---|---|
-| C1 | writer done incl. C1b (425 tests; commits 74e5688…df86aa1); opus verifier running | `uv run pytest` 390 passed, ruff/lint-imports clean, fresh migrate ok, export idempotent (writer) |
+| C1 | verifier opus: REQUEST CHANGES (schema mismatch resolved on the web side; minors: idempotent plugin registry, per-trip reminder isolation + tz validation, dedupe prefix) → correction round running | `uv run pytest` 390 passed, ruff/lint-imports clean, fresh migrate ok, export idempotent (writer) |
 | C2 | verifier opus: REQUEST CHANGES (types vs real contract, ski type, shared ApiError) → correction round running | `pnpm test` 142 passed, lint/typecheck/build/api:types:check green (writer) |
 | C3 | opus design writer running | — |
 | C4 | pending | — |
