@@ -40,8 +40,8 @@ api-types-check: ## Fail if the generated web API types drifted from the contrac
 fake-gowa-test: ## Run the fake Gowa stub tests
 	cd deploy/dev/fake_gowa && uv run pytest
 
-replay: ## Placeholder: replay recorded webhooks (M0c)
+replay: ## Placeholder (exits non-zero until M0c): replay recorded webhooks
 	@echo "replay: available in M0c"; exit 1
 
-deploy: ## Placeholder: deploy to the Raspberry Pi (M0c)
+deploy: ## Placeholder (exits non-zero until M0c): deploy to the Pi
 	@echo "deploy: available in M0c"; exit 1

@@ -12,7 +12,9 @@ services:
     volumes:
       - ./api:/app
       - ./data:/data
-    env_file: .env
+    env_file:
+      - path: .env
+        required: false
     environment:
       GOWA_BASE_URL: http://fake-gowa:4000
     healthcheck:
@@ -22,7 +24,8 @@ services:
       retries: 5
       start_period: 20s
     depends_on:
-      - fake-gowa
+      fake-gowa:
+        condition: service_healthy
 
   web:
     build:
@@ -38,9 +41,15 @@ services:
     environment:
       API_INTERNAL_URL: http://api:8000
     depends_on:
-      - api
+      api:
+        condition: service_healthy
 
   fake-gowa:
     build: deploy/dev/fake_gowa
     ports:
       - "4000:4000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:4000/health', timeout=3)"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
