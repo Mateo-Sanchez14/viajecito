@@ -4,7 +4,11 @@ import { MeProvider } from "@/features/auth/MeProvider";
 import { TripProvider } from "@/features/trips/TripProvider";
 import { CREW_ID, TRIP_ID, makeMe, makeTrip } from "@/features/trips/fixtures";
 import { renderWithProviders } from "@/test/render";
+import messages from "../../../../messages/es-AR";
 import { CountdownCard } from "./CountdownCard";
+
+const t = messages.pwa.countdown;
+const days = (n: number) => t.days.replace("{days}", String(n));
 
 function setup(trip = makeTrip({ start_on: "2027-07-01" })) {
   return renderWithProviders(
@@ -24,7 +28,7 @@ describe("CountdownCard", () => {
     vi.setSystemTime(new Date("2027-06-08T15:00:00Z"));
     setup();
 
-    expect(screen.getByText("Faltan 23 días")).toBeInTheDocument();
+    expect(screen.getByText(days(23))).toBeInTheDocument();
   });
 
   it("does not flip a day early because of UTC", () => {
@@ -32,21 +36,21 @@ describe("CountdownCard", () => {
     vi.setSystemTime(new Date("2027-06-08T01:30:00Z"));
     setup();
 
-    expect(screen.getByText("Faltan 24 días")).toBeInTheDocument();
+    expect(screen.getByText(days(24))).toBeInTheDocument();
   });
 
   it("says tomorrow the day before", () => {
     vi.setSystemTime(new Date("2027-06-30T15:00:00Z"));
     setup();
 
-    expect(screen.getByText("¡Mañana arrancamos!")).toBeInTheDocument();
+    expect(screen.getByText(t.tomorrow)).toBeInTheDocument();
   });
 
   it("says today on the start day", () => {
     vi.setSystemTime(new Date("2027-07-01T15:00:00Z"));
     setup();
 
-    expect(screen.getByText("¡Hoy arranca el viaje!")).toBeInTheDocument();
+    expect(screen.getByText(t.today)).toBeInTheDocument();
   });
 
   it("is hidden once the trip started", () => {

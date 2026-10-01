@@ -6,7 +6,7 @@ import { useTripContext } from "@/features/trips/TripProvider";
 import { CountdownBadge } from "../components/CountdownBadge";
 import { daysUntil } from "../lib/countdown";
 
-/** Overview card: "Faltan 23 días" until the trip starts. Hidden when undated or already started. */
+/** Overview card: "N days left" until the trip starts. Hidden when undated or already started. */
 /** Overview cards receive `{tripId, crewId}`; the trip itself comes from the TripProvider. */
 export function CountdownCard(props: { tripId: string; crewId: string }) {
   void props;

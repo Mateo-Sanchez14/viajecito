@@ -26,6 +26,7 @@
     "serwist": "^9.5.12"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
     "@playwright/test": "^1.63.0",
     "@serwist/cli": "^9.5.12",
     "@tailwindcss/postcss": "^4",
