@@ -84,6 +84,32 @@ describe("CreateTripForm", () => {
     });
   });
 
+  it("submits the selected ski trip type", async () => {
+    let body: unknown;
+    server.use(
+      http.get("/api/auth/csrf", ({ response }) => response(200).json({ csrf_token: "tok" })),
+      http.post("/api/crews/{crew_id}/trips", async ({ request, response }) => {
+        body = await request.json();
+        return response(201).json(makeTrip({ type: "ski" }));
+      }),
+    );
+    renderWithProviders(<CreateTripForm crewId={CREW_ID} />);
+    fill(t.name, "Ski trip");
+    fill(t.type, "ski");
+
+    submit();
+
+    await waitFor(() => expect(push).toHaveBeenCalledWith(`/crews/${CREW_ID}/trips/${TRIP_ID}`));
+    expect(body).toEqual({
+      name: "Ski trip",
+      type: "ski",
+      start_on: null,
+      end_on: null,
+      destination_label: "",
+      currency: "USD",
+    });
+  });
+
   it("sends explicit nulls, an empty destination and the USD default when left blank", async () => {
     let body: unknown;
     server.use(
@@ -110,10 +136,10 @@ describe("CreateTripForm", () => {
     });
   });
 
-  it("only offers the generic trip type", () => {
+  it("offers generic and ski trip types", () => {
     renderWithProviders(<CreateTripForm crewId={CREW_ID} />);
 
-    expect(screen.getAllByRole("option").map((o) => o.getAttribute("value"))).toEqual(["generic"]);
+    expect(screen.getAllByRole("option").map((o) => o.getAttribute("value"))).toEqual(["generic", "ski"]);
   });
 
   it("shows an error and stays put when the api fails", async () => {
