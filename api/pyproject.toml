@@ -48,6 +48,7 @@ testpaths = [
     "ski",
     "linkpreview",
     "proposals",
+    "itinerary",
 ]
 python_files = ["test_*.py"]
 
@@ -76,6 +77,7 @@ known-first-party = [
     "ski",
     "linkpreview",
     "proposals",
+    "itinerary",
 ]
 
 [tool.importlinter]
@@ -95,6 +97,7 @@ root_packages = [
     "ski",
     "linkpreview",
     "proposals",
+    "itinerary",
 ]
 
 include_external_packages = true
@@ -107,6 +110,7 @@ forbidden_modules = [
     "config", "ops", "identity", "crews", "messaging", "trips", "decisions", "notifications", "ski",
     "linkpreview",
     "proposals",
+    "itinerary",
 ]
 
 [[tool.importlinter.contracts]]

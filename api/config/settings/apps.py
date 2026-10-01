@@ -11,4 +11,5 @@ PROJECT_APPS = [
     "decisions",
     "notifications",
     "ski",
+    "itinerary",
 ]
