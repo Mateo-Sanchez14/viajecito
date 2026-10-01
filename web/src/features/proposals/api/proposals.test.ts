@@ -3,7 +3,7 @@ import { createOpenApiHttp } from "openapi-msw";
 import { afterEach, describe, expect, it } from "vitest";
 import { ApiError } from "@/shared/api/errors";
 import { resetCsrfToken } from "@/shared/api/csrf";
-import type { paths } from "@/shared/api/schema";
+import type { components, paths } from "@/shared/api/schema";
 import { server } from "@/test/server";
 import { TRIP_ID } from "@/features/trips/fixtures";
 import { makeComment, makeProposal, makeSummary, PROPOSAL_ID } from "../test/handlers";
@@ -66,12 +66,14 @@ describe("proposals api", () => {
   it("turns a 409 duplicate_proposal into an error carrying the existing proposal id", async () => {
     server.use(
       csrf,
-      http.post("/api/trips/{trip_id}/proposals", () =>
-        HttpResponse.json(
-          { code: "duplicate_proposal", message: "x", proposal_id: PROPOSAL_ID },
-          { status: 409 },
-        ),
-      ),
+      http.post("/api/trips/{trip_id}/proposals", () => {
+        const body: components["schemas"]["DuplicateProposalOut"] = {
+          code: "duplicate_proposal",
+          message: "x",
+          proposal_id: PROPOSAL_ID,
+        };
+        return HttpResponse.json(body, { status: 409 });
+      }),
     );
 
     const error = await createProposal(TRIP_ID, { url: "https://example.com/x" }).catch((e) => e);
