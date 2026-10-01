@@ -43,17 +43,19 @@ docker compose logs fake-gowa
 curl "http://localhost:4000/__sent/latest?phone=5491155551234"
 ```
 
-`.env` additions (all in `.env.example`): `OTP_DELIVERY_ENABLED`, `OTP_PEPPER`, `OTP_CODE_TTL_SECONDS`,
-`OTP_MAX_ATTEMPTS` (read by the api) and `E2E_PHONE`, `FAKE_GOWA_URL` (used by `make e2e` and Playwright).
+`.env` additions (in `.env.example`, read by the api): `OTP_DELIVERY_ENABLED`, `OTP_PEPPER`,
+`OTP_CODE_TTL_SECONDS`, `OTP_MAX_ATTEMPTS`. The dev api container runs `migrate` on start.
+The e2e phone is a Make/CLI override, not an `.env` setting: `make e2e E2E_PHONE=+56912345678`.
 
 End-to-end test (Playwright against the real stack):
 
 ```sh
-make e2e        # up, bootstrap the dev crew, run Playwright, always tear down (down -v)
+make e2e        # fresh stack on its own data dir (./data/e2e, wiped first), bootstrap, Playwright, always tear down
 make e2e-keep   # same, but leave the stack running to debug
 ```
 
-CI runs the same flow in `.github/workflows/e2e.yml`.
+`make e2e` never touches your dev database (`./data`); the stack data is a bind mount, so `down -v` alone does not
+reset it, which is why the e2e data dir is removed before each run. CI runs the same flow in `.github/workflows/e2e.yml`.
 
 Changing the API contract:
 
@@ -72,5 +74,5 @@ web/        Next.js app
 contracts/  openapi.json snapshot exported from the api
 deploy/     docker/ Dockerfiles, dev/fake_gowa Gowa stub (Pi compose and scripts land in M0c)
 odd/        feature documents and task tracking
-.github/    CI: api, web, platform and arm64 image builds
+.github/    CI: api, web, platform, e2e (login flow) and arm64 image builds
 ```
