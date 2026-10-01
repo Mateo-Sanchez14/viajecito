@@ -23,3 +23,18 @@ def update_task(task_id, crew_id, actor_id, fields, store: TaskStore, now):
         if "owner_id" in fields:
             validate_owner(fields["owner_id"], crew_id)
         return store.update(task_id, transition_changes(task, fields, actor_id, now))
+
+
+def list_tasks(trip_id, store, statuses=None, kind=None, owner=None):
+    return store.list(trip_id, statuses, kind, owner)
+
+
+def complete_number(trip_id, crew_id, actor_id, number, store, now):
+    rows = store.list(trip_id)
+    task = next((t for t in rows if t["number"] == number), None)
+    if task is None:
+        return None, False
+    already_done = task["status"] == "done"
+    if not already_done:
+        task = update_task(task["id"], crew_id, actor_id, {"status": "done"}, store, now)
+    return task, already_done
