@@ -6,7 +6,7 @@ from config.version import VERSION
 from ops import checks
 from ops.schemas import HealthChecks, HealthOut
 
-router = Router()
+router = Router(tags=["ops"])
 
 
 @router.get(
