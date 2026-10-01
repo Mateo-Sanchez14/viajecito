@@ -3,6 +3,7 @@
 import json
 import re
 from collections.abc import Mapping
+from dataclasses import dataclass
 from typing import Protocol
 
 from notifications.copy.es_ar import TITLE_DEFAULT
@@ -84,3 +85,13 @@ def build_payload(draft: Draftish, names: Mapping[str, str], now_ts: int) -> dic
     if _size(payload) > MAX_PAYLOAD_BYTES:
         payload["tag"] = ""
     return payload
+
+
+@dataclass(frozen=True)
+class PushContent:
+    """A push that is not a reminder draft (the settings page's test notification)."""
+
+    title: str
+    body: str
+    dedupe_key: str
+    url_path: str

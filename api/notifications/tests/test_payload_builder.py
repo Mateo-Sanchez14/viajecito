@@ -4,7 +4,12 @@ import pytest
 
 from messaging.reminders import ReminderDraft
 from notifications.copy.es_ar import TITLE_DEFAULT
-from notifications.domain.payload import MAX_BODY_CHARS, MAX_PAYLOAD_BYTES, build_payload, category_of
+from notifications.domain.payload import (
+    MAX_BODY_CHARS,
+    MAX_PAYLOAD_BYTES,
+    build_payload,
+    category_of,
+)
 
 NOW = 1_790_000_000
 ANA = "11111111-1111-1111-1111-111111111111"
