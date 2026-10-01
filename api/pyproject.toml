@@ -14,6 +14,7 @@ dependencies = [
     "selectolax>=0.3",
     "pillow>=11",
     "pywebpush>=2.5.0",
+    "cryptography>=50.0.2,<51",
 ]
 
 [dependency-groups]
@@ -49,6 +50,7 @@ testpaths = [
     "linkpreview",
     "proposals",
     "logistics",
+    "documents",
 ]
 python_files = ["test_*.py"]
 
@@ -78,6 +80,7 @@ known-first-party = [
     "linkpreview",
     "proposals",
     "logistics",
+    "documents",
 ]
 
 [tool.importlinter]
@@ -98,6 +101,7 @@ root_packages = [
     "linkpreview",
     "proposals",
     "logistics",
+    "documents",
 ]
 
 include_external_packages = true
@@ -111,6 +115,7 @@ forbidden_modules = [
     "linkpreview",
     "proposals",
     "logistics",
+    "documents",
 ]
 
 [[tool.importlinter.contracts]]
@@ -132,6 +137,8 @@ source_modules = [
     "notifications.use_cases",
     "notifications.ports",
     "logistics.domain", "logistics.use_cases", "logistics.ports",
+    "logistics.domain_nag",
+    "documents.domain", "documents.use_cases", "documents.ports",
     "ski.domain",
     "ski.use_cases",
     "ski.ports",
