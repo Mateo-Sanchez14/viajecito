@@ -20,6 +20,7 @@ Tasks with owners and due dates (todo / bring / booking), packing templates per 
 - Models: writers sonnet, verifiers opus (one correction round). Delivery: merge to `main` + push per milestone.
 
 ## Tasks
+- [ ] **B0 proposals bridge** — delegated orchestrator-owned prerequisite: pure store-free get_proposal_snapshot/list_trip_proposals returning existing ProposalRecord, default store configured in proposals AppConfig. Strict RED/GREEN, independent verifier, parent spot/export/pytest before merge.
 - [ ] **B1 api** — delegated (writer sonnet; verifier opus).
 - [ ] **B2 web** — delegated (writer sonnet; verifier opus). Builds against the contract's API table with a draft
   added to `contracts/openapi.json` (orchestrator regenerates from the real api at integration).
@@ -47,3 +48,7 @@ Tasks with owners and due dates (todo / bring / booking), packing templates per 
 - Append-only shared registries union; schema/type regenerate; web request types from paths and output enums Literal. Runtime e2e share auth storage state, self-seed records, do not clear shared fake ledger. No remote execution/transfer.
 - Mapping in progress; missing M1 get_proposal_snapshot/list_trip_proposals bridge identified, orchestrator owns core changes. Writers must not bypass boundaries by importing another app models/adapters.
 - Checks: API frozen sync/export/pytest/Ruff/imports/migration drift; web frozen install/types/typecheck/lint/test/build/drift; local e2e/bot smoke sequential exclusive compose use then push SHA.
+
+### B0 seam decision
+- Add get_proposal_snapshot(proposal_id:str)->ProposalRecord|None and list_trip_proposals(trip_id:str,statuses:Collection[str]|None=None)->list[ProposalRecord] through existing ProposalStore.get/list_for_trip and default-store factory pattern from trips. No crossapp models/adapters imports; preserve current bounded list500. M4 derives location label from preview.site_name/title or empty (preview has no location_label).
+- Core bridge writer owns api/proposals ports/AppConfig/use_cases/tests only; API writers defer budget/subscribers until bridge integrated. Default-store setup is framework adapter work; use cases stay pure.
