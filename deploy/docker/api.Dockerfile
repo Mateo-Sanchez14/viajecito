@@ -8,6 +8,7 @@
 FROM ghcr.io/astral-sh/uv:python3.13-bookworm-slim AS builder
 ENV UV_PROJECT_ENVIRONMENT=/opt/venv \
     UV_LINK_MODE=copy \
+    UV_PYTHON_DOWNLOADS=0 \
     UV_COMPILE_BYTECODE=1
 WORKDIR /app
 COPY api/pyproject.toml api/uv.lock ./

@@ -4,12 +4,13 @@ FROM node:24-alpine AS base
 ENV NEXT_TELEMETRY_DISABLED=1 \
     PNPM_HOME=/pnpm
 ENV PATH="$PNPM_HOME:$PATH"
-RUN corepack enable && corepack prepare pnpm@12 --activate
+# corepack picks the pnpm version from "packageManager" in web/package.json (single source of truth).
+RUN corepack enable
 WORKDIR /app
 
 # ---- deps: install from the lockfile only ----------------------------------------------------
 FROM base AS deps
-COPY web/package.json web/pnpm-lock.yaml ./
+COPY web/package.json web/pnpm-lock.yaml web/pnpm-workspace.yaml ./
 RUN --mount=type=cache,target=/pnpm/store \
     pnpm install --frozen-lockfile
 
@@ -17,7 +18,8 @@ RUN --mount=type=cache,target=/pnpm/store \
 FROM deps AS dev
 COPY web/ ./
 EXPOSE 3000
-CMD ["pnpm", "dev", "-H", "0.0.0.0", "-p", "3000"]
+# Host and port flags live in the "dev" script of web/package.json.
+CMD ["pnpm", "dev"]
 
 # ---- build: standalone production output -----------------------------------------------------
 FROM deps AS build
