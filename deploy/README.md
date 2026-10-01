@@ -3,6 +3,9 @@
 Production runs on the Raspberry Pi as three containers (`api`, `web`, `cloudflared`) plus two systemd timers.
 Everything here is executed **on the Pi**; nothing in this repository connects to it. The WAHA and `notify`
 services already running there are not touched, and since no port is published there is nothing to collide with.
+WhatsApp goes through that existing WAHA container (`WHATSAPP_PROVIDER=waha`): the `api` also joins WAHA's
+Docker network (`WAHA_NETWORK`, default `waha_default`) with the alias `viajecito-api`, so WAHA posts webhooks to
+`http://viajecito-api:8000/hooks/waha/` and the api calls `http://waha:3000`. It keeps its default network too.
 
 ```
 Internet -> Cloudflare -> cloudflared -> /api /hooks /media /admin /static -> api:8000
@@ -17,8 +20,8 @@ Internet -> Cloudflare -> cloudflared -> /api /hooks /media /admin /static -> ap
 - `restic` (`sudo apt install restic`). `sqlite3` is **not** needed: the database snapshot is taken with
   Python's `sqlite3` backup API inside the api container.
 - `curl`, `flock` (util-linux) and `python3` (all preinstalled on Raspberry Pi OS).
-- A Cloudflare account with a domain, a restic repository (S3/B2/USB disk), and the Gowa credentials from
-  gastito's droplet.
+- A Cloudflare account with a domain, a restic repository (S3/B2/USB disk), and the WAHA stack running
+  (compose project `waha`, container `waha`, network `waha_default`, dedicated bot number, API key).
 - If the GHCR images are private: `docker login ghcr.io` with a token that has `read:packages`.
 
 ## Layout on the Pi
@@ -51,12 +54,15 @@ sudoedit /srv/viajecito/api.env               # app variables, see comments insi
 sudoedit /srv/viajecito/pi.env                # host-only values, see comments inside
 ```
 
-Two env files keep secrets scoped: only the api container reads `api.env` (Django, OTP, Gowa); `cloudflared`
+Two env files keep secrets scoped: only the api container reads `api.env` (Django, OTP, WAHA); `cloudflared`
 receives only `TUNNEL_TOKEN` from `pi.env`; the restic password never enters a container. Both files are
 plain `KEY=value` lines with **unquoted** values limited to `[A-Za-z0-9._~+/=:-]`: compose reads them with
 `format: raw` and the scripts parse them literally (`lib.sh`), never with shell `source`.
 
-Create the tunnel and public hostname first: [`cloudflared/README.md`](cloudflared/README.md).
+Check the WAHA network name with `docker network ls` and set `WAHA_NETWORK` in `pi.env` if it is not
+`waha_default`. Create the tunnel and public hostname first: [`cloudflared/README.md`](cloudflared/README.md);
+nothing is installed on the Pi or your Mac for it, you only copy the token (do not run the install command
+the dashboard shows).
 
 Initialize the restic repository once (`restic.sh` runs restic with `BACKUP_RESTIC_*` from `pi.env`):
 
@@ -136,7 +142,8 @@ type `restore`, then stops the stack, moves the current database and media aside
 ## Smoke checks
 
 `smoke.sh` verifies: public `https://<host>/api/health` answers 200 with `status: ok`; a signed webhook POST
-from a non-group chat to `/hooks/gowa/` is accepted by the signature check and answered `ignored` (the HMAC is
+from a non-group chat to the provider's webhook (`/hooks/waha/` signed with HMAC-SHA512 in `X-Webhook-Hmac`,
+or `/hooks/gowa/` when `WHATSAPP_PROVIDER=gowa`) is accepted by the signature check and answered `ignored` (the HMAC is
 computed with the secret in the environment, never in argv); each timer is active; restic is initialized and
 holds at least one snapshot. Run `SMOKE_SKIP_RESTIC=1` before the first backup (a fresh deploy runs
 `deploy.sh` before any snapshot exists) and `SMOKE_SKIP_SYSTEMD=1` before the timers are installed.
@@ -144,17 +151,39 @@ holds at least one snapshot. Run `SMOKE_SKIP_RESTIC=1` before the first backup (
 ## Go-live checklist (owner actions)
 
 1. Cloudflare: create the tunnel and the public hostname with the path rules from
-   [`cloudflared/README.md`](cloudflared/README.md); put the token in `TUNNEL_TOKEN`.
-2. Fill `/srv/viajecito/api.env` and `/srv/viajecito/pi.env` (both `chmod 600`). `GOWA_BASE_URL`,
-   `GOWA_BASIC_AUTH_USER`, `GOWA_BASIC_AUTH_PASS` and `GOWA_WEBHOOK_SECRET` (api.env) must match gastito's Gowa
-   on the droplet. `PUBLIC_ORIGIN=https://<host>` in api.env and `PUBLIC_HOST=<host>` in pi.env.
+   [`cloudflared/README.md`](cloudflared/README.md); put the token in `TUNNEL_TOKEN`. Only copy the token.
+2. Fill `/srv/viajecito/api.env` and `/srv/viajecito/pi.env` (both `chmod 600`). In api.env keep
+   `WHATSAPP_PROVIDER=waha`, set `WAHA_API_KEY` (the key WAHA runs with), `WAHA_SESSION`, a fresh random
+   `WAHA_WEBHOOK_HMAC_KEY` and `EXTRA_ALLOWED_HOSTS=viajecito-api`. `PUBLIC_ORIGIN=https://<host>` in api.env
+   and `PUBLIC_HOST=<host>` in pi.env.
 3. Run the first deploy (above; `sudo SMOKE_SKIP_RESTIC=1 /srv/viajecito/scripts/deploy.sh` until the first backup exists, then take one
    with `systemctl start viajecito-backup.service`); `smoke.sh` must pass.
-4. On the droplet, add viajecito as the **second** webhook of gastito's Gowa and restart Gowa briefly:
-   `WHATSAPP_WEBHOOK=http://bot:8000/webhooks/gowa/,https://<host>/hooks/gowa/` (gastito first). Gowa signs
-   with its single webhook secret for every URL, which is why the secret must match.
-5. Land the gastito change that makes it ignore `/viaje`, `/v` and link-only messages, so both bots do not
-   answer the same message.
+4. Configure the WAHA session webhook. The session may already carry other webhooks or settings used by
+   `notify`, and `PUT /api/sessions/<session>` **replaces the whole config**, so read it first and send it back
+   with only viajecito's webhook added. Run this on the Pi (the key is read from `api.env`, never typed on a
+   command line that lands in shell history):
+   ```sh
+   set -a; . <(grep -E '^(WAHA_API_KEY|WAHA_SESSION|WAHA_WEBHOOK_HMAC_KEY)=' /srv/viajecito/api.env); set +a
+   curl -fsS -H "X-Api-Key: $WAHA_API_KEY" "http://127.0.0.1:3000/api/sessions/$WAHA_SESSION" > /tmp/waha-session.json
+   cat /tmp/waha-session.json   # review: note every existing webhook and setting
+   ```
+   Build the new body from that JSON: keep `name` and everything in `config` (proxy, debug, existing
+   `webhooks` entries with their `hmac`, `retries`, `customHeaders`...), and append:
+   ```json
+   {"url": "http://viajecito-api:8000/hooks/waha/", "events": ["message"], "hmac": {"key": "<WAHA_WEBHOOK_HMAC_KEY>"}}
+   ```
+   ```sh
+   curl -fsS -X PUT -H "X-Api-Key: $WAHA_API_KEY" -H 'Content-Type: application/json' \
+     --data @/tmp/waha-session-new.json "http://127.0.0.1:3000/api/sessions/$WAHA_SESSION"
+   shred -u /tmp/waha-session.json /tmp/waha-session-new.json
+   ```
+   Heads-up: if the session is not `STOPPED`, WAHA stops and restarts it to apply the new config, so there is a
+   short gap in `notify` delivery; do it at a quiet moment. The same shape is documented in WAHA's
+   [session update](https://github.com/devlikeapro/waha-docs/blob/main/content/docs/how-to/sessions/api-session-update.md)
+   and [webhooks/HMAC](https://github.com/devlikeapro/waha-docs/blob/main/content/docs/how-to/events/index.md) pages
+   (WAHA's prose also mentions `PUT /api/sessions/{session}/config`; confirm against your WAHA version's
+   Swagger at `/` if the first form answers 404).
+5. Add the bot's number (the dedicated WAHA number) to the WhatsApp group.
 6. Create the crew with the real group id:
    `vdc exec api python manage.py bootstrap_crew --name "<crew>" --chat-id <id>@g.us --admin-phone <+E164>`.
 7. Send `/viaje ping` in the group and expect `pong`. Check `vdc logs api` and
