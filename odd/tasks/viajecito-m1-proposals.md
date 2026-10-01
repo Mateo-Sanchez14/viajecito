@@ -38,3 +38,13 @@ Any link dropped in the group (or pasted on the web) becomes a proposal card wit
 | A1 | writer running (sonnet, launched 2026-10-01 after M-core bc1bece) | — |
 | A2 | verifier APPROVE WITH MINORS → correction round running (es-AR price parsing, empty title PATCH, paths-derived input types, rollback test, link scheme guard) | writer: lint/typecheck/test/build/api:types:check green |
 | A3 | pending | — |
+
+## Resumption — 2026-10-01 (Codex)
+- Baseline: clean `main`/`origin/main` at `fafb953`; handoff records A1/A2 verified and corrected, but existing checklist/mirror is stale. Do not mark complete until integration checks reproduce.
+- A3 route: delegated preparation/mapping (4+ files), delegated bounded integration writers (2+ non-trivial files), orchestrator merges/spot checks and owns this document.
+- Strict TDD source: AGENTS.md; API `uv run pytest`, web `pnpm test`; RED required for new integration behavior.
+- Delivery: user explicitly authorizes direct-to-main merge/push (existing exception to PR chain), then Wave B only after M1 smoke and push. RDD: `off`, source `clone_local`; delivery disabled/unmanaged.
+- Forecast: existing M1 branch >400 authored lines; preserve already verified work-unit slices and direct-main delivery. New integration corrections tracked separately.
+- Integration checklist: API merge/export/pytest/lint-imports/ruff/migration drift; web union/regenerate/typecheck/lint/test/types drift/build; ski form; wave A env parsing; shared PersonRefOut; make e2e; make bot-smoke; push SHA.
+- Shared-main protocol: clean main before every merge, no UU commit, no merge commit before API export and pytest pass. Stop on unexpected changes; never overwrite WAHA work.
+- Current next step: merge M1 API without automatic commit and run required checks.
