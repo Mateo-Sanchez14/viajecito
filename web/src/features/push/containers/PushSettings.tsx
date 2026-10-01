@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ApiError } from "@/shared/api/errors";
 import { Button } from "@/ui/atoms/Button";
 import { PUSH_CATEGORIES, type PushCategory } from "../api/push";
@@ -22,11 +22,24 @@ export function PushSettings() {
   const sendTest = useSendTestPush();
   const [feedback, setFeedback] = useState<{ kind: "error" | "info"; text: string } | null>(null);
 
-  const fail = (error: unknown) =>
+  const [testWaitSeconds, setTestWaitSeconds] = useState<number | null>(null);
+  const waitTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  useEffect(() => () => clearTimeout(waitTimer.current), []);
+
+  const fail = (error: unknown) => {
+    if (error instanceof ApiError && error.status === 429 && error.retryAfterSeconds) {
+      const seconds = error.retryAfterSeconds;
+      setFeedback({ kind: "error", text: t("errors.rate_limited_wait", { seconds }) });
+      setTestWaitSeconds(seconds);
+      clearTimeout(waitTimer.current);
+      waitTimer.current = setTimeout(() => setTestWaitSeconds(null), seconds * 1000);
+      return;
+    }
     setFeedback({
       kind: "error",
       text: t(`errors.${error instanceof ApiError && KNOWN_ERRORS.has(error.code) ? error.code : "unknown"}`),
     });
+  };
 
   if (device.support === "unknown") return null;
 
@@ -69,7 +82,7 @@ export function PushSettings() {
         <div className="flex flex-wrap items-center gap-3">
           <Button
             className="min-h-11 w-auto"
-            disabled={sendTest.isPending}
+            disabled={sendTest.isPending || testWaitSeconds !== null}
             onClick={() => {
               setFeedback(null);
               sendTest.mutate(undefined, {

@@ -78,7 +78,7 @@ export function TripOverview({ cards = tripCards }: { cards?: TripCard[] }) {
         <h2 className="text-lg font-semibold">{t("overview.modules")}</h2>
         <ul aria-label={t("overview.modules")} className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           {entries.map(({ key, Component }) => (
-            <li key={key}>
+            <li key={key} className="empty:hidden">
               <Component tripId={trip.id} crewId={trip.crew_id} />
             </li>
           ))}

@@ -229,4 +229,24 @@ describe("PushSettings", () => {
 
     expect(await screen.findByRole("alert")).toHaveTextContent(t.errors.push_unavailable);
   });
+
+  it("honours Retry-After on a rate-limited test: shows the wait and blocks the button", async () => {
+    setupBrowser({ permission: "granted", subscription: makeSub() });
+    server.use(
+      csrf,
+      prefs(),
+      http.untyped.post(
+        `${globalThis.location.origin}/api/notifications/test`,
+        () =>
+          HttpResponse.json({ code: "rate_limited", message: "slow down" }, { status: 429, headers: { "Retry-After": "1" } }),
+      ),
+    );
+    renderWithProviders(<PushSettings />);
+
+    fireEvent.click(await screen.findByRole("button", { name: t.test }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(t.errors.rate_limited_wait.replace("{seconds}", "1"));
+    expect(screen.getByRole("button", { name: t.test })).toBeDisabled();
+    await waitFor(() => expect(screen.getByRole("button", { name: t.test })).toBeEnabled(), { timeout: 3000 });
+  });
 });

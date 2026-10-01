@@ -27,6 +27,7 @@
       "push_unavailable": "Las notificaciones no están disponibles por ahora",
       "invalid_subscription": "No pudimos activar las notificaciones en este navegador",
       "rate_limited": "Probaste muchas veces seguidas; esperá un rato y volvé a intentar",
+      "rate_limited_wait": "Probaste muy seguido; esperá {seconds} s para mandar otra prueba",
       "preferences": "No pudimos guardar tus preferencias",
       "unknown": "Algo salió mal; probá de nuevo"
     }

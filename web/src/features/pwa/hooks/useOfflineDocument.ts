@@ -4,6 +4,9 @@ import { useCallback, useEffect, useState } from "react";
 import { isDocumentFilePath } from "../api/documents";
 import { CACHE_NAMES } from "../sw/routes";
 
+// "default" is what synthesized same-origin responses (and test doubles) report.
+const SAME_ORIGIN_TYPES = new Set<ResponseType>(["basic", "default"]);
+
 export type OfflineStatus = "checking" | "idle" | "saving" | "saved" | "error" | "unsupported";
 
 /**
@@ -32,8 +35,10 @@ export function useOfflineDocument(id: string, downloadPath: string) {
     setStatus("saving");
     try {
       const response = await fetch(downloadPath, { credentials: "same-origin" });
-      // Complete, successful responses only: never a redirect, partial or error body.
-      if (!response.ok || response.status !== 200) throw new Error(`HTTP ${response.status}`);
+      // Same-origin, direct answers only: never a redirect (e.g. to a login page) or a foreign response.
+      if (!response.ok || response.status !== 200 || response.redirected || !SAME_ORIGIN_TYPES.has(response.type)) {
+        throw new Error(`Unsafe or failed response (HTTP ${response.status})`);
+      }
       const cache = await caches.open(CACHE_NAMES.documentsFiles);
       await cache.put(downloadPath, response);
       setStatus("saved");

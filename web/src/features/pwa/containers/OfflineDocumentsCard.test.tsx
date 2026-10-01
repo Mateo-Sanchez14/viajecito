@@ -1,6 +1,6 @@
 import { fireEvent, screen, waitFor } from "@testing-library/react";
 import { http, HttpResponse } from "msw";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { renderWithProviders } from "@/test/render";
 import { server } from "@/test/server";
 import messages from "../../../../messages/es-AR";
@@ -84,8 +84,43 @@ describe("OfflineDocumentsCard", () => {
     expect(await screen.findByText(t.empty)).toBeInTheDocument();
     first.unmount();
 
-    server.use(listDocs({ code: "not_found" }, 404));
+    server.use(listDocs({ code: "boom" }, 500));
     renderWithProviders(<OfflineDocumentsCard tripId={TRIP} crewId="c" />);
     expect(await screen.findByRole("alert")).toHaveTextContent(t.loadError);
+  });
+
+  it("renders nothing while the documents feature is not available (404)", async () => {
+    server.use(listDocs({ code: "not_found" }, 404));
+    const { container } = renderWithProviders(<OfflineDocumentsCard tripId={TRIP} crewId="c" />);
+
+    await waitFor(() => expect(container).toBeEmptyDOMElement());
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  });
+
+  it.each([
+    ["a redirect", { redirected: true, type: "basic" }],
+    ["a cross-origin response", { redirected: false, type: "cors" }],
+    ["an opaque response", { redirected: false, type: "opaque" }],
+  ])("does not store %s", async (_name, traits) => {
+    server.use(listDocs());
+    const realFetch = globalThis.fetch;
+    vi.spyOn(globalThis, "fetch").mockImplementation(async (input, init) => {
+      if (String(input).includes("/file")) {
+        const response = new Response("pdf-bytes", { status: 200 });
+        Object.defineProperties(response, {
+          redirected: { value: traits.redirected },
+          type: { value: traits.type },
+        });
+        return response;
+      }
+      return realFetch(input, init);
+    });
+    renderWithProviders(<OfflineDocumentsCard tripId={TRIP} crewId="c" />);
+
+    fireEvent.click((await screen.findAllByRole("button", { name: new RegExp(t.save) }))[0]);
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(t.error);
+    expect(fake.stores.get("documents-files-v1")?.has("/api/documents/d1/file") ?? false).toBe(false);
+    vi.restoreAllMocks();
   });
 });
