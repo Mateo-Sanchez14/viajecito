@@ -162,3 +162,34 @@ OTP_SEND_SYNC = env.bool("OTP_SEND_SYNC", False)
 # Trust the CF-Connecting-IP header for rate limiting only when every request comes through
 # cloudflared (prod). Elsewhere the port may be reachable directly, so the header is forgeable.
 TRUST_CF_CONNECTING_IP = env.bool("TRUST_CF_CONNECTING_IP", False)
+
+# Wave A reminder and snow-refresh budgets.
+DECISIONS_NUDGE_WINDOW_HOURS = env.int("DECISIONS_NUDGE_WINDOW_HOURS", 48)
+DECISIONS_NUDGE_AFTER_DAYS = env.int("DECISIONS_NUDGE_AFTER_DAYS", 3)
+SKI_TICK_BUDGET_SECONDS = env.float("SKI_TICK_BUDGET_SECONDS", 30)
+SKI_MANUAL_REPORTS_PER_HOUR = env.int("SKI_MANUAL_REPORTS_PER_HOUR", 6)
+
+# Push is optional: the notifications adapter validates keys/subject and disables invalid config.
+NOTIFICATIONS_VAPID_PUBLIC_KEY = env.str("NOTIFICATIONS_VAPID_PUBLIC_KEY", "")
+NOTIFICATIONS_VAPID_PRIVATE_KEY = env.str("NOTIFICATIONS_VAPID_PRIVATE_KEY", "")
+NOTIFICATIONS_VAPID_SUBJECT = env.str("NOTIFICATIONS_VAPID_SUBJECT", "")
+NOTIFICATIONS_PUSH_ENDPOINT_HOSTS = env.list(
+    "NOTIFICATIONS_PUSH_ENDPOINT_HOSTS",
+    [
+        "fcm.googleapis.com",
+        "updates.push.services.mozilla.com",
+        "push.services.mozilla.com",
+        "*.push.apple.com",
+        "*.notify.windows.com",
+    ],
+)
+NOTIFICATIONS_PUSH_BUDGET_SECONDS = env.float("NOTIFICATIONS_PUSH_BUDGET_SECONDS", 10)
+
+# Production uses guarded HTTP fetching; dev and tests override only the fetcher defaults.
+LINKPREVIEW_FETCHER = env.str("LINKPREVIEW_FETCHER", "httpx")
+LINKPREVIEW_FETCH_SYNC = env.bool("LINKPREVIEW_FETCH_SYNC", False)
+LINKPREVIEW_MAX_BYTES = env.int("LINKPREVIEW_MAX_BYTES", 1_048_576)
+PROPOSALS_LLM_CLASSIFIER_ENABLED = env.bool("PROPOSALS_LLM_CLASSIFIER_ENABLED", False)
+PROPOSALS_LLM_BASE_URL = env.str("PROPOSALS_LLM_BASE_URL", "")
+PROPOSALS_LLM_API_KEY = env.str("PROPOSALS_LLM_API_KEY", "")
+PROPOSALS_LLM_MODEL = env.str("PROPOSALS_LLM_MODEL", "")
