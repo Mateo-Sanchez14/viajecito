@@ -23,7 +23,7 @@ ENV PATH="/opt/venv/bin:$PATH" \
 COPY api/ ./
 RUN mkdir -p /data
 EXPOSE 8000
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+CMD ["sh", "-c", "python manage.py migrate --noinput && python manage.py runserver 0.0.0.0:8000"]
 
 # ---- prod-deps: runtime dependencies only ----------------------------------------------------
 FROM builder AS prod-deps
