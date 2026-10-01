@@ -1,0 +1,33 @@
+{
+  "push": {
+    "title": "Notificaciones",
+    "subtitle": "Elegí qué avisos querés recibir en este dispositivo",
+    "enable": "Activar notificaciones",
+    "disable": "Desactivar",
+    "enabling": "Activando…",
+    "enabled": "Las notificaciones están activadas en este dispositivo",
+    "disabled": "Las notificaciones están desactivadas en este dispositivo",
+    "denied": "Bloqueaste las notificaciones en el navegador; activalas desde los ajustes",
+    "iosNeedsInstall": "En iPhone primero instalá la app",
+    "unsupported": "Este navegador no soporta notificaciones",
+    "test": "Mandarme una de prueba",
+    "testSent": "Te mandamos una notificación de prueba",
+    "testNone": "No hay ningún dispositivo suscripto para recibir la prueba",
+    "sharedDevice": "Si compartís este dispositivo, desactivá las notificaciones y cerrá sesión al terminar",
+    "preferences": "Qué avisos querés",
+    "categories": {
+      "all": "Todos los avisos",
+      "reminders": "Recordatorios de tareas",
+      "digest": "Resumen de cada mañana",
+      "countdown": "Cuenta regresiva",
+      "proposals": "Propuestas"
+    },
+    "errors": {
+      "push_unavailable": "Las notificaciones no están disponibles por ahora",
+      "invalid_subscription": "No pudimos activar las notificaciones en este navegador",
+      "rate_limited": "Probaste muchas veces seguidas; esperá un rato y volvé a intentar",
+      "preferences": "No pudimos guardar tus preferencias",
+      "unknown": "Algo salió mal; probá de nuevo"
+    }
+  }
+}

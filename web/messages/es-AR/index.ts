@@ -5,6 +5,8 @@ import common from "./common.json";
 import errors from "./errors.json";
 import home from "./home.json";
 import ops from "./ops.json";
+import push from "./push.json";
+import pwa from "./pwa.json";
 import trips from "./trips.json";
 
-export default mergeMessages(auth, common, errors, home, ops, trips);
+export default mergeMessages(auth, common, errors, home, ops, push, pwa, trips);
