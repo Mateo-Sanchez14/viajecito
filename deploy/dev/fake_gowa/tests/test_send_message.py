@@ -92,3 +92,43 @@ def test_auth_failure_records_nothing(client, monkeypatch):
     monkeypatch.setenv("APP_BASIC_AUTH", "user:pass")
     client.post("/send/message", json={"phone": "1", "message": "a"})
     assert client.get("/__sent").json() == []
+
+
+def _send(client, phone: str, message: str) -> None:
+    assert client.post("/send/message", json={"phone": phone, "message": message}).status_code == 200
+
+
+def test_latest_matches_with_and_without_suffix_and_plus(client):
+    _send(client, "5491155551234@s.whatsapp.net", "code 111111")
+    for query in ("5491155551234", "+5491155551234", "5491155551234@s.whatsapp.net"):
+        response = client.get("/__sent/latest", params={"phone": query})
+        assert response.status_code == 200
+        assert response.json()["message"] == "code 111111"
+
+
+def test_latest_matches_record_without_suffix(client):
+    _send(client, "5491155551234", "plain")
+    response = client.get("/__sent/latest", params={"phone": "+5491155551234@s.whatsapp.net"})
+    assert response.status_code == 200
+    assert response.json()["message"] == "plain"
+
+
+def test_latest_returns_newest(client):
+    _send(client, "5491155551234@s.whatsapp.net", "first")
+    _send(client, "5491100000000@s.whatsapp.net", "other")
+    _send(client, "5491155551234@s.whatsapp.net", "second")
+    assert client.get("/__sent/latest", params={"phone": "5491155551234"}).json()["message"] == "second"
+
+
+def test_latest_404_when_none(client):
+    _send(client, "5491100000000@s.whatsapp.net", "other")
+    response = client.get("/__sent/latest", params={"phone": "123"})
+    assert response.status_code == 404
+    assert response.json()["code"] == "NOT_FOUND"
+    assert response.json()["message"]
+
+
+def test_latest_400_without_phone(client):
+    response = client.get("/__sent/latest")
+    assert response.status_code == 400
+    assert response.json()["code"] == "VALIDATION_ERROR"

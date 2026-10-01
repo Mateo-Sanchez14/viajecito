@@ -1,8 +1,11 @@
 .DEFAULT_GOAL := help
-.PHONY: help up down logs ps api-test web-test test lint api-schema api-types api-types-check fake-gowa-test replay deploy
+
+E2E_PHONE ?= +5491155551234
+export DATA_DIR ?= ./data
+.PHONY: help up down logs ps api-test web-test test lint api-schema api-types api-types-check fake-gowa-test replay deploy bootstrap-dev-crew e2e e2e-keep
 
 help: ## Show this help
-	@awk 'BEGIN {FS = ":.*## "} /^[a-zA-Z_-]+:.*## / {printf "  \033[36m%-18s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
+	@awk 'BEGIN {FS = ":.*## "} /^[a-zA-Z0-9_-]+:.*## / {printf "  \033[36m%-18s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
 up: ## Build and start the dev stack (api, web, fake-gowa)
 	docker compose up --build -d
@@ -39,6 +42,25 @@ api-types-check: ## Fail if the generated web API types drifted from the contrac
 
 fake-gowa-test: ## Run the fake Gowa stub tests
 	cd deploy/dev/fake_gowa && uv run pytest
+
+MIGRATE = docker compose exec -T api python manage.py migrate --noinput
+BOOTSTRAP_CREW = $(MIGRATE) && docker compose exec -T api python manage.py bootstrap_crew --name "Crew de prueba" --chat-id 120363000000000000@g.us --admin-phone $(E2E_PHONE)
+E2E_RUN = cd web && pnpm install --frozen-lockfile && pnpm exec playwright install chromium && E2E_BASE_URL=http://localhost:3000 FAKE_GOWA_URL=http://localhost:4000 E2E_PHONE=$(E2E_PHONE) pnpm test:e2e
+
+# e2e runs against its own throwaway data dir so it never touches the dev DB and always starts clean.
+e2e e2e-keep: export DATA_DIR := ./data/e2e
+
+bootstrap-dev-crew: ## Create the dev crew and its admin (E2E_PHONE) in the running stack
+	$(BOOTSTRAP_CREW)
+
+e2e: ## Run the Playwright login e2e on a fresh stack and data dir, then tear it down
+	@rm -rf $(DATA_DIR); trap 'docker compose down -v' EXIT; docker compose up --build -d --wait && $(BOOTSTRAP_CREW) && $(E2E_RUN)
+
+e2e-keep: ## Run the e2e like `e2e` but leave the stack running for debugging
+	@rm -rf $(DATA_DIR)
+	docker compose up --build -d --wait
+	$(BOOTSTRAP_CREW)
+	$(E2E_RUN)
 
 replay: ## Placeholder (exits non-zero until M0c): replay recorded webhooks
 	@echo "replay: available in M0c"; exit 1

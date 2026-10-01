@@ -83,6 +83,26 @@ def list_sent(phone: str | None = None) -> list[dict]:
     return [r for r in SENT if phone is None or r["phone"] == phone]
 
 
+def _digits(phone: str) -> str:
+    """Normalize a phone to bare digits: strip a ``+`` prefix and the WhatsApp JID suffix."""
+    return phone.split("@", 1)[0].lstrip("+")
+
+
+@app.get("/__sent/latest")
+def latest_sent(phone: str | None = None):
+    if not phone:
+        return JSONResponse(
+            status_code=400, content={"code": "VALIDATION_ERROR", "message": "phone is required"}
+        )
+    wanted = _digits(phone)
+    for record in reversed(SENT):
+        if _digits(record["phone"]) == wanted:
+            return record
+    return JSONResponse(
+        status_code=404, content={"code": "NOT_FOUND", "message": f"No message sent to {phone}"}
+    )
+
+
 @app.delete("/__sent")
 def clear_sent() -> dict:
     SENT.clear()

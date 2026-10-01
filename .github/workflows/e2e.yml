@@ -1,0 +1,89 @@
+name: e2e
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "api/**"
+      - "web/**"
+      - "deploy/**"
+      - "docker-compose.yml"
+      - "Makefile"
+      - ".github/workflows/e2e.yml"
+  pull_request:
+    paths:
+      - "api/**"
+      - "web/**"
+      - "deploy/**"
+      - "docker-compose.yml"
+      - "Makefile"
+      - ".github/workflows/e2e.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: e2e-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  E2E_BASE_URL: http://localhost:3000
+  FAKE_GOWA_URL: http://localhost:4000
+  E2E_PHONE: "+5491155551234"
+  DATA_DIR: ./data/e2e
+
+jobs:
+  login:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v7
+      - run: cp .env.example .env
+      - uses: pnpm/action-setup@v6
+        with:
+          package_json_file: web/package.json
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: web/pnpm-lock.yaml
+      - name: Install web dependencies
+        working-directory: web
+        run: pnpm install --frozen-lockfile
+      - name: Install Playwright browser
+        working-directory: web
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Start the dev stack
+        run: docker compose up --build -d --wait --wait-timeout 300
+      - name: Migrate and bootstrap the dev crew
+        run: make bootstrap-dev-crew
+      - name: Run e2e
+        working-directory: web
+        run: pnpm test:e2e --reporter=github,html
+      - name: Collect stack logs
+        if: failure()
+        run: docker compose logs --no-color > compose-logs.txt
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-report
+          path: web/playwright-report
+          if-no-files-found: ignore
+      - name: Upload Playwright traces
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-test-results
+          path: web/test-results
+          if-no-files-found: ignore
+      - name: Upload stack logs
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: compose-logs
+          path: compose-logs.txt
+          if-no-files-found: ignore
+      - name: Tear down the stack
+        if: always()
+        run: docker compose down -v
