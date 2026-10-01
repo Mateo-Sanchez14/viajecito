@@ -19,18 +19,20 @@ describe("csrf middleware", () => {
       http.get("/api/auth/csrf", ({ response }) =>
         response(200).json({ csrf_token: tokens.shift() ?? "none" }),
       ),
-      http.post("/api/auth/otp/request", async ({ request, response }) => {
+      http.untyped.post(`${origin}/api/auth/otp/request`, async ({ request }) => {
         seen.push(request.headers.get("x-csrftoken"));
         const body = await request.json();
         expect(body).toEqual({ phone: "+5491155551234" });
         if (seen.length === 1) {
-          return response(403).json({ code: "csrf_failed", message: "x" });
+          return HttpResponse.json(
+            { code: "csrf_failed", message: "x" },
+            { status: 403 },
+          );
         }
-        return response(202).json({
-          status: "sent",
-          retry_after_seconds: 60,
-          expires_in_seconds: 300,
-        });
+        return HttpResponse.json(
+          { status: "sent", retry_after_seconds: 60, expires_in_seconds: 300 },
+          { status: 202 },
+        );
       }),
     );
 
@@ -49,9 +51,12 @@ describe("csrf middleware", () => {
       http.get("/api/auth/csrf", ({ response }) =>
         response(200).json({ csrf_token: "t" }),
       ),
-      http.post("/api/auth/otp/request", ({ response }) => {
+      http.untyped.post(`${origin}/api/auth/otp/request`, () => {
         posts += 1;
-        return response(403).json({ code: "csrf_failed", message: "x" });
+        return HttpResponse.json(
+          { code: "csrf_failed", message: "x" },
+          { status: 403 },
+        );
       }),
     );
 
@@ -70,9 +75,12 @@ describe("csrf middleware", () => {
       http.get("/api/auth/csrf", ({ response }) =>
         response(200).json({ csrf_token: "t" }),
       ),
-      http.post("/api/auth/otp/request", ({ response }) => {
+      http.untyped.post(`${origin}/api/auth/otp/request`, () => {
         posts += 1;
-        return response(403).json({ code: "forbidden", message: "x" });
+        return HttpResponse.json(
+          { code: "forbidden", message: "x" },
+          { status: 403 },
+        );
       }),
     );
 
