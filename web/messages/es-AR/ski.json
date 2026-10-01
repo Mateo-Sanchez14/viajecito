@@ -85,7 +85,8 @@
       "missingFor": "{name} en {resort}",
       "allCovered": "Todos tienen su pase resuelto",
       "crew": "Pases del grupo",
-      "noRows": "Todavía nadie cargó su pase"
+      "noRows": "Todavía nadie cargó su pase",
+      "daysCount": "{count, plural, one {# día} other {# días}}"
     },
     "gear": {
       "title": "Equipo",
