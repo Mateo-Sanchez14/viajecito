@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useMemo, useRef, useState, type KeyboardEvent, type MouseEvent, type PointerEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type MouseEvent, type PointerEvent } from "react";
 import { ANSWERS, ANSWER_CLASSES, ANSWER_GLYPH, answerKey } from "../lib/answers";
 import { isWeekend, nextAnswer, stepDate, weekRows, addDays, type Answer, type CellValue } from "../lib/calendar";
 import { useDayFormat } from "../lib/useDayFormat";
@@ -61,13 +61,21 @@ export function AvailabilityGrid({ dates, answers, onChange, disabled = false }:
 
   function onPointerMove(event: PointerEvent) {
     const current = gesture.current;
-    if (disabled || !current || current.scrolls) return;
+    if (!current) return;
+    // A move without a pressed button means the release happened somewhere we did not see.
+    if (event.buttons === 0) {
+      endGesture();
+      return;
+    }
+    if (disabled || current.scrolls) return;
     // Touch pointers are captured by the first cell, so the cell under the finger is looked up.
     const under = document.elementFromPoint?.(event.clientX, event.clientY) ?? event.target;
     const date = dateOf(under);
     if (!date || date === current.last) return;
     if (!current.painting) {
       current.painting = true;
+      // Keep receiving the gesture's events (and its end) even if the pointer leaves the grid.
+      gridRef.current?.setPointerCapture?.(event.pointerId);
       suppressClick.current = true;
       onChange({ [current.origin]: paint });
     }
@@ -82,6 +90,19 @@ export function AvailabilityGrid({ dates, answers, onChange, disabled = false }:
       suppressClick.current = false;
     }, 0);
   }
+
+  // A release outside the grid still ends the gesture.
+  useEffect(() => {
+    const end = () => {
+      if (gesture.current) endGesture();
+    };
+    window.addEventListener("pointerup", end);
+    window.addEventListener("pointercancel", end);
+    return () => {
+      window.removeEventListener("pointerup", end);
+      window.removeEventListener("pointercancel", end);
+    };
+  });
 
   function onClick(event: MouseEvent) {
     const skip = suppressClick.current;
@@ -160,6 +181,7 @@ export function AvailabilityGrid({ dates, answers, onChange, disabled = false }:
         onPointerMove={onPointerMove}
         onPointerUp={endGesture}
         onPointerCancel={endGesture}
+        onLostPointerCapture={endGesture}
         onClick={onClick}
         onKeyDown={onKeyDown}
         onFocus={(event) => {
@@ -212,7 +234,9 @@ type GridCellProps = {
 
 function GridCell({ date, value, tabStop, disabled, label, dayLabel, monthLabel }: GridCellProps) {
   const weekend = isWeekend(date);
-  const tone = value ? ANSWER_CLASSES[value] : weekend ? "bg-foreground/5 border-border" : "bg-surface border-border";
+  const tone = value
+    ? `${ANSWER_CLASSES[value]} ${weekend ? "ring-2 ring-inset ring-foreground/20" : ""}`
+    : weekend ? "bg-foreground/5 border-border" : "bg-surface border-border";
   return (
     <div
       role="gridcell"

@@ -38,6 +38,7 @@ describe("parseDecisionForm", () => {
     ["rangeRequired", { to: "" }],
     ["endBeforeStart", { from: "2027-08-02", to: "2027-08-01" }],
     ["rangeTooLong", { from: "2027-01-01", to: "2027-07-01" }],
+    ["rangeTooLong", { from: "2027-01-01", to: "2027-06-30" }], // 181 days inclusive
     ["minDaysInvalid", { minDays: "0" }],
     ["minDaysInvalid", { minDays: "61" }],
     ["minDaysInvalid", { minDays: "x" }],
@@ -54,8 +55,8 @@ describe("parseDecisionForm", () => {
     expect(Object.values(result.ok ? {} : result.errors)).toContain(key);
   });
 
-  it("allows a range of exactly 180 days and a trip as long as the range", () => {
-    expect(parse({ from: "2027-01-01", to: "2027-06-30" }).ok).toBe(true); // 180 days apart
+  it("allows a range of exactly 180 days (inclusive) and a trip as long as the range", () => {
+    expect(parse({ from: "2027-01-01", to: "2027-06-29" }).ok).toBe(true); // 180 days inclusive
     expect(parse({ from: "2027-07-01", to: "2027-07-07", minDays: "7" }).ok).toBe(true);
   });
 });

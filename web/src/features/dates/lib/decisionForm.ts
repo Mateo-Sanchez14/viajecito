@@ -50,7 +50,7 @@ export function parseDecisionForm(values: DecisionFormValues, now: Date): Decisi
   else if (to < from) errors.range = "endBeforeStart";
   else {
     span = daysBetween(from, to) + 1;
-    if (span - 1 > MAX_RANGE_DAYS) errors.range = "rangeTooLong";
+    if (span > MAX_RANGE_DAYS) errors.range = "rangeTooLong";
   }
 
   const minDays = values.minDays.trim();

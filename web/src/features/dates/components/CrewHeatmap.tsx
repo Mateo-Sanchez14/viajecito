@@ -9,7 +9,7 @@ import { useDayFormat } from "../lib/useDayFormat";
 
 type CrewHeatmapProps = {
   dates: string[];
-  /** Everybody except me. */
+  /** Everybody, me included. */
   people: GridPerson[];
 };
 

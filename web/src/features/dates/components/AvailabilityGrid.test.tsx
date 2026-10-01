@@ -58,6 +58,15 @@ describe("AvailabilityGrid layout", () => {
   });
 });
 
+describe("AvailabilityGrid weekends on answered cells", () => {
+  it("keeps a weekend marker when the day has an answer", () => {
+    setup({ "2027-07-10": "yes", "2027-07-12": "yes" });
+
+    expect(cell("2027-07-10", t.legend.yes)).toHaveClass("ring-2");
+    expect(cell("2027-07-12", t.legend.yes)).not.toHaveClass("ring-2");
+  });
+});
+
 describe("AvailabilityGrid tap", () => {
   it("cycles empty, yes, maybe, no and back to empty", () => {
     const onChange = setup({ "2027-07-06": "yes", "2027-07-07": "maybe", "2027-07-08": "no" });
@@ -97,9 +106,9 @@ describe("AvailabilityGrid paint", () => {
     const grid = screen.getByRole("grid");
     fireEvent.pointerDown(cell("2027-07-05"), { pointerId: 1, pointerType: "touch" });
     stubPointAt("2027-07-06");
-    fireEvent.pointerMove(grid, { pointerId: 1, pointerType: "touch", clientX: 10, clientY: 10 });
+    fireEvent.pointerMove(grid, { buttons: 1, pointerId: 1, pointerType: "touch", clientX: 10, clientY: 10 });
     stubPointAt("2027-07-07");
-    fireEvent.pointerMove(grid, { pointerId: 1, pointerType: "touch", clientX: 20, clientY: 10 });
+    fireEvent.pointerMove(grid, { buttons: 1, pointerId: 1, pointerType: "touch", clientX: 20, clientY: 10 });
     fireEvent.pointerUp(grid, { pointerId: 1, pointerType: "touch" });
 
     expect(onChange.mock.calls.map(([changes]) => changes)).toEqual([
@@ -115,7 +124,7 @@ describe("AvailabilityGrid paint", () => {
 
     fireEvent.pointerDown(cell("2027-07-05"), { pointerId: 1 });
     stubPointAt("2027-07-05");
-    fireEvent.pointerMove(screen.getByRole("grid"), { pointerId: 1, clientX: 1, clientY: 1 });
+    fireEvent.pointerMove(screen.getByRole("grid"), { buttons: 1, pointerId: 1, clientX: 1, clientY: 1 });
     fireEvent.pointerUp(screen.getByRole("grid"), { pointerId: 1 });
 
     expect(onChange).toHaveBeenCalledTimes(1);
@@ -137,7 +146,7 @@ describe("AvailabilityGrid paint", () => {
 
     fireEvent.pointerDown(cell("2027-07-05"), { pointerId: 1, pointerType: "mouse" });
     stubPointAt("2027-07-06");
-    fireEvent.pointerMove(screen.getByRole("grid"), { pointerId: 1, pointerType: "mouse", clientX: 5, clientY: 5 });
+    fireEvent.pointerMove(screen.getByRole("grid"), { buttons: 1, pointerId: 1, pointerType: "mouse", clientX: 5, clientY: 5 });
     fireEvent.pointerUp(screen.getByRole("grid"), { pointerId: 1, pointerType: "mouse" });
     fireEvent.click(cell("2027-07-06"));
 
@@ -152,8 +161,33 @@ describe("AvailabilityGrid paint", () => {
 
     fireEvent.pointerDown(cell("2027-07-05"), { pointerId: 1, pointerType: "touch" });
     stubPointAt("2027-07-06");
-    fireEvent.pointerMove(screen.getByRole("grid"), { pointerId: 1, pointerType: "touch", clientX: 5, clientY: 5 });
+    fireEvent.pointerMove(screen.getByRole("grid"), { buttons: 1, pointerId: 1, pointerType: "touch", clientX: 5, clientY: 5 });
     fireEvent.pointerUp(screen.getByRole("grid"), { pointerId: 1, pointerType: "touch" });
+
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it("stops painting when the mouse was released outside the grid", () => {
+    const onChange = setup();
+
+    fireEvent.pointerDown(cell("2027-07-05"), { pointerId: 1, pointerType: "mouse", buttons: 1 });
+    stubPointAt("2027-07-06");
+    fireEvent.pointerMove(screen.getByRole("grid"), { pointerId: 1, pointerType: "mouse", buttons: 1, clientX: 5, clientY: 5 });
+    onChange.mockClear();
+    fireEvent.pointerUp(document.body, { pointerId: 1, pointerType: "mouse" });
+    stubPointAt("2027-07-07");
+    fireEvent.pointerMove(screen.getByRole("grid"), { pointerId: 1, pointerType: "mouse", buttons: 0, clientX: 9, clientY: 9 });
+
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it("stops painting when a move reports no pressed button, even without any pointerup", () => {
+    const onChange = setup();
+
+    fireEvent.pointerDown(cell("2027-07-05"), { pointerId: 1, pointerType: "mouse", buttons: 1 });
+    onChange.mockClear();
+    stubPointAt("2027-07-06");
+    fireEvent.pointerMove(screen.getByRole("grid"), { pointerId: 1, pointerType: "mouse", buttons: 0, clientX: 5, clientY: 5 });
 
     expect(onChange).not.toHaveBeenCalled();
   });
@@ -162,7 +196,7 @@ describe("AvailabilityGrid paint", () => {
     const onChange = setup();
     stubPointAt("2027-07-06");
 
-    fireEvent.pointerMove(screen.getByRole("grid"), { pointerId: 1, clientX: 5, clientY: 5 });
+    fireEvent.pointerMove(screen.getByRole("grid"), { buttons: 1, pointerId: 1, clientX: 5, clientY: 5 });
 
     expect(onChange).not.toHaveBeenCalled();
   });
