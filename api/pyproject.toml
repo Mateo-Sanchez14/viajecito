@@ -136,4 +136,5 @@ ignore_imports = [
     "decisions.tests.* -> identity.models",
     "decisions.tests.* -> trips.models",
     "decisions.tests.* -> messaging.domain",
+    "decisions.tests.* -> messaging.models",
 ]
