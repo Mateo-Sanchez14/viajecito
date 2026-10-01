@@ -52,10 +52,11 @@ uv run python manage.py export_openapi_schema --api config.api.api --output ../c
 | `STATIC_ROOT` | `<repo>/data/static` | served by whitenoise |
 | `GOWA_BASE_URL`, `GOWA_BASIC_AUTH_USER`, `GOWA_BASIC_AUTH_PASS` | see `.env.example` | WhatsApp gateway (OTP delivery, replies, roster sync) |
 | `GOWA_WEBHOOK_SECRET` | empty | HMAC key of `POST /hooks/gowa/`. Empty rejects every delivery (fails closed). **Required in `prod`** |
-| `GOWA_DEVICE_ID` | empty | optional; sent as `X-Device-Id` and used to skip the bot in roster syncs |
+| `GOWA_DEVICE_ID` | empty | optional; the bot's JID (`<digits>@s.whatsapp.net`, not a free-form id). Sent as `X-Device-Id` and used to skip the bot in roster syncs; a value without `@` logs a warning |
 | `MESSAGING_PROCESS_SYNC` | `0` (`1` in tests) | process inbound messages inline instead of on a worker thread |
 | `INBOUND_STUCK_MINUTES` | `2` | `tick` requeues `processing` rows older than this |
 | `ROSTER_SYNC_HOURS` | `24` | `tick` re-syncs a group roster older than this |
+| `ROSTER_SYNC_MIN_INTERVAL_SECONDS` | `300` | minimum gap between on-demand roster syncs triggered by unresolved senders |
 | `OTP_PEPPER` | dev value in `dev`; empty elsewhere | HMAC key for stored OTP codes. **Required in `prod`** (settings import fails without it) |
 | `OTP_DELIVERY_ENABLED` | `1` | kill switch; `0` makes `POST /api/auth/otp/request` return `503 delivery_unavailable` |
 | `OTP_CODE_TTL_SECONDS` | `300` | code lifetime |
@@ -132,14 +133,18 @@ POST only). It never talks to the network: it verifies and stores, then hands of
    `200 {"status":"duplicate"}`. A new message answers `200 {"status":"accepted"}` and, after commit,
    `process_inbound` runs on a small thread pool (inline when `MESSAGING_PROCESS_SYNC=1`).
 
-Processing resolves the sender through `identity` (`WhatsAppIdentity` by JID, then LID). An unknown sender
-triggers one roster sync of the group and a retry; still unknown means status `ignored` with
-`outcome.reason = "unknown_sender"`. Then the handler chain in `messaging/router.py` runs (first match
+Processing resolves the sender through `identity` (`WhatsAppIdentity` by JID, then LID) and requires an
+**active** `CrewMembership` in the crew linked to the chat. Otherwise it runs one roster sync (skipped when
+the last one is younger than `ROSTER_SYNC_MIN_INTERVAL_SECONDS`) and retries; still failing means status
+`ignored` with `outcome.reason` `unknown_sender` or `not_a_member` (removed, or a member of another crew).
+If Gowa is down during that sync the row goes back to `received` for the tick (up to 3 attempts, then
+`ignored` / `roster_unavailable`). Then the handler chain in `messaging/router.py` runs (first match
 wins). Commands: `/viaje <sub>` or `/v <sub>`, case, accent and whitespace tolerant: `ping` replies
 `pong`, `ayuda` lists the commands, anything else replies with a hint; plain text has no handler
 (`outcome.reason = "no_handler"`, status `done`). Replies go to the group as a threaded
 `OutboundMessage(kind="reply")` with a dedupe key per inbound message, so a reprocessed row never
-replies twice. Exceptions are recorded on the row (`failed` + `error`), never raised. Copy is in
+replies twice. Replies are throttled per chat (one every 3 s, 20 per 10 minutes, counted from the ledger);
+a throttled command is recorded as `outcome.reply = "throttled"` and nothing is sent. Exceptions are recorded on the row (`failed` + `error`), never raised. Copy is in
 `messaging/copy/es_ar.py`.
 
 **Roster sync** (`crews/use_cases/sync_roster.py`): `GET /group/participants?group_id=` upserts `Person` by
@@ -147,8 +152,11 @@ E.164 phone, their `WhatsAppIdentity` (JID and LID) and a `member` / `group_sync
 phones. It never downgrades an admin, never reactivates a `removed` member and never removes members who
 left the group. Participants without a phone (LID only) are skipped.
 
-**`tick`** runs every minute (a systemd timer on the Pi) and is safe to overlap: it takes the
-`JobLock("tick")` and exits silently when another tick holds it. Each pass requeues `processing` rows older
+**`tick`** runs every minute (a systemd timer on the Pi). It takes the `JobLock("tick")` (120 s) and exits
+silently when another tick holds it. A pass stops starting new work 15 s before the lock expires, and queued
+outbound rows are claimed (`queued` -> `sending`) before sending, so a tick that overlaps a slow one never
+sends the same message twice; `sending` rows stuck for `INBOUND_STUCK_MINUTES` go back to `queued` (delivery
+is at-least-once in that crash case). Each pass requeues `processing` rows older
 than `INBOUND_STUCK_MINUTES` (at most 3 attempts, then `failed`), processes `received` rows, sends `queued`
 outbound messages older than 60 s (`attempts` < 3; redacted OTP rows are failed, never resent), refreshes
 rosters older than `ROSTER_SYNC_HOURS`, and prints a one-line JSON summary.

@@ -54,3 +54,23 @@ def test_crew_id_for_chat(crew):
     gateway = CrewsGateway()
     assert gateway.crew_id_for_chat("120363000000000000@g.us") == str(crew.pk)
     assert gateway.crew_id_for_chat("120363999999999999@g.us") is None
+
+
+@pytest.mark.django_db
+@respx.mock
+def test_a_device_id_that_is_not_a_jid_logs_a_warning(crew, settings, caplog):
+    settings.GOWA_DEVICE_ID = "my-device"
+    respx.get(f"{BASE}/group/participants").mock(return_value=httpx.Response(200, json=body()))
+    with caplog.at_level("WARNING"):
+        CrewsGateway().sync_roster(str(crew.pk))
+    assert "GOWA_DEVICE_ID" in caplog.text and "JID" in caplog.text
+
+
+@pytest.mark.django_db
+@respx.mock
+def test_a_jid_device_id_does_not_warn(crew, settings, caplog):
+    settings.GOWA_DEVICE_ID = BOT
+    respx.get(f"{BASE}/group/participants").mock(return_value=httpx.Response(200, json=body()))
+    with caplog.at_level("WARNING"):
+        CrewsGateway().sync_roster(str(crew.pk))
+    assert "GOWA_DEVICE_ID" not in caplog.text

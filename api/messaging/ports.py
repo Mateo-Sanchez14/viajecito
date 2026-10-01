@@ -100,6 +100,10 @@ class RosterSync(Protocol):
 
 
 class Replier(Protocol):
+    def can_reply(self, chat_id: str) -> bool:
+        """False while the chat is over its reply budget (flood protection)."""
+        ...
+
     def reply(self, *, chat_id: str, body: str, reply_to: str, inbound_id: int) -> str:
         """Send a threaded reply in the group and return its send status."""
         ...

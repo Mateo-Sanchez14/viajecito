@@ -1,5 +1,6 @@
 """Bridges messaging to the crews app (its use cases, wired to its Django store)."""
 
+import logging
 from datetime import datetime
 
 from django.conf import settings
@@ -17,12 +18,20 @@ from messaging.adapters.gowa_factory import build_gowa_client
 from messaging.gowa.parser import normalize_jid
 from shared.clock import Clock, SystemClock
 
+logger = logging.getLogger(__name__)
+
 
 class GowaRosterSource:
     """The group's participants from Gowa, without the bot's own account."""
 
     def participants(self, chat_id: str) -> list[RosterEntry]:
         bot = normalize_jid(settings.GOWA_DEVICE_ID)
+        if bot and "@" not in bot:
+            logger.warning(
+                "GOWA_DEVICE_ID %r is not a JID (<digits>@s.whatsapp.net); the bot account "
+                "will not be excluded from roster syncs",
+                bot,
+            )
         return [
             RosterEntry(
                 jid=normalize_jid(p.jid),

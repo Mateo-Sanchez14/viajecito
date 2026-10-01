@@ -13,6 +13,7 @@ class HandlerContext:
     person_id: str
     crew_id: str
     reply: Callable[[str], str]  # sends a threaded reply in the group; returns its send status
+    reply_allowed: Callable[[], bool] = lambda: True  # False while the chat is being throttled
 
 
 @dataclass(frozen=True)

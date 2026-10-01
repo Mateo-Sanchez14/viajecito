@@ -57,6 +57,7 @@ def process_inbound(
             message=record,
             person_id=person_id,
             crew_id=crew_id,
+            reply_allowed=lambda: replier.can_reply(record.chat_id),
             reply=lambda body: replier.reply(
                 chat_id=record.chat_id,
                 body=body,

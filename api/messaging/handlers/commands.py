@@ -30,6 +30,8 @@ def handle(ctx: HandlerContext) -> Handled | None:
     if sub is None:
         return None
     body = _REPLIES.get(sub)
-    command = sub if body is not None else "unknown"
+    command = (sub or "ayuda") if body is not None else "unknown"
+    if not ctx.reply_allowed():  # flood protection: say nothing, but record that we heard it
+        return Handled("commands", {"command": command, "reply": "throttled", "throttled": True})
     status = ctx.reply(body if body is not None else es_ar.UNKNOWN_COMMAND)
-    return Handled("commands", {"command": command or "ayuda", "reply": status})
+    return Handled("commands", {"command": command, "reply": status})
