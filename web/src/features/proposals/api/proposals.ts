@@ -1,6 +1,6 @@
 import { createBrowserClient } from "@/shared/api/client";
 import { ApiError, toApiError } from "@/shared/api/errors";
-import type { components } from "@/shared/api/schema";
+import type { components, paths } from "@/shared/api/schema";
 
 type Schemas = components["schemas"];
 
@@ -11,9 +11,20 @@ export type ProposalComment = Schemas["CommentOut"];
 export type VoteTally = Schemas["VoteTallyOut"];
 export type LinkPreview = Schemas["LinkPreviewOut"];
 export type PersonRef = Schemas["PersonRefOut"];
-export type ProposalCreate = Schemas["ProposalCreateIn"];
-export type ProposalPatch = Schemas["ProposalPatchIn"];
-export type TransitionBody = Schemas["TransitionIn"];
+
+// Request and error bodies are derived from the operations, not from schema names, so a
+// regenerated api that names its schemas differently cannot break these types.
+type JsonRequest<P extends keyof paths, M extends keyof paths[P]> = paths[P][M] extends {
+  requestBody?: { content: { "application/json": infer B } };
+}
+  ? B
+  : never;
+
+export type ProposalCreate = JsonRequest<"/api/trips/{trip_id}/proposals", "post">;
+export type ProposalPatch = JsonRequest<"/api/proposals/{proposal_id}", "patch">;
+export type TransitionBody = JsonRequest<"/api/proposals/{proposal_id}/transition", "post">;
+/** Body of `409 duplicate_proposal`: `{code, message, proposal_id}`. */
+export type DuplicateProposalBody = paths["/api/trips/{trip_id}/proposals"]["post"]["responses"][409]["content"]["application/json"];
 
 export type ProposalStatus = Proposal["status"];
 export type Category = Proposal["category"];
@@ -188,7 +199,7 @@ export async function deleteComment(commentId: string): Promise<void> {
 }
 
 export async function refreshPreview(id: string): Promise<void> {
-  unwrap(
+  unwrapEmpty(
     await createBrowserClient().POST("/api/proposals/{proposal_id}/refresh_preview", {
       params: { path: { proposal_id: id } },
     }),

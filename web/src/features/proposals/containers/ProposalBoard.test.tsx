@@ -10,6 +10,7 @@ import type { components, paths } from "@/shared/api/schema";
 import { renderWithProviders } from "@/test/render";
 import { server } from "@/test/server";
 import messages from "../../../../messages/es-AR";
+import type { DuplicateProposalBody } from "../api/proposals";
 import { makeProposal, makeSummary, PROPOSAL_ID } from "../test/handlers";
 import { ProposalBoard } from "./ProposalBoard";
 
@@ -242,7 +243,7 @@ describe("ProposalBoard", () => {
       server.use(
         csrf,
         http.post("/api/trips/{trip_id}/proposals", () => {
-          const body: components["schemas"]["DuplicateProposalOut"] = {
+          const body: DuplicateProposalBody = {
             code: "duplicate_proposal",
             message: "x",
             proposal_id: PROPOSAL_ID,

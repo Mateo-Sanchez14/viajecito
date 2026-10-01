@@ -3,7 +3,7 @@ import { createOpenApiHttp } from "openapi-msw";
 import { afterEach, describe, expect, it } from "vitest";
 import { ApiError } from "@/shared/api/errors";
 import { resetCsrfToken } from "@/shared/api/csrf";
-import type { components, paths } from "@/shared/api/schema";
+import type { paths } from "@/shared/api/schema";
 import { server } from "@/test/server";
 import { TRIP_ID } from "@/features/trips/fixtures";
 import { makeComment, makeProposal, makeSummary, PROPOSAL_ID } from "../test/handlers";
@@ -16,6 +16,8 @@ import {
   listComments,
   listProposals,
   proposalKeys,
+  refreshPreview,
+  type DuplicateProposalBody,
   removeVote,
   transitionProposal,
 } from "./proposals";
@@ -67,7 +69,7 @@ describe("proposals api", () => {
     server.use(
       csrf,
       http.post("/api/trips/{trip_id}/proposals", () => {
-        const body: components["schemas"]["DuplicateProposalOut"] = {
+        const body: DuplicateProposalBody = {
           code: "duplicate_proposal",
           message: "x",
           proposal_id: PROPOSAL_ID,
@@ -121,6 +123,15 @@ describe("proposals api", () => {
     await expect(removeVote(PROPOSAL_ID)).resolves.toEqual(tally);
     await expect(listComments(PROPOSAL_ID)).resolves.toHaveLength(1);
     await expect(addComment(PROPOSAL_ID, "hola")).resolves.toMatchObject({ body: "hola" });
+  });
+
+  it("treats a 202 without a body as success when refreshing a preview", async () => {
+    server.use(
+      csrf,
+      http.post("/api/proposals/{proposal_id}/refresh_preview", () => new HttpResponse(null, { status: 202 })),
+    );
+
+    await expect(refreshPreview(PROPOSAL_ID)).resolves.toBeUndefined();
   });
 
   it("builds the documented query keys", () => {
