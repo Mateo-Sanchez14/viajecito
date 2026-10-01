@@ -133,3 +133,22 @@ The `(app)` layout calls `requireMe()` and redirects anonymous visitors to `/log
 not re-run on client navigation and do not stop a page segment from rendering. Any server page or server
 component under `(app)` that fetches data itself must call `requireMe()` (wrapped in React `cache()` so the
 call is deduplicated per request) before fetching. The api enforces auth on every endpoint regardless.
+
+### M0b contract amendments (accepted after T5 verification, 2026-10-01)
+
+- `503 delivery_unavailable` is returned only when `OTP_DELIVERY_ENABLED` is off. A Gowa send failure
+  is recorded on the `OutboundMessage` row (`status=failed`) and logged, and the caller still gets the
+  identical `202`, because surfacing it would reveal which phones are eligible.
+- Delivery runs off the request path: the send is submitted from `transaction.on_commit` to a small
+  module-level thread pool. `OTP_SEND_SYNC=1` (test settings) runs it inline. Queued sends are lost on a
+  worker restart; the user simply requests a new code.
+- Extra error codes: `403 csrf_failed` on any unsafe route without a valid CSRF token, and
+  `400 invalid_request` for validation errors on fields other than `phone`/`code`.
+- Django Ninja 1.x has no `NinjaAPI(csrf=True)`; CSRF is checked automatically only for cookie-auth
+  routes (`django_auth`). Anonymous unsafe routes (`otp/request`, `otp/verify`) call Django's CSRF
+  check explicitly through `shared/api_errors.enforce_csrf`.
+- `OTP_PEPPER` is required in prod (fails at settings import when empty) and has a dev-only fallback.
+- `TRUST_CF_CONNECTING_IP` (env; `1` in prod, `0` elsewhere) decides whether the per-IP rate limit reads
+  `CF-Connecting-IP` or `REMOTE_ADDR`.
+- Accepted risks: the global 30/h limit counts ineligible phones (deliberate); the rate-limit check and
+  insert are not atomic (bounded by the per-phone 1/60 s window).
