@@ -10,3 +10,4 @@ HELP_INTRO = "Comandos de viajecito:"
 PING_HELP = "/viaje ping — ver si estoy vivo"
 AYUDA_HELP = "/viaje ayuda — esta lista"
 UNKNOWN_COMMAND = "No entendí ese comando. Mandá /viaje ayuda."
+UNKNOWN_PERSON = "alguien"  # a {@person_id} reminder token that matches nobody

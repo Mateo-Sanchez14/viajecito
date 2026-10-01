@@ -94,11 +94,8 @@ allow_indirect_imports = true
 ignore_imports = [
     "messaging.adapters.crews_gateway -> crews.adapters.django_store",
     "messaging.adapters.identity_gateway -> identity.adapters.django_repos",
-    "messaging.adapters.trips_gateway -> trips.adapters.django_store",
-    "messaging.adapters.trips_gateway -> crews.adapters.django_store",
     "messaging.tests.* -> crews.models",
     "messaging.tests.* -> identity.models",
-    "messaging.tests.* -> trips.models",
 ]
 
 [[tool.importlinter.contracts]]

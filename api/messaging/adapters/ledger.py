@@ -1,3 +1,5 @@
+from collections.abc import Sequence
+
 from django.db import IntegrityError, transaction
 from django.db.models import F
 from django.utils import timezone
@@ -17,6 +19,7 @@ class DjangoOutboundLedger:
         reply_to: str | None,
         subject_type: str,
         subject_id: str,
+        mentions: Sequence[str] = (),
     ) -> LedgerEntry:
         try:
             with transaction.atomic():
@@ -28,6 +31,7 @@ class DjangoOutboundLedger:
                     reply_to_message_id=reply_to or "",
                     subject_type=subject_type,
                     subject_id=subject_id,
+                    mentions=list(mentions),
                 )
         except IntegrityError:
             existing = OutboundMessage.objects.get(dedupe_key=dedupe_key)

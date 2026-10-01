@@ -1,73 +1,120 @@
-"""Run the registered reminder rules for every active trip and queue what they produce."""
+"""Queue the drafts the registered reminder rules produce (one phase of the ``tick`` job)."""
 
 import logging
+import re
+from collections.abc import Callable, Mapping
+from contextlib import AbstractContextManager
 from dataclasses import dataclass
 from datetime import datetime
 
 from messaging import reminders
-from messaging.ports import OutboundLedger, ReminderTrip, ReminderTrips
+from messaging.copy import es_ar
+from messaging.ports import ChatDirectory, OutboundLedger, PersonDirectory, PersonRef
+from shared.phone import phone_to_jid
 
 logger = logging.getLogger(__name__)
+
+_TOKEN = re.compile(r"\{@([^{}]+)\}")
 
 
 @dataclass(frozen=True)
 class RemindersResult:
     queued: int = 0
+    quiet: int = 0
     errors: int = 0
 
 
-def queue_reminders(
-    *, trips: ReminderTrips, ledger: OutboundLedger, now: datetime
-) -> RemindersResult:
-    """Queue the drafts of every rule; drafts produced in the trip's quiet hours are dropped (a
-    later tick produces them again) and duplicates are ignored through ``dedupe_key``.
+def render_mentions(
+    body: str,
+    mention_person_ids: tuple[str, ...],
+    people: Mapping[str, PersonRef],
+    *,
+    mentions_enabled: bool,
+) -> tuple[str, list[str]]:
+    """Render ``{@<person_id>}`` tokens and return ``(text, jids to @-mention)``.
 
-    The persisted key is ``"<rule key>:<draft dedupe_key>"``, so rules never collide and never
-    prefix their own keys. A failure in one rule or one trip is logged and counted, never fatal.
+    Mentions off (the default): a token becomes the person's display name (their phone when they
+    have none), an unknown id becomes a neutral word, and no JIDs are passed.
+    Mentions on: a known token becomes ``@<digits>`` and every mentioned person's JID is returned.
     """
-    queued = errors = 0
-    rules = reminders.registered_rules()
-    for trip in trips.active_trips():
+
+    def render(match: re.Match[str]) -> str:
+        person = people.get(match.group(1))
+        if person is None:
+            return es_ar.UNKNOWN_PERSON
+        return f"@{person.phone.lstrip('+')}" if mentions_enabled else person.name
+
+    text = _TOKEN.sub(render, body)
+    if not mentions_enabled:
+        return text, []
+    ids = list(dict.fromkeys([*_TOKEN.findall(body), *mention_person_ids]))
+    return text, [phone_to_jid(people[i].phone) for i in ids if i in people]
+
+
+def queue_reminders(
+    *,
+    chats: ChatDirectory,
+    people: PersonDirectory,
+    ledger: OutboundLedger,
+    atomic: Callable[[], AbstractContextManager],
+    now: datetime,
+    mentions_enabled: bool = False,
+) -> RemindersResult:
+    """Run every rule and queue its drafts as ``OutboundMessage(kind="reminder")`` rows.
+
+    Quiet-hours drafts (``respect_quiet_hours``) are skipped; a later tick produces them again.
+    The persisted key is ``"<rule key>:<draft dedupe_key>"``. For NEW rows only, the rule's
+    ``on_queued`` runs in the same transaction as the row (a failure rolls the row back, so the
+    next tick retries), then every channel runs outside it. Failures are logged and counted.
+    """
+    queued = quiet = errors = 0
+    ctx = reminders.ReminderContext(now=now)
+    for rule in reminders.registered_rules():
         try:
-            trip_queued, trip_errors = _queue_for_trip(trip, rules, ledger, now)
-        except Exception:  # e.g. an invalid timezone: skip this trip, keep the others
-            logger.exception("reminders for trip %s failed", trip.trip_id)
+            drafts = list(rule.fn(ctx))
+        except Exception:
+            logger.exception("reminder rule %s failed", rule.key)
             errors += 1
             continue
-        queued += trip_queued
-        errors += trip_errors
-    return RemindersResult(queued=queued, errors=errors)
-
-
-def _queue_for_trip(
-    trip: ReminderTrip, rules: list, ledger: OutboundLedger, now: datetime
-) -> tuple[int, int]:
-    ctx = reminders.ReminderContext(
-        now=now,
-        trip_id=trip.trip_id,
-        crew_id=trip.crew_id,
-        chat_id=trip.chat_id,
-        trip_timezone=trip.timezone,
-        trip_start_on=trip.start_on,
-        trip_end_on=trip.end_on,
-    )
-    quiet = reminders.in_quiet_hours(now, trip.timezone, ctx.quiet_hours)
-    queued = errors = 0
-    for key, rule in rules:
-        try:
-            drafts = list(rule(ctx))
-            for draft in [] if quiet else drafts:
-                entry = ledger.reserve(
-                    to_jid=draft.to_jid,
-                    kind=draft.kind,
-                    body=draft.body,
-                    dedupe_key=f"{key}:{draft.dedupe_key}",
-                    reply_to=None,
-                    subject_type=draft.subject_type,
-                    subject_id=draft.subject_id,
+        for draft in drafts:
+            try:
+                if draft.respect_quiet_hours and reminders.is_quiet_time(now, draft.timezone):
+                    quiet += 1
+                    continue
+                chat_id = chats.chat_id_for_crew(draft.crew_id)
+                if chat_id is None:
+                    continue
+                ids = list(dict.fromkeys([*_TOKEN.findall(draft.body), *draft.mention_person_ids]))
+                body, jids = render_mentions(
+                    draft.body,
+                    draft.mention_person_ids,
+                    people.people(ids) if ids else {},
+                    mentions_enabled=mentions_enabled,
                 )
-                queued += entry.created
-        except Exception:
-            logger.exception("reminder rule %s failed for trip %s", key, trip.trip_id)
-            errors += 1
-    return queued, errors
+                with atomic():
+                    entry = ledger.reserve(
+                        to_jid=chat_id,
+                        kind="reminder",
+                        body=body,
+                        dedupe_key=f"{rule.key}:{draft.dedupe_key}",
+                        reply_to=None,
+                        subject_type=draft.subject_type,
+                        subject_id=draft.subject_id,
+                        mentions=jids,
+                    )
+                    if entry.created and rule.on_queued is not None:
+                        rule.on_queued(draft)
+            except Exception:
+                logger.exception("reminder from rule %s failed", rule.key)
+                errors += 1
+                continue
+            if not entry.created:
+                continue
+            queued += 1
+            for name, deliver in reminders.registered_channels():
+                try:
+                    deliver(draft)
+                except Exception:
+                    logger.exception("reminder channel %s failed for rule %s", name, rule.key)
+                    errors += 1
+    return RemindersResult(queued=queued, quiet=quiet, errors=errors)

@@ -6,6 +6,7 @@ from datetime import datetime
 from django.conf import settings
 
 from crews.adapters.django_store import DjangoCrewStore
+from crews.use_cases.chat_for_crew import chat_id_for_crew
 from crews.use_cases.crew_for_chat import crew_id_for_chat
 from crews.use_cases.membership import is_active_member, roster_last_synced_at
 from crews.use_cases.sync_roster import (
@@ -51,6 +52,9 @@ class CrewsGateway:
 
     def crew_id_for_chat(self, chat_id: str) -> str | None:
         return crew_id_for_chat(chat_id, self._store)
+
+    def chat_id_for_crew(self, crew_id: str) -> str | None:
+        return chat_id_for_crew(crew_id, self._store)
 
     def is_active_member(self, crew_id: str, person_id: str) -> bool:
         return is_active_member(crew_id, person_id, self._store)

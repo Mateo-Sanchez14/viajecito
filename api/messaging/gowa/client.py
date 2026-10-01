@@ -1,5 +1,8 @@
 """Thin synchronous client for Gowa (go-whatsapp-web-multidevice)."""
 
+from collections.abc import Sequence
+from typing import Any
+
 import httpx
 
 from messaging.ports import GatewayError, Participant
@@ -21,10 +24,20 @@ class GowaClient:
         self._timeout = timeout
         self._headers = {"X-Device-Id": device_id} if device_id else {}
 
-    def send_text(self, to_jid: str, body: str, reply_to: str | None = None) -> str:
-        payload: dict[str, str] = {"phone": to_jid, "message": body}
+    def send_text(
+        self,
+        to_jid: str,
+        body: str,
+        reply_to: str | None = None,
+        mentions: Sequence[str] = (),
+    ) -> str:
+        payload: dict[str, Any] = {"phone": to_jid, "message": body}
         if reply_to:
             payload["reply_message_id"] = reply_to
+        if mentions:
+            # TODO: confirm Gowa's field name for @-mentions (``mentions`` is a guess); the caller
+            # only passes JIDs when GOWA_MENTIONS_ENABLED is on, so the default path is unaffected.
+            payload["mentions"] = list(mentions)
         try:
             response = httpx.post(
                 f"{self._base_url}/send/message",

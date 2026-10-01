@@ -57,6 +57,7 @@ class DjangoOutboundQueue:
                 kind=row.kind,
                 body=row.body,
                 reply_to=row.reply_to_message_id or None,
+                mentions=tuple(row.mentions or ()),
             )
             for row in rows
         ]

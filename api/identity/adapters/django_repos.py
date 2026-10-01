@@ -1,3 +1,4 @@
+import uuid
 from datetime import datetime
 
 from django.db import IntegrityError, transaction
@@ -105,6 +106,15 @@ class DjangoIdentityDirectory:
 
     def person_id_by_lid(self, lid: str) -> str | None:
         return self._first(WhatsAppIdentity.objects.filter(lid=lid))
+
+    def people_by_ids(self, person_ids: list[str]) -> list[PersonData]:
+        valid = []
+        for raw in person_ids:
+            try:
+                valid.append(uuid.UUID(str(raw)))
+            except ValueError:
+                continue  # not an id: simply unknown
+        return [person_data(p) for p in Person.objects.filter(pk__in=valid)]
 
     @staticmethod
     def _first(rows) -> str | None:
