@@ -135,6 +135,29 @@ describe("DatesPlanner with an open decision", () => {
     expect(tripFetches).toBeGreaterThan(0);
   });
 
+  it("sends the close once even if the confirm button is pressed twice", async () => {
+    let closes = 0;
+    server.use(
+      csrfHandler,
+      listDecisions([makeDecision()]),
+      getAvailability(makeAvailability()),
+      http.post("/api/decisions/{decision_id}/close", async ({ response }) => {
+        closes += 1;
+        return response(200).json(closedDecision());
+      }),
+    );
+    setup();
+
+    fireEvent.click(await screen.findByRole("button", { name: new RegExp(m.best.close) }));
+    const confirm = within(screen.getByRole("dialog")).getByRole("button", { name: m.confirm.closeAction });
+    fireEvent.click(confirm);
+    fireEvent.click(confirm);
+
+    await waitFor(() => expect(closes).toBeGreaterThan(0));
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    expect(closes).toBe(1);
+  });
+
   it("does not warn about replacing dates when the trip has none, and cancelling sends nothing", async () => {
     let closed = false;
     server.use(

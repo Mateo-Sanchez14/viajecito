@@ -119,9 +119,13 @@ export function AvailabilityEditor({
       clearTimeout(timer.current);
       const batch = queue.current;
       queue.current = {};
-      if (Object.keys(batch).length > 0) void setAvailability(decisionId, toBatch(batch)).catch(() => {});
+      if (Object.keys(batch).length === 0) return;
+      chain.current = chain.current
+        .then(() => setAvailability(decisionId, toBatch(batch)))
+        .then((response) => queryClient.setQueryData(datesKeys.availability(decisionId), response))
+        .catch(() => {});
     },
-    [decisionId],
+    [decisionId, queryClient],
   );
 
   if (isPending) {
@@ -154,7 +158,7 @@ export function AvailabilityEditor({
           </p>
         )}
       </section>
-      <CrewHeatmap dates={data.dates} people={data.people.filter((person) => person.person_id !== data.me)} />
+      <CrewHeatmap dates={data.dates} people={data.people} />
       <BestWindowsPanel
         windows={data.best_windows}
         hasData={data.has_data}

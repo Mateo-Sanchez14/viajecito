@@ -49,8 +49,7 @@
       "paintValue": "Qué pintar",
       "tapHint": "Tocá un día para cambiar su estado: puedo, capaz, no puedo",
       "cellLabel": "{day}: {answer}",
-      "saving": "Guardando…",
-      "saveFailed": "No pudimos guardar tus días, probá de nuevo"
+      "saving": "Guardando…"
     },
     "heatmap": {
       "title": "El grupo",

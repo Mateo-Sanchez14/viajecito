@@ -95,6 +95,28 @@ describe("AvailabilityEditor", () => {
     ]);
   });
 
+  it("sends pending taps through the request chain when leaving before the debounce fires", async () => {
+    server.use(csrfHandler, getAvailability(makeAvailability()));
+    const puts = recordPuts();
+    const view = setup({ debounceMs: 60_000 });
+    await screen.findByRole("grid", { name: g.label });
+
+    fireEvent.click(cell("2027-07-06"));
+    expect(puts).toHaveLength(0);
+    view.unmount();
+
+    await waitFor(() => expect(puts).toHaveLength(1));
+    expect(puts[0].answers).toEqual([{ date: "2027-07-06", answer: "yes" }]);
+  });
+
+  it("counts my own answers in the group heatmap", async () => {
+    server.use(getAvailability(makeAvailability()));
+    setup();
+
+    const label = m.heatmap.cellLabel.replace("{day}", longDay("2027-07-05")).replace("{yes}", "1").replace("{maybe}", "0");
+    expect(await screen.findByRole("button", { name: label })).toBeInTheDocument();
+  });
+
   it("sends a cleared day as null", async () => {
     server.use(csrfHandler, getAvailability(makeAvailability()));
     const puts = recordPuts();

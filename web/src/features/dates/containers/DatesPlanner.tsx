@@ -94,8 +94,10 @@ function OpenView({ tripId, decision }: { tripId: string; decision: Decision }) 
   const replacesDates = Boolean(trip.start_on || trip.end_on);
 
   function confirmClose() {
-    if (!candidate) return;
-    close.mutate({ start_on: candidate.start, end_on: candidate.end }, { onSettled: () => setCandidate(null) });
+    if (!candidate || close.isPending) return;
+    // Closing the dialog first means a second press of the button finds nothing to submit.
+    setCandidate(null);
+    close.mutate({ start_on: candidate.start, end_on: candidate.end });
   }
 
   return (
