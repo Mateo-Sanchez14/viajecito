@@ -1,7 +1,8 @@
-"""Dev-only stand-in for Gowa's ``POST /send/message``.
+"""Dev-only stand-in for Gowa's ``POST /send/message`` and ``GET /group/participants``.
 
 Records every accepted send in memory so tests and developers can assert on what the
-backend "sent" via ``GET /__sent`` without a real WhatsApp session.
+backend "sent" via ``GET /__sent`` without a real WhatsApp session. Group rosters are seeded
+with ``PUT /__groups/{group_id}`` and served the way Gowa serves them.
 """
 
 import os
@@ -20,12 +21,26 @@ app = FastAPI(title="fake-gowa")
 basic_auth = HTTPBasic(auto_error=False)
 
 SENT: list[dict] = []
+GROUPS: dict[str, list[dict]] = {}
 
 
 class SendMessage(BaseModel):
     phone: str = Field(min_length=1)
     message: str = Field(min_length=1)
     reply_message_id: str | None = None
+
+
+class Participant(BaseModel):
+    """A group member as Gowa lists it; unknown extra fields are kept."""
+
+    model_config = {"extra": "allow"}
+
+    jid: str = Field(min_length=1)
+    phone_number: str | None = None
+    lid: str | None = None
+    display_name: str = ""
+    is_admin: bool = False
+    is_super_admin: bool = False
 
 
 @app.exception_handler(RequestValidationError)
@@ -106,4 +121,30 @@ def latest_sent(phone: str | None = None):
 @app.delete("/__sent")
 def clear_sent() -> dict:
     SENT.clear()
+    return {"status": "cleared"}
+
+
+@app.get("/group/participants", dependencies=[Depends(require_auth)])
+def group_participants(group_id: str) -> dict:
+    return {
+        "code": "SUCCESS",
+        "message": "Success get list participants",
+        "results": {"participants": GROUPS.get(group_id, [])},
+    }
+
+
+@app.put("/__groups/{group_id}")
+def seed_group(group_id: str, participants: list[Participant]) -> dict:
+    GROUPS[group_id] = [p.model_dump() for p in participants]
+    return {"status": "seeded", "group_id": group_id, "participants": len(participants)}
+
+
+@app.get("/__groups")
+def list_groups() -> dict[str, list[dict]]:
+    return GROUPS
+
+
+@app.delete("/__groups")
+def clear_groups() -> dict:
+    GROUPS.clear()
     return {"status": "cleared"}

@@ -132,3 +132,79 @@ def test_latest_400_without_phone(client):
     response = client.get("/__sent/latest")
     assert response.status_code == 400
     assert response.json()["code"] == "VALIDATION_ERROR"
+
+
+GROUP = "120363000000000000@g.us"
+ANA = {
+    "jid": "5491100000001@s.whatsapp.net",
+    "phone_number": "5491100000001@s.whatsapp.net",
+    "lid": "251556000000001@lid",
+    "display_name": "Ana",
+    "is_admin": False,
+    "is_super_admin": False,
+}
+BEN = {**ANA, "jid": "5491100000002@s.whatsapp.net", "phone_number": "5491100000002@s.whatsapp.net", "lid": None, "display_name": "Ben"}
+
+
+@pytest.fixture
+def groups(client):
+    client.delete("/__groups")
+    return client
+
+
+def test_group_participants_unknown_group_is_empty_success(groups):
+    response = groups.get("/group/participants", params={"group_id": GROUP})
+    assert response.status_code == 200
+    assert response.json() == {
+        "code": "SUCCESS",
+        "message": "Success get list participants",
+        "results": {"participants": []},
+    }
+
+
+def test_seeded_group_is_returned_in_gowa_shape(groups):
+    assert groups.put(f"/__groups/{GROUP}", json=[ANA, BEN]).status_code == 200
+    body = groups.get("/group/participants", params={"group_id": GROUP}).json()
+    assert body["code"] == "SUCCESS"
+    assert body["message"] == "Success get list participants"
+    assert body["results"]["participants"] == [ANA, BEN]
+
+
+def test_seeding_replaces_previous_participants(groups):
+    groups.put(f"/__groups/{GROUP}", json=[ANA, BEN])
+    groups.put(f"/__groups/{GROUP}", json=[BEN])
+    assert groups.get("/group/participants", params={"group_id": GROUP}).json()["results"]["participants"] == [BEN]
+
+
+def test_list_groups_and_clear(groups):
+    groups.put(f"/__groups/{GROUP}", json=[ANA])
+    groups.put("/__groups/120363000000000099@g.us", json=[])
+    assert groups.get("/__groups").json() == {GROUP: [ANA], "120363000000000099@g.us": []}
+    assert groups.delete("/__groups").status_code == 200
+    assert groups.get("/__groups").json() == {}
+
+
+def test_group_participants_requires_group_id(groups):
+    response = groups.get("/group/participants")
+    assert response.status_code == 400
+    assert response.json()["code"] == "VALIDATION_ERROR"
+
+
+def test_seed_rejects_non_list_body(groups):
+    response = groups.put(f"/__groups/{GROUP}", json={"jid": "x"})
+    assert response.status_code == 400
+    assert response.json()["code"] == "VALIDATION_ERROR"
+
+
+def test_seed_rejects_participant_without_jid(groups):
+    assert groups.put(f"/__groups/{GROUP}", json=[{"display_name": "x"}]).status_code == 400
+    assert groups.get("/__groups").json() == {}
+
+
+def test_group_participants_requires_basic_auth_when_configured(groups, monkeypatch):
+    groups.put(f"/__groups/{GROUP}", json=[ANA])
+    monkeypatch.setenv("APP_BASIC_AUTH", "user:pass")
+    assert groups.get("/group/participants", params={"group_id": GROUP}).status_code == 401
+    ok = groups.get("/group/participants", params={"group_id": GROUP}, headers=basic("user", "pass"))
+    assert ok.status_code == 200
+    assert ok.json()["results"]["participants"] == [ANA]
