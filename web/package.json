@@ -12,7 +12,7 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "api:types": "openapi-typescript ../contracts/openapi.json -o src/shared/api/schema.d.ts",
-    "api:types:check": "openapi-typescript ../contracts/openapi.json -o \"$TMPDIR/viajecito-schema.d.ts\" && diff -u src/shared/api/schema.d.ts \"$TMPDIR/viajecito-schema.d.ts\""
+    "api:types:check": "openapi-typescript ../contracts/openapi.json -o \"${TMPDIR:-/tmp}/viajecito-schema.d.ts\" && diff -u src/shared/api/schema.d.ts \"${TMPDIR:-/tmp}/viajecito-schema.d.ts\""
   },
   "dependencies": {
     "@tanstack/react-query": "^5.104.0",
