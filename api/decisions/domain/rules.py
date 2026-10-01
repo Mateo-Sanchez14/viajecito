@@ -64,6 +64,16 @@ class Participant:
 
 
 @dataclass(frozen=True)
+class TripInfo:
+    id: str
+    crew_id: str
+    name: str
+    timezone: str
+    start_on: date | None
+    end_on: date | None
+
+
+@dataclass(frozen=True)
 class DecisionData:
     id: str
     trip_id: str

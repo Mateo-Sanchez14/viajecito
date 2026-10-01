@@ -4,7 +4,7 @@ from contextlib import AbstractContextManager
 from datetime import date, datetime
 from typing import Any, Protocol
 
-from decisions.domain.rules import DecisionData, Participant, PersonRef
+from decisions.domain.rules import DecisionData, Participant, PersonRef, TripInfo
 
 
 class DecisionStore(Protocol):
@@ -52,6 +52,10 @@ class TripGateway(Protocol):
 
     def set_trip_dates(self, trip_id: str, actor_id: str, start_on: date, end_on: date) -> None:
         """Write the trip's dates; runs inside the caller's transaction."""
+        ...
+
+    def active_trips(self) -> list[TripInfo]:
+        """Planning, booked and ongoing trips of every crew."""
         ...
 
     def names(self, person_ids: list[str]) -> dict[str, PersonRef]: ...

@@ -2,8 +2,9 @@
 
 from datetime import date
 
-from decisions.domain.rules import Participant, PersonRef
+from decisions.domain.rules import Participant, PersonRef, TripInfo
 from identity.use_cases.display_names import display_names
+from trips.use_cases.list_active_trips import list_active_trips
 from trips.use_cases.trip_participants import trip_participants
 from trips.use_cases.update_trip import update_trip
 
@@ -20,3 +21,9 @@ class CoreTripGateway:
     def names(self, person_ids: list[str]) -> dict[str, PersonRef]:
         found = display_names(person_ids)
         return {pid: PersonRef(pid, name) for pid, name in found.items()}
+
+    def active_trips(self) -> list[TripInfo]:
+        return [
+            TripInfo(t.id, t.crew_id, t.name, t.timezone, t.start_on, t.end_on)
+            for t in list_active_trips()
+        ]
