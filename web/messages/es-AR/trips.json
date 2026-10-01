@@ -15,8 +15,6 @@
     "list": {
       "empty": "Todavía no hay viajes en este grupo, creá el primero",
       "open": "Abrir viaje",
-      "dates": "{start} al {end}",
-      "noDates": "Sin fechas todavía",
       "loading": "Cargando viajes…",
       "error": "No pudimos cargar los viajes, probá de nuevo"
     },
@@ -42,7 +40,6 @@
     },
     "overview": {
       "dates": "Fechas",
-      "noDates": "Todavía sin fechas",
       "destination": "Destino",
       "noDestination": "Todavía sin destino",
       "participants": "Quiénes van",
@@ -77,6 +74,9 @@
       "title": "Próximamente",
       "description": "Estamos armando la sección {section}, ya casi está."
     },
-    "back": "Volver a tus viajes"
+    "dateRange": "{start} al {end}",
+    "dateFrom": "Desde el {start}",
+    "dateUntil": "Hasta el {end}",
+    "noDates": "Todavía sin fechas"
   }
 }
