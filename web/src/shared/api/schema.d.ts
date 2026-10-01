@@ -355,6 +355,10 @@ export interface components {
             timezone: string;
             /** Currency */
             currency: string;
+            /** Fx Rates */
+            fx_rates: {
+                [key: string]: string;
+            };
             /** Modules */
             modules: string[];
             /** Participants */
@@ -408,6 +412,10 @@ export interface components {
             destination_label?: string | null;
             /** Currency */
             currency?: string | null;
+            /** Fx Rates */
+            fx_rates?: {
+                [key: string]: number | string;
+            } | null;
         };
         /** ParticipantIn */
         ParticipantIn: {
