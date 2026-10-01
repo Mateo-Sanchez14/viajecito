@@ -4,6 +4,7 @@ import {
   PURGE_CACHE_NAMES,
   isDocumentFile,
   isDocumentsList,
+  isLogin,
   isLogout,
   isMe,
   isNetworkOnly,
@@ -64,6 +65,12 @@ describe("documents routes", () => {
 });
 
 describe("session routes", () => {
+  it("matches the login (OTP verify) POST only", () => {
+    expect(isLogin(match("/api/auth/otp/verify", { method: "POST" }))).toBe(true);
+    expect(isLogin(match("/api/auth/otp/verify", { method: "GET" }))).toBe(false);
+    expect(isLogin(match("/api/auth/otp/request", { method: "POST" }))).toBe(false);
+  });
+
   it("matches the logout POST and the /api/me GET", () => {
     expect(isLogout(match("/api/auth/logout", { method: "POST" }))).toBe(true);
     expect(isLogout(match("/api/auth/logout", { method: "GET" }))).toBe(false);

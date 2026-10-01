@@ -8,8 +8,15 @@ export type PushPayload = { title?: unknown; body?: unknown; url?: unknown; tag?
 /** Same-origin paths only: anything else (absolute URLs, `//host`, schemes) becomes `/`. */
 export function safeInternalPath(value: unknown): string {
   if (typeof value !== "string" || !value.startsWith("/")) return "/";
-  if (value.startsWith("//") || value.startsWith("/\\")) return "/";
-  return value;
+  // Resolve like the browser does: tabs/newlines are stripped by URL parsing, so "/\t/evil.example"
+  // would otherwise become "//evil.example". Accept only what stays on this origin.
+  const base = "https://same-origin.invalid";
+  try {
+    const resolved = new URL(value, base);
+    return resolved.origin === base ? resolved.pathname + resolved.search + resolved.hash : "/";
+  } catch {
+    return "/";
+  }
 }
 
 export function buildNotification(payload: PushPayload | null | undefined): {

@@ -7,15 +7,24 @@ import {
   Serwist,
   StaleWhileRevalidate,
   type PrecacheEntry,
+  type RouteHandlerObject,
   type RuntimeCaching,
   type SerwistGlobalConfig,
 } from "serwist";
-import { handleLogout, handleMe, handleSavedFile, purgePrivateCaches } from "@/features/pwa/sw/handlers";
+import {
+  handleLogin,
+  handleLogout,
+  handleMe,
+  handleSavedFile,
+  handleUnauthorizedPurge,
+  purgePrivateCaches,
+} from "@/features/pwa/sw/handlers";
 import { buildNotification, parsePushPayload, resolveClickTarget } from "@/features/pwa/sw/push";
 import {
   CACHE_NAMES,
   isDocumentFile,
   isDocumentsList,
+  isLogin,
   isLogout,
   isMe,
   isNetworkOnly,
@@ -35,14 +44,17 @@ declare const self: ServiceWorkerGlobalScope;
 // Only complete (200) same-origin responses are ever stored: no opaque, partial or error responses.
 const cacheable = () => new CacheableResponsePlugin({ statuses: [200] });
 
-const privateNetworkFirst = (cacheName: string) =>
-  new NetworkFirst({
+const purge = () => purgePrivateCaches(self.caches);
+
+// A 401 from a cached route means the session ended (the browser never calls /api/me itself).
+const privateNetworkFirst = (cacheName: string): RouteHandlerObject => {
+  const strategy = new NetworkFirst({
     cacheName,
     networkTimeoutSeconds: 3,
     plugins: [cacheable(), new ExpirationPlugin({ maxEntries: 10 })],
   });
-
-const purge = () => purgePrivateCaches(self.caches);
+  return { handle: (options) => handleUnauthorizedPurge(() => strategy.handle(options), purge) };
+};
 
 // First match wins, so order matters: session handling and private data before the generic rules.
 const runtimeCaching: RuntimeCaching[] = [
@@ -51,16 +63,26 @@ const runtimeCaching: RuntimeCaching[] = [
     matcher: isLogout,
     handler: { handle: ({ request }) => handleLogout(request, fetch, purge) },
   },
+  {
+    method: "POST",
+    matcher: isLogin,
+    handler: { handle: ({ request }) => handleLogin(request, fetch, purge) },
+  },
   { matcher: isMe, handler: { handle: ({ request }) => handleMe(request, fetch, purge) } },
   { matcher: isTodayApi, handler: privateNetworkFirst(CACHE_NAMES.today) },
   { matcher: isDocumentsList, handler: privateNetworkFirst(CACHE_NAMES.documentsList) },
   {
     matcher: isDocumentFile,
-    handler: { handle: ({ request }) => handleSavedFile(request, self.caches, fetch) },
+    handler: {
+      handle: ({ request }) => handleUnauthorizedPurge(() => handleSavedFile(request, self.caches, fetch), purge),
+    },
   },
   { matcher: isTodayPage, handler: privateNetworkFirst(CACHE_NAMES.today) },
   { matcher: isNetworkOnly, handler: new NetworkOnly() },
-  { matcher: isStaticAsset, handler: new StaleWhileRevalidate({ cacheName: "static-assets-v1", plugins: [cacheable()] }) },
+  { matcher: isStaticAsset, handler: new StaleWhileRevalidate({
+      cacheName: "static-assets-v1",
+      plugins: [cacheable(), new ExpirationPlugin({ maxEntries: 100, maxAgeSeconds: 30 * 24 * 60 * 60 })],
+    }) },
   // Any other page navigation: network, with the offline page as the fallback below.
   { matcher: ({ request }) => request.mode === "navigate", handler: new NetworkOnly() },
 ];

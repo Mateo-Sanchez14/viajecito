@@ -2,6 +2,7 @@ import { act, fireEvent, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { renderWithProviders } from "@/test/render";
 import messages from "../../../../messages/es-AR";
+import { resetInstallCapture, startInstallCapture } from "../lib/installEvent";
 import { InstallPrompt } from "./InstallPrompt";
 
 const IPHONE_UA =
@@ -32,6 +33,7 @@ function fireInstallEvent(outcome: "accepted" | "dismissed" = "accepted") {
 
 describe("InstallPrompt", () => {
   beforeEach(() => {
+    resetInstallCapture();
     window.localStorage.clear();
     setStandalone(false);
   });
@@ -55,6 +57,15 @@ describe("InstallPrompt", () => {
 
     expect(event.prompt).toHaveBeenCalledOnce();
     expect(screen.queryByText(t.title)).not.toBeInTheDocument();
+  });
+
+  it("offers an install the browser announced before this component mounted", () => {
+    startInstallCapture(); // what the root-level boot does
+    fireInstallEvent();
+
+    renderWithProviders(<InstallPrompt />);
+
+    expect(screen.getByText(t.title)).toBeInTheDocument();
   });
 
   it("keeps the offer when the user cancels the native prompt", async () => {

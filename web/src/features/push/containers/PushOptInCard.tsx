@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useSyncExternalStore } from "react";
+import type { TripCard } from "@/features/trips/cards/types";
 import { useDismissal } from "@/features/pwa/hooks/useDismissal";
 import { useStandalone } from "@/features/pwa/hooks/useInstallState";
 import { DAY_MS } from "@/features/pwa/lib/dismissal";
@@ -14,8 +15,7 @@ export const PUSH_OPT_IN_DISMISS_KEY = "viajecito:push-opt-in-dismissed";
 const FOREVER_MS = 3650 * DAY_MS;
 
 /** Overview card (`order: 3`): shown once, to installed users who have not chosen on notifications. */
-export function PushOptInCard(props: { tripId: string; crewId: string }) {
-  void props;
+export const PushOptInCard: TripCard["Component"] = () => {
   const t = useTranslations("pwa.pushOptIn");
   const installed = useStandalone();
   const permission = useSyncExternalStore(subscribePermission, readPermission, () => "unsupported" as const);
@@ -43,4 +43,4 @@ export function PushOptInCard(props: { tripId: string; crewId: string }) {
       </div>
     </Card>
   );
-}
+};

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { handleLogout, handleMe, handleSavedFile, purgePrivateCaches } from "./handlers";
+import { handleLogin, handleLogout, handleMe, handleSavedFile, handleUnauthorizedPurge, purgePrivateCaches } from "./handlers";
 
 function fakeCaches(saved: Record<string, Response> = {}) {
   return {
@@ -104,5 +104,41 @@ describe("handleSavedFile", () => {
 
     expect(await response.text()).toBe("fresh");
     expect(fetchFn).toHaveBeenCalledWith(request);
+  });
+});
+
+describe("handleLogin", () => {
+  const request = new Request("https://viajecito.example/api/auth/otp/verify", { method: "POST" });
+
+  it("purges the previous user's caches once a login succeeded", async () => {
+    const purge = vi.fn(async () => {});
+    const response = await handleLogin(request, async () => new Response("{}", { status: 200 }), purge);
+
+    expect(response.status).toBe(200);
+    expect(purge).toHaveBeenCalledOnce();
+  });
+
+  it("keeps the caches when the code was wrong", async () => {
+    const purge = vi.fn(async () => {});
+    await handleLogin(request, async () => new Response("{}", { status: 400 }), purge);
+
+    expect(purge).not.toHaveBeenCalled();
+  });
+});
+
+describe("handleUnauthorizedPurge", () => {
+  it("purges when a cached route answers 401 and still returns that response", async () => {
+    const purge = vi.fn(async () => {});
+    const response = await handleUnauthorizedPurge(async () => new Response("{}", { status: 401 }), purge);
+
+    expect(response.status).toBe(401);
+    expect(purge).toHaveBeenCalledOnce();
+  });
+
+  it.each([200, 404, 500])("leaves the caches alone on %i", async (status) => {
+    const purge = vi.fn(async () => {});
+    await handleUnauthorizedPurge(async () => new Response("{}", { status }), purge);
+
+    expect(purge).not.toHaveBeenCalled();
   });
 });

@@ -15,6 +15,16 @@ export async function handleLogout(request: Request, fetchFn: FetchFn, purge: Pu
   return response;
 }
 
+/** A new login on a shared device must not inherit the previous user's cached trip data. */
+export const handleLogin = handleLogout;
+
+/** Runs a cached route's strategy; a 401 means the session is gone, so the private caches go. */
+export async function handleUnauthorizedPurge(run: () => Promise<Response>, purge: Purge): Promise<Response> {
+  const response = await run();
+  if (response.status === 401) await purge();
+  return response;
+}
+
 /** `/api/me` is never cached; a 401 means the session is gone, so the private caches go too. */
 export async function handleMe(request: Request, fetchFn: FetchFn, purge: Purge): Promise<Response> {
   const response = await fetchFn(request);

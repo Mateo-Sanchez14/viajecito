@@ -78,11 +78,8 @@ test.describe("service worker", () => {
 
   test("registers at the site scope and precaches the offline page", async ({ page }) => {
     await page.goto("/~offline");
-    const scope = await page.evaluate(async () => {
-      const registration = await navigator.serviceWorker.register("/sw.js", { scope: "/" });
-      await navigator.serviceWorker.ready;
-      return registration.scope;
-    });
+    // Registered by the root-level ServiceWorkerBoot, not by a card.
+    const scope = await page.evaluate(async () => (await navigator.serviceWorker.ready).scope);
     expect(new URL(scope).pathname).toBe("/");
 
     await page.reload();

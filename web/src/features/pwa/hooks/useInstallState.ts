@@ -1,11 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
-
-type BeforeInstallPromptEvent = Event & {
-  prompt: () => Promise<void>;
-  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
-};
+import { useCallback, useEffect, useSyncExternalStore } from "react";
+import {
+  clearInstallEvent,
+  getInstallEvent,
+  isInstalledEvent,
+  startInstallCapture,
+  subscribeInstall,
+} from "../lib/installEvent";
 
 export type InstallMode = "installed" | "prompt" | "ios" | "none";
 
@@ -46,32 +48,18 @@ export function useIsIos(): boolean {
 export function useInstallState() {
   const standalone = useStandalone();
   const ios = useIsIos();
-  const [deferred, setDeferred] = useState<BeforeInstallPromptEvent | null>(null);
-  const [installed, setInstalled] = useState(false);
+  const deferred = useSyncExternalStore(subscribeInstall, getInstallEvent, () => null);
+  const installed = useSyncExternalStore(subscribeInstall, isInstalledEvent, () => false);
 
-  useEffect(() => {
-    const onBeforeInstall = (event: Event) => {
-      event.preventDefault();
-      setDeferred(event as BeforeInstallPromptEvent);
-    };
-    const onInstalled = () => {
-      setInstalled(true);
-      setDeferred(null);
-    };
-    window.addEventListener("beforeinstallprompt", onBeforeInstall);
-    window.addEventListener("appinstalled", onInstalled);
-    return () => {
-      window.removeEventListener("beforeinstallprompt", onBeforeInstall);
-      window.removeEventListener("appinstalled", onInstalled);
-    };
-  }, []);
+  // The root boot normally started this already; this keeps the hook usable on its own.
+  useEffect(() => startInstallCapture(), []);
 
   const install = useCallback(async () => {
     if (!deferred) return;
     await deferred.prompt();
     const { outcome } = await deferred.userChoice;
     // The event can only be used once; a cancelled prompt keeps the offer for a later try.
-    if (outcome === "accepted") setDeferred(null);
+    if (outcome === "accepted") clearInstallEvent();
   }, [deferred]);
 
   const mode: InstallMode = standalone || installed ? "installed" : deferred ? "prompt" : ios ? "ios" : "none";

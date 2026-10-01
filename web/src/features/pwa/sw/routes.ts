@@ -50,6 +50,9 @@ export const isDocumentFile = (m: RouteMatch) =>
 export const isLogout = (m: RouteMatch) =>
   m.sameOrigin && m.request.method === "POST" && m.url.pathname === "/api/auth/logout";
 
+export const isLogin = (m: RouteMatch) =>
+  m.sameOrigin && m.request.method === "POST" && m.url.pathname === "/api/auth/otp/verify";
+
 export const isMe = (m: RouteMatch) => m.sameOrigin && isGet(m) && m.url.pathname === "/api/me";
 
 /** Every other api/webhook/admin request: never stored. */

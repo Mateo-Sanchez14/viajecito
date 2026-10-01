@@ -6,7 +6,6 @@
       "title": "Instalá viajecito",
       "body": "Tenelo a mano en el viaje, incluso sin señal",
       "cta": "Instalar",
-      "ios": "Tocá Compartir y después \"Agregar a inicio\"",
       "iosSteps": {
         "share": "Tocá el botón Compartir de Safari",
         "add": "Elegí \"Agregar a inicio\"",

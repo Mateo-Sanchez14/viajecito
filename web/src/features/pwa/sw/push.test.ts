@@ -7,7 +7,7 @@ describe("safeInternalPath", () => {
     expect(safeInternalPath("/crews?x=1#a")).toBe("/crews?x=1#a");
   });
 
-  it.each(["//evil.example", "https://evil.example/x", "javascript:alert(1)", "evil", "", undefined, 3, "/\\evil.example"])(
+  it.each(["//evil.example", "https://evil.example/x", "javascript:alert(1)", "evil", "", undefined, 3, "/\\evil.example", "/\t/evil.example", "/\n/evil.example", "/\r/evil.example"])(
     "falls back to / for %s",
     (value) => {
       expect(safeInternalPath(value)).toBe("/");
@@ -48,6 +48,15 @@ describe("resolveClickTarget", () => {
   it("resolves the stored path to an absolute same-origin URL", () => {
     expect(resolveClickTarget({ url: "/crews/1" }, origin)).toBe("https://viajecito.example/crews/1");
   });
+
+  it.each(["/\t/evil.example", "/\n/evil.example", "/\r/evil.example", "/\\/evil.example", "/ /evil.example"])(
+    "does not let control characters turn %j into another origin",
+    (url) => {
+      const target = new URL(resolveClickTarget({ url }, origin));
+
+      expect(target.origin).toBe(origin);
+    },
+  );
 
   it("never leaves the origin, whatever the data holds", () => {
     expect(resolveClickTarget({ url: "https://evil.example" }, origin)).toBe("https://viajecito.example/");
