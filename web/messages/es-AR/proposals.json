@@ -1,0 +1,162 @@
+{
+  "proposals": {
+    "title": "Propuestas",
+    "loading": "Cargando propuestas…",
+    "loadFailed": "No pudimos cargar las propuestas, probá de nuevo",
+    "retry": "Reintentar",
+    "back": "Volver a las propuestas",
+    "add": {
+      "open": "Sumar una propuesta",
+      "close": "Cerrar",
+      "title": "Sumá una propuesta",
+      "url": "Link",
+      "urlHint": "Pegá el link o tiralo en el grupo",
+      "titleField": "Título",
+      "titleHint": "Si no tenés link, contanos de qué se trata",
+      "category": "Categoría",
+      "categoryAuto": "Que lo detecte solo",
+      "note": "Nota",
+      "price": "Precio estimado",
+      "currency": "Moneda",
+      "basis": "El precio es",
+      "startsOn": "Desde",
+      "endsOn": "Hasta",
+      "submit": "Guardar",
+      "submitting": "Guardando…",
+      "seeExisting": "Ver la propuesta que ya estaba",
+      "errors": {
+        "urlInvalid": "Ese link no parece válido",
+        "needUrlOrTitle": "Pegá un link o ponele un título",
+        "priceInvalid": "El precio tiene que ser un número, por ejemplo 1500 o 1500,50",
+        "currencyInvalid": "La moneda tiene que ser un código de 3 letras, por ejemplo USD",
+        "endBeforeStart": "La fecha de fin tiene que ser después del inicio"
+      }
+    },
+    "filters": {
+      "label": "Filtros",
+      "category": "Categoría",
+      "status": "Estado",
+      "sort": "Orden",
+      "showDiscarded": "Mostrar descartadas",
+      "clear": "Limpiar filtros",
+      "empty": "No hay propuestas con esos filtros"
+    },
+    "sort": {
+      "recent": "Más nuevas",
+      "score": "Más votadas"
+    },
+    "category": {
+      "lodging": "Alojamiento",
+      "transport": "Transporte",
+      "activity": "Actividad",
+      "food": "Comida",
+      "gear": "Equipo",
+      "destination": "Destino",
+      "other": "Otro"
+    },
+    "status": {
+      "proposed": "Propuesta",
+      "discussing": "En discusión",
+      "chosen": "Elegida",
+      "booked": "Reservada",
+      "discarded": "Descartada"
+    },
+    "vote": {
+      "label": "Tu voto",
+      "up": "Me copa",
+      "neutral": "Me da igual",
+      "down": "Paso",
+      "count": "{up} a favor · {down} en contra",
+      "aria": "{label}: {count, plural, one {# voto} other {# votos}}"
+    },
+    "transition": {
+      "label": "Estado de la propuesta",
+      "proposed": "Reabrir",
+      "discussing": "Discutir",
+      "chosen": "Elegir",
+      "booked": "Marcar reservada",
+      "discarded": "Descartar",
+      "reopen": "Reabrir",
+      "unbook": "Sacar de reservadas",
+      "confirmDiscard": "¿La descartamos?",
+      "confirmDiscardBody": "Sale de la lista principal, pero la podés reabrir cuando quieras.",
+      "confirmBackwards": "¿Volvemos para atrás?",
+      "confirmBackwardsBody": "Va a pasar de {from} a {to}.",
+      "confirm": "Sí, hacerlo",
+      "cancel": "Cancelar",
+      "changed": "Ahora está como {status}"
+    },
+    "price": {
+      "perPerson": "por persona",
+      "perNight": "por noche",
+      "total": "en total",
+      "none": "Sin precio"
+    },
+    "dates": {
+      "label": "Fechas"
+    },
+    "card": {
+      "by": "La propuso {author}",
+      "comments": "{count, plural, =0 {Sin comentarios} one {# comentario} other {# comentarios}}",
+      "booking": "Reserva: {ref}",
+      "open": "Abrir {title}"
+    },
+    "detail": {
+      "openLink": "Abrir el link",
+      "note": "Nota",
+      "votes": "Votos",
+      "noVotes": "Todavía nadie votó",
+      "majority": "La mayoría de los que van ya votó a favor",
+      "edit": "Editar",
+      "editTitle": "Editar la propuesta",
+      "save": "Guardar cambios",
+      "saving": "Guardando…",
+      "cancelEdit": "Cancelar",
+      "bookingRef": "Código de reserva",
+      "saveBookingRef": "Guardar código",
+      "notFound": "Esa propuesta no existe o ya no está disponible"
+    },
+    "comments": {
+      "title": "Comentarios",
+      "placeholder": "Escribí algo…",
+      "label": "Tu comentario",
+      "submit": "Comentar",
+      "submitting": "Enviando…",
+      "delete": "Borrar",
+      "empty": "Todavía no hay comentarios",
+      "counter": "{count} / {max}",
+      "failed": "No pudimos cargar los comentarios, probá de nuevo",
+      "viaWhatsapp": "Desde WhatsApp"
+    },
+    "empty": {
+      "title": "Todavía no hay propuestas",
+      "body": "Tirá un link en el grupo de WhatsApp o sumalo acá."
+    },
+    "preview": {
+      "pending": "Buscando la info del link…",
+      "blocked": "No pudimos leer la página",
+      "refresh": "Probar de nuevo",
+      "refreshQueued": "Listo, lo volvemos a buscar"
+    },
+    "overview": {
+      "title": "Propuestas",
+      "counts": "{proposed} nuevas · {chosen} elegidas",
+      "empty": "Todavía no hay propuestas",
+      "open": "Ver todas las propuestas",
+      "topLabel": "Las más votadas",
+      "score": "{score, plural, =0 {0 puntos} one {# punto} other {# puntos}}"
+    },
+    "errors": {
+      "duplicate_proposal": "Esa propuesta ya estaba",
+      "invalid_transition": "No se puede cambiar a ese estado",
+      "invalid_url": "Ese link no parece válido",
+      "ignored_url": "Ese link no es una propuesta",
+      "invalid_dates": "La fecha de fin tiene que ser después del inicio",
+      "invalid_request": "Algo de lo que mandaste no está bien, revisalo",
+      "proposal_closed": "Esta propuesta está descartada, reabrila para votar",
+      "refresh_too_soon": "Esperá un rato antes de reintentar",
+      "forbidden": "Solo quien lo escribió puede borrar este comentario",
+      "not_found": "Esa propuesta no existe o ya no está disponible"
+    }
+  }
+}
