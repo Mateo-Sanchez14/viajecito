@@ -25,6 +25,7 @@ class WhatsAppGroupLink(models.Model):
     crew = models.OneToOneField(Crew, on_delete=models.CASCADE, related_name="whatsapp_group")
     chat_id = models.CharField(max_length=64, unique=True)  # always ends with @g.us
     linked_at = models.DateTimeField(auto_now_add=True)
+    last_synced_at = models.DateTimeField(null=True, blank=True)  # last roster sync from Gowa
 
     def __str__(self) -> str:
         return self.chat_id
