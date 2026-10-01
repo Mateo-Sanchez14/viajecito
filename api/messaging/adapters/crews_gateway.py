@@ -6,6 +6,7 @@ from django.conf import settings
 
 from crews.adapters.django_store import DjangoCrewStore
 from crews.use_cases.crew_for_chat import crew_id_for_chat
+from crews.use_cases.membership import is_active_member, roster_last_synced_at
 from crews.use_cases.sync_roster import (
     RosterEntry,
     RosterSyncResult,
@@ -41,6 +42,12 @@ class CrewsGateway:
 
     def crew_id_for_chat(self, chat_id: str) -> str | None:
         return crew_id_for_chat(chat_id, self._store)
+
+    def is_active_member(self, crew_id: str, person_id: str) -> bool:
+        return is_active_member(crew_id, person_id, self._store)
+
+    def roster_last_synced_at(self, crew_id: str) -> datetime | None:
+        return roster_last_synced_at(crew_id, self._store)
 
     def sync_roster(self, crew_id: str) -> RosterSyncResult:
         return sync_roster(crew_id, GowaRosterSource(), self._store, self._clock)

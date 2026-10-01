@@ -4,6 +4,7 @@ import httpx
 import pytest
 import respx
 
+from crews.models import CrewMembership
 from identity.models import Person, WhatsAppIdentity
 from messaging.adapters import wiring
 from messaging.adapters.inbound_store import DjangoInboundStore
@@ -18,8 +19,9 @@ CHAT = "120363000000000000@g.us"
 
 
 @pytest.fixture
-def ana(db):
+def ana(crew):
     person = Person.objects.create_user("+5491100000001", display_name="Ana")
+    CrewMembership.objects.create(crew=crew, person=person, source="invite")
     WhatsAppIdentity.objects.create(
         person=person, jid="5491100000001@s.whatsapp.net", lid="251556000000001@lid"
     )
@@ -114,13 +116,74 @@ def test_still_unknown_after_the_sync_is_ignored(crew, gowa):
 
 
 @pytest.mark.django_db
-def test_roster_sync_failure_marks_the_row_failed_without_raising(crew, gowa):
+def test_roster_sync_failure_requeues_the_row_while_attempts_remain(crew, gowa):
     gowa.roster.mock(return_value=httpx.Response(502))
     row_id = inbound("group_command_ping.json")
     wiring.run_process_inbound(row_id)
     row = InboundMessage.objects.get(pk=row_id)
-    assert row.status == "failed" and "502" in row.error
-    assert row.processed_at is not None
+    assert (row.status, row.attempts, row.processed_at) == ("received", 1, None)
+
+
+@pytest.mark.django_db
+def test_roster_sync_failure_on_the_last_attempt_is_ignored(crew, gowa):
+    gowa.roster.mock(return_value=httpx.Response(502))
+    row_id = inbound("group_command_ping.json")
+    InboundMessage.objects.filter(pk=row_id).update(attempts=2)
+    wiring.run_process_inbound(row_id)
+    row = InboundMessage.objects.get(pk=row_id)
+    assert (row.status, row.outcome) == ("ignored", {"reason": "roster_unavailable"})
+
+
+@pytest.mark.django_db
+def test_removed_member_still_in_the_group_is_not_handled(crew, ana, gowa):
+    CrewMembership.objects.filter(person=ana).update(status="removed")
+    row_id = inbound("group_command_ping.json")
+    wiring.run_process_inbound(row_id)
+    row = InboundMessage.objects.get(pk=row_id)
+    assert (row.status, row.outcome) == ("ignored", {"reason": "not_a_member"})
+    assert gowa.send.call_count == 0
+
+
+@pytest.mark.django_db
+def test_member_of_another_crew_is_not_handled_here(crew, ana, gowa):
+    from crews.models import Crew
+
+    CrewMembership.objects.filter(person=ana).delete()
+    other = Crew.objects.create(name="Otra")
+    CrewMembership.objects.create(crew=other, person=ana, source="invite")
+    row_id = inbound("group_command_ping.json")
+    wiring.run_process_inbound(row_id)
+    assert InboundMessage.objects.get(pk=row_id).outcome == {"reason": "not_a_member"}
+    assert gowa.send.call_count == 0
+
+
+@pytest.mark.django_db
+def test_on_demand_sync_is_skipped_when_the_roster_is_fresh(crew, gowa):
+    from datetime import timedelta
+
+    from django.utils import timezone
+
+    link = crew.whatsapp_group
+    link.last_synced_at = timezone.now() - timedelta(seconds=60)
+    link.save()
+    row_id = inbound("group_command_ping.json")
+    wiring.run_process_inbound(row_id)
+    assert gowa.roster.call_count == 0
+    assert InboundMessage.objects.get(pk=row_id).outcome == {"reason": "unknown_sender"}
+
+
+@pytest.mark.django_db
+def test_on_demand_sync_runs_again_once_the_interval_passed(crew, gowa, settings):
+    from datetime import timedelta
+
+    from django.utils import timezone
+
+    settings.ROSTER_SYNC_MIN_INTERVAL_SECONDS = 30
+    link = crew.whatsapp_group
+    link.last_synced_at = timezone.now() - timedelta(seconds=60)
+    link.save()
+    wiring.run_process_inbound(inbound("group_command_ping.json"))
+    assert gowa.roster.call_count == 1
 
 
 @pytest.mark.django_db

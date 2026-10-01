@@ -8,7 +8,7 @@ import respx
 import time_machine
 from django.core.management import call_command
 
-from crews.models import Crew, WhatsAppGroupLink
+from crews.models import Crew, CrewMembership, WhatsAppGroupLink
 from identity.models import Person, WhatsAppIdentity
 from messaging.models import InboundMessage, JobLock, OutboundMessage
 
@@ -37,8 +37,9 @@ def gowa():
 
 
 @pytest.fixture
-def ana(db):
+def ana(crew):
     person = Person.objects.create_user("+5491100000001", display_name="Ana")
+    CrewMembership.objects.create(crew=crew, person=person, source="invite")
     WhatsAppIdentity.objects.create(person=person, jid="5491100000001@s.whatsapp.net")
     return person
 

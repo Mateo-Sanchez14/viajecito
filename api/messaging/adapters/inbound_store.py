@@ -64,5 +64,5 @@ class DjangoInboundStore:
             outcome=outcome,
             error=error,
             person_id=person_id,
-            processed_at=now,
+            processed_at=None if status == InboundMessage.Status.RECEIVED else now,
         )

@@ -11,6 +11,7 @@ from messaging.domain import InboundRecord
 class HandlerContext:
     message: InboundRecord
     person_id: str
+    crew_id: str
     reply: Callable[[str], str]  # sends a threaded reply in the group; returns its send status
 
 

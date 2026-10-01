@@ -131,6 +131,8 @@ GOWA_DEVICE_ID = env.str("GOWA_DEVICE_ID", "")  # optional, sent as X-Device-Id
 MESSAGING_PROCESS_SYNC = env.bool("MESSAGING_PROCESS_SYNC", False)
 INBOUND_STUCK_MINUTES = env.int("INBOUND_STUCK_MINUTES", 2)
 ROSTER_SYNC_HOURS = env.int("ROSTER_SYNC_HOURS", 24)
+# Minimum gap between on-demand roster syncs triggered by unknown senders.
+ROSTER_SYNC_MIN_INTERVAL_SECONDS = env.int("ROSTER_SYNC_MIN_INTERVAL_SECONDS", 300)
 
 # OTP login. The pepper keys the HMAC of every stored code; prod requires it, other settings
 # modules fall back to a development value so `manage.py check` works without a .env file.

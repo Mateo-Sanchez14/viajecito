@@ -19,7 +19,10 @@ def ctx(body: str, replies: list[str]) -> HandlerContext:
         attempts=1,
     )
     return HandlerContext(
-        message=record, person_id="p1", reply=lambda text: replies.append(text) or "sent"
+        message=record,
+        person_id="p1",
+        crew_id="c1",
+        reply=lambda text: replies.append(text) or "sent",
     )
 
 

@@ -1,5 +1,7 @@
 """Composition root of the messaging app. Tests monkeypatch these factories."""
 
+from datetime import timedelta
+
 from django.conf import settings
 
 from messaging import router
@@ -29,6 +31,7 @@ def run_process_inbound(inbound_id: int) -> str:
         replier=GroupReplier(),
         handlers=router.DEFAULT_HANDLERS,
         clock=SystemClock(),
+        roster_min_interval=timedelta(seconds=settings.ROSTER_SYNC_MIN_INTERVAL_SECONDS),
     )
 
 

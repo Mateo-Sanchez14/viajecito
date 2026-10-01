@@ -77,6 +77,18 @@ class DjangoCrewStore:
                 accepted += 1
         return accepted
 
+    def is_active_member(self, crew_id: str, person_id: str) -> bool:
+        return CrewMembership.objects.filter(
+            crew_id=crew_id, person_id=person_id, status=CrewMembership.Status.ACTIVE
+        ).exists()
+
+    def roster_last_synced_at(self, crew_id: str) -> datetime | None:
+        return (
+            WhatsAppGroupLink.objects.filter(crew_id=crew_id)
+            .values_list("last_synced_at", flat=True)
+            .first()
+        )
+
     def chat_id_for_crew(self, crew_id: str) -> str | None:
         link = WhatsAppGroupLink.objects.filter(crew_id=crew_id).first()
         return link.chat_id if link else None
