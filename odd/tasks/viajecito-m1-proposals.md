@@ -64,3 +64,8 @@ Any link dropped in the group (or pasted on the web) becomes a proposal card wit
 - Runtime RED: `make e2e` on 737f9c7: 2 failed, 6 passed, 2 skipped. Failures: proposals immediate sent-card assertion; signed-in PWA heading missing. Root causes not yet verified. Dev skips cover production-only service worker/offline tests; those remain pending production verification.
 - [ ] **A3-E1** — delegated web e2e correction, branch `codex/m1-e2e-fix`, worktree `m1-e2e-fix`; observed runtime RED above; independent verification/correction/spot check then rerun full smoke required. No scope expansion.
 - `make bot-smoke` is running sequentially after e2e stack cleanup. Push and Wave B remain blocked by e2e gate.
+
+### A3-E1 independent verifier correction
+- Writer `4a52e18`: self-contained webhook capture/shared auth and accessible home h1; unit RED2→GREEN2, 570 full checks pass; writer e2e8passed/2production-only skips. Parent CrewTrips spot2passed.
+- Independent e2e reproduced 7passed/1failed/2skipped: axe `aria-prohibited-attr` on TripList loading div with aria-label but no role, confirmed by delayed trip-list response. No auth loss.
+- Single correction round sent to SAME writer: valid loading status semantics + RED/GREEN regression; retain axe without suppressions/waits. Reverify then parent final integrated e2e/bot smoke before push.
