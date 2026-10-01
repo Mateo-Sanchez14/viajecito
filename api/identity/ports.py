@@ -30,7 +30,9 @@ class OtpChallengeRepository(Protocol):
 
     def latest_live(self, phone: str) -> tuple[int, OtpState] | None: ...
 
-    def record_failed_attempt(self, challenge_id: int) -> None: ...
+    def reserve_attempt(self, challenge_id: int) -> bool:
+        """Atomically count one attempt if the challenge is live and under its limit."""
+        ...
 
     def consume(self, challenge_id: int, now: datetime) -> bool:
         """Mark the challenge used; ``False`` if somebody else already did."""

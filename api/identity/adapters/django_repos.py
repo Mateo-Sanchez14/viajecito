@@ -60,8 +60,13 @@ class DjangoOtpChallengeRepository:
             eligible=row.eligible,
         )
 
-    def record_failed_attempt(self, challenge_id: int) -> None:
-        OtpChallenge.objects.filter(pk=challenge_id).update(attempts=F("attempts") + 1)
+    def reserve_attempt(self, challenge_id: int) -> bool:
+        return (
+            OtpChallenge.objects.filter(
+                pk=challenge_id, consumed_at__isnull=True, attempts__lt=F("max_attempts")
+            ).update(attempts=F("attempts") + 1)
+            == 1
+        )
 
     def consume(self, challenge_id: int, now: datetime) -> bool:
         return (

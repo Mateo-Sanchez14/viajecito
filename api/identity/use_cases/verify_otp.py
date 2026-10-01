@@ -23,22 +23,31 @@ def verify_otp(
 ) -> PersonData:
     """Check a code and return the (possibly just created) person.
 
-    Raises ``InvalidPhoneError`` and ``OtpVerificationError``. Failed attempts are persisted before
-    raising, so callers must not wrap this in a transaction that rolls back on exceptions.
+    Raises ``InvalidPhoneError`` and ``OtpVerificationError``. The attempt is reserved (persisted)
+    before the comparison, so callers must not wrap this in a transaction that rolls back on
+    exceptions. The 6th attempt (and any later one) answers ``too_many_attempts``.
     """
     normalized = domain.normalize_phone(phone)
     live = repo.latest_live(normalized)
     if live is None:
         raise OtpVerificationError("invalid_code")
     challenge_id, state = live
-    result = domain.check_attempt(
-        state, phone=normalized, code=code, pepper=config.pepper, now=clock.now()
-    )
-    if result.outcome is AttemptOutcome.INVALID:
-        repo.record_failed_attempt(challenge_id)
+    now = clock.now()
+    # Cheap pre-checks on the (possibly stale) snapshot: expiry and an already-exhausted limit.
+    if state.consumed_at is not None:
+        raise OtpVerificationError("invalid_code")
+    if state.attempts >= state.max_attempts:
+        raise OtpVerificationError("too_many_attempts")
+    if now >= state.expires_at:
+        raise OtpVerificationError("expired_code")
+    # Reserve the attempt BEFORE comparing, with a guarded update, so parallel verifications can
+    # never perform more than ``max_attempts`` comparisons in total.
+    if not repo.reserve_attempt(challenge_id):
+        raise OtpVerificationError("too_many_attempts")
+    result = domain.check_attempt(state, phone=normalized, code=code, pepper=config.pepper, now=now)
     if result.outcome is not AttemptOutcome.OK:
         raise OtpVerificationError(_ERROR_CODES[result.outcome])
-    if not repo.consume(challenge_id, clock.now()):
+    if not repo.consume(challenge_id, now):
         raise OtpVerificationError("invalid_code")  # lost a race: the code was already used
     person = persons.get_or_create(normalized)
     invites.accept(person.id, normalized)
