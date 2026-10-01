@@ -38,8 +38,12 @@ export function useUpdateDecision(tripId: string, decisionId: string) {
 
 /** Sends a batch of my answers; the caller owns the optimistic state and the cache write. */
 export function useSetAvailability(decisionId: string) {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (answers: AvailabilityAnswer[]) => setAvailability(decisionId, answers),
+    // The vote count ("Votaron n de total") lives on the decisions list.
+    onSuccess: (response) =>
+      queryClient.invalidateQueries({ queryKey: datesKeys.decisions(response.decision.trip_id) }),
   });
 }
 

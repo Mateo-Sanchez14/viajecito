@@ -12,9 +12,10 @@ import {
   csrfHandler,
   errorBody,
   http,
+  makeAvailability,
   makeDecision,
 } from "../test/handlers";
-import { useCloseDecision, useOpenDecision, useReopenDecision } from "./mutations";
+import { useCloseDecision, useOpenDecision, useReopenDecision, useSetAvailability } from "./mutations";
 import { availabilityQueryOptions, decisionsQueryOptions } from "./queries";
 
 const TRIP = makeTrip().id;
@@ -98,5 +99,23 @@ describe("dates mutations", () => {
     const { result } = renderHook(() => useReopenDecision(TRIP, DECISION_ID), { wrapper });
 
     await expect(result.current.mutateAsync()).rejects.toMatchObject({ code: "decision_already_open" });
+  });
+
+  it("saving my availability refreshes the decisions so the vote count updates", async () => {
+    server.use(
+      csrfHandler,
+      http.put("/api/decisions/{decision_id}/availability", ({ response }) =>
+        response(200).json(makeAvailability()),
+      ),
+    );
+    const { queryClient, wrapper } = setup();
+    queryClient.setQueryData(datesKeys.decisions(makeDecision().trip_id), [makeDecision()]);
+    const { result } = renderHook(() => useSetAvailability(DECISION_ID), { wrapper });
+
+    await result.current.mutateAsync([{ date: "2027-07-05", answer: "yes" }]);
+
+    await waitFor(() =>
+      expect(queryClient.getQueryState(datesKeys.decisions(makeDecision().trip_id))?.isInvalidated).toBe(true),
+    );
   });
 });
