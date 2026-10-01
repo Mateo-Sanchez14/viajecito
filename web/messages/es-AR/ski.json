@@ -1,0 +1,170 @@
+{
+  "ski": {
+    "title": "Ski",
+    "notSki": "Este viaje no es de ski",
+    "loading": "Cargando el ski…",
+    "loadFailed": "No pudimos cargar el ski, probá de nuevo",
+    "retry": "Reintentar",
+    "profileLink": "Tu perfil de ski",
+    "units": {
+      "cm": "{value, number} cm",
+      "celsius": "{value, number} °C"
+    },
+    "empty": {
+      "resorts": "Elegí a qué centro van"
+    },
+    "resorts": {
+      "title": "Centros",
+      "add": "Sumar centro",
+      "remove": "Sacar {name}",
+      "search": "Buscá un centro",
+      "noMatches": "No hay centros que coincidan",
+      "loading": "Cargando centros…",
+      "nights": "{count, plural, one {# noche} other {# noches}}",
+      "added": "Centros del viaje",
+      "available": "Centros para sumar"
+    },
+    "conditions": {
+      "title": "Condiciones",
+      "base": "Base",
+      "new24h": "Nuevos en 24 h",
+      "forecast": "Pronóstico 3 días",
+      "temp": "Temperatura",
+      "lifts": "Medios abiertos",
+      "runs": "Pistas abiertas",
+      "openOfTotal": "{open} de {total}",
+      "stale": "Dato de hace {hours} h",
+      "age": "Hace {hours} h",
+      "noData": "Sin datos todavía",
+      "source": {
+        "open_meteo": "Pronóstico Open-Meteo",
+        "manual": "Reportó {name}",
+        "manualUnknown": "Reporte manual"
+      },
+      "report": "Reportar nieve"
+    },
+    "report": {
+      "title": "Reportar nieve en {resort}",
+      "base": "Base (cm)",
+      "new24h": "Nuevos en 24 h (cm)",
+      "temp": "Temperatura (°C)",
+      "liftsOpen": "Medios abiertos",
+      "liftsTotal": "Medios en total",
+      "runsOpen": "Pistas abiertas",
+      "runsTotal": "Pistas en total",
+      "status": "Comentario",
+      "submit": "Enviar reporte",
+      "cancel": "Cancelar",
+      "errors": {
+        "empty": "Completá al menos un dato",
+        "base": "La base va de 0 a 1000 cm",
+        "new24h": "La nevada va de 0 a 300 cm",
+        "temp": "La temperatura va de -40 a 30 °C",
+        "count": "Usá un número entero de 0 en adelante"
+      }
+    },
+    "passes": {
+      "title": "Pases",
+      "mine": "Tu pase",
+      "resort": "Centro",
+      "anyResort": "Cualquiera / sin decidir",
+      "status": {
+        "label": "Estado del pase",
+        "needed": "Falta comprar",
+        "bought": "Comprado",
+        "season_pass": "Pase de temporada",
+        "not_needed": "No esquía"
+      },
+      "details": "Detalle del pase",
+      "product": "Producto",
+      "productPlaceholder": "Pase 5 días",
+      "days": "Días",
+      "saveDetails": "Guardar detalle",
+      "missing": "{n} sin pase",
+      "missingTitle": "Todavía sin pase",
+      "missingFor": "{name} en {resort}",
+      "allCovered": "Todos tienen su pase resuelto",
+      "crew": "Pases del grupo",
+      "noRows": "Todavía nadie cargó su pase"
+    },
+    "gear": {
+      "title": "Equipo",
+      "mine": "Tu equipo",
+      "item": {
+        "skis": "Esquíes",
+        "board": "Tabla",
+        "boots": "Botas",
+        "poles": "Bastones",
+        "helmet": "Casco",
+        "goggles": "Antiparras",
+        "jacket": "Campera",
+        "pants": "Pantalón",
+        "other": "Otro"
+      },
+      "mode": {
+        "none": "Sin definir",
+        "own": "Propio",
+        "rent": "Alquilo",
+        "borrow": "Me prestan"
+      },
+      "save": "Guardar equipo",
+      "saved": "Equipo guardado",
+      "rollup": "A alquilar: {summary}",
+      "rollupItem": "{item} ×{count}",
+      "nothingToRent": "Nadie alquila equipo por ahora",
+      "sizes": "Talles compartidos",
+      "boot": "Botas {value, number} EU",
+      "height": "{value, number} cm de altura",
+      "weight": "{value, number} kg",
+      "sizesHidden": "{n} no compartieron talles"
+    },
+    "levels": {
+      "title": "Niveles",
+      "group": "{discipline} · {level}",
+      "empty": "Todavía nadie cargó su perfil de ski"
+    },
+    "profile": {
+      "title": "Tu perfil de ski",
+      "discipline": "¿Ski o snow?",
+      "disciplines": {
+        "ski": "Ski",
+        "snowboard": "Snowboard",
+        "both": "Las dos"
+      },
+      "level": "Nivel",
+      "levels": {
+        "first_time": "Primera vez",
+        "beginner": "Principiante",
+        "intermediate": "Intermedio",
+        "advanced": "Avanzado",
+        "expert": "Experto"
+      },
+      "ownsGear": "Tengo equipo completo propio",
+      "sizes": "Talles para alquilar",
+      "sizesHelp": "Los usamos solo para armar la lista de alquiler; nadie los ve si no lo autorizás.",
+      "boot": "Talle de botas (EU)",
+      "height": "Altura (cm)",
+      "weight": "Peso (kg)",
+      "share": "Compartir mis talles con el viaje",
+      "save": "Guardar",
+      "saving": "Guardando…",
+      "saved": "Perfil guardado",
+      "loading": "Cargando tu perfil…",
+      "errors": {
+        "boot": "El talle va de 30 a 50, de a medio número",
+        "height": "La altura va de 100 a 230 cm",
+        "weight": "El peso va de 25 a 200 kg"
+      }
+    },
+    "card": {
+      "summary": "{base} de base · {fresh} nuevos",
+      "noReport": "Sin datos de nieve todavía"
+    },
+    "errors": {
+      "module_not_enabled": "Este viaje no es de ski",
+      "resort_already_added": "Ese centro ya está en el viaje",
+      "rate_limited": "Esperá un rato antes de reportar de nuevo",
+      "generic": "No pudimos guardar los cambios, probá de nuevo"
+    }
+  }
+}
