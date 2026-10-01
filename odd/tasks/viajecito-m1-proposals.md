@@ -37,7 +37,7 @@ Any link dropped in the group (or pasted on the web) becomes a proposal card wit
 |---|---|---|
 | A1 | integrated/verified | adcc1cb; 1778 pytest + export/lint/migrations |
 | A2 | integrated/verified | bd6c33d; 569 web tests/typecheck/lint/types/build |
-| A3 | verified locally; push pending | dece82f;1815 API/571 web; e2e8pass2production skips; bot-smoke passed |
+| A3 | delivered | dece82f;1815 API/571 web; e2e8pass2production skips; bot-smoke passed |
 
 ## Resumption — 2026-10-01 (Codex)
 - Baseline: clean `main`/`origin/main` at `fafb953`; handoff records A1/A2 verified and corrected, but existing checklist/mirror is stale. Do not mark complete until integration checks reproduce.
@@ -81,3 +81,8 @@ Any link dropped in the group (or pasted on the web) becomes a proposal card wit
 - Pending checks honestly retained: production SW registration and offline Today/documents; not executable in dev harness, deferred to production stack/M4 integration.
 - Functional implementation A1/A2/A3/E1 complete; push is the next authorized delivery action. No native receipt (RDD disabled/unmanaged).
 - Next feature work starts only after push succeeds: M3/M4 API+web and M6 map, each writer in isolated worktree, independent verifier, one correction round, spot check, API before web, regenerate/smoke/push.
+
+### Delivery confirmation
+- Initial push rejected because concurrent remote `5b1bc71` added production dependency regression. Preserved it with no-FF merge `ec96636`, union runtime dependencies, removed duplicate dev httpx, regenerated uv lock offline.
+- Reverification:1816pytest12.04s,10importcontracts,Ruff/migrations/export/types pass; parent e2e8pass2production-only skips11.4s; bot-smoke passed.
+- Successful `git push origin main`: `5b1bc71..ec96636`. M1 delivered, main clean. Wave B preparation begins from ec96636.

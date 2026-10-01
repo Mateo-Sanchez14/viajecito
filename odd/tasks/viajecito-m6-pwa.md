@@ -37,3 +37,9 @@ Installable PWA with countdown and offline cache of Today and documents list, We
 | A1 | **done** (verifier REQUEST CHANGES → corrected; 701 tests; merged) | writer: notifications 122 passed; full suite 666 + 1 core test fixed on main (209110c, reminders.isolated()); ruff/lint-imports clean; export idempotent |
 | A2 | writer running (sonnet, launched 2026-10-01 after M-core bc1bece) | — |
 | A3 | pending | — |
+
+## Map continuation — 2026-10-01
+- M1 delivered main ec96636; created feat/m6-map worktree ~/Development/viajecito-worktrees/m6-map. Prior full observation2708 is stale for already integrated PWA/push; actual document/core state preserved.
+- [ ] **M1 map** — delegated web writer (2+non-trivial files), strict TDD from AGENTS `pnpm test`; contract m6-pwa.md/README addenda, reads M1 endpoint through paths types. Independent verifier, one correction round, parent spot/checks, regenerate/smoke/push.
+- Forecast >400 authored lines allowed via user direct-main exception-ok delivery; coherent work-unit commits, no code golf. RDD off clone_local disabled/unmanaged. No remote operations, dependency APIs/version evidence via Context7 before pinning.
+- Map insertion into core overview/routes only through orchestrator request; writer owns contract files/appends and must not write others. New work starts after mapping, no unsafe draft contracts.
