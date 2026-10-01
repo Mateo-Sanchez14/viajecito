@@ -7,7 +7,7 @@
 set -euo pipefail
 
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-# shellcheck source=lib.sh
+# shellcheck source-path=SCRIPTDIR source=lib.sh
 source "$here/lib.sh"
 
 [[ $# -eq 1 ]] || die "usage: $0 <snapshot-id|latest>"

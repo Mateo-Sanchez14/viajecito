@@ -2,8 +2,7 @@
 # Tests for the pure helpers in lib.sh. Run: bash deploy/scripts/tests/test_lib.sh
 set -euo pipefail
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-# shellcheck disable=SC1091,SC2016
-# shellcheck source=../lib.sh
+# shellcheck source-path=SCRIPTDIR source=../lib.sh
 source "$here/../lib.sh"
 
 tmp="$(mktemp -d)"
@@ -31,6 +30,7 @@ printf 'CRLF=win\r\n' >>"$tmp/pi.env"
   assert_eq "double quotes stripped" "with space" "$QUOTED"
   assert_eq "single quotes stripped" "single q" "$SINGLE"
   assert_eq "empty" "" "$EMPTY"
+  # shellcheck disable=SC2016
   assert_eq "no expansion" 'a$HOME$(echo pwned)`id`' "$DOLLAR"
   assert_eq "equals in value" "a=b=c" "$EQ"
   assert_eq "indented key" "yes" "$INDENTED"
