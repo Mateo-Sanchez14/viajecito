@@ -7,6 +7,7 @@ from django.apps import apps
 from django.db import IntegrityError, transaction
 from django.db.models import Max, Q
 
+from crews.use_cases.active_member_ids import active_member_ids
 from ski import domain
 from ski.domain import (
     GearInput,
@@ -129,7 +130,9 @@ __all__ = ["DjangoSnowStore", "Decimal", "resort_ref"]
 def _person_ref(person) -> PersonRef | None:
     if person is None:
         return None
-    return PersonRef(str(person.pk), person.display_name or person.phone)
+    if not person.display_name:  # never fall back to the phone: reports cross crews
+        return None
+    return PersonRef(str(person.pk), person.display_name)
 
 
 def report_data(report: SnowReport) -> ReportData:
@@ -237,10 +240,22 @@ class DjangoSkiStore:
                 latest[str(resort_id)] = report_data(report)
         return latest
 
-    def count_manual_reports(self, resort_id: str, since: datetime) -> int:
-        return SnowReport.objects.filter(
-            resort_id=resort_id, source=SnowReport.Source.MANUAL, fetched_at__gte=since
-        ).count()
+    def manual_report_times(
+        self, resort_id: str, reporter_id: str, since: datetime
+    ) -> list[datetime]:
+        return list(
+            SnowReport.objects.filter(
+                resort_id=resort_id,
+                source=SnowReport.Source.MANUAL,
+                reporter_id=reporter_id,
+                fetched_at__gte=since,
+            )
+            .order_by("fetched_at")
+            .values_list("fetched_at", flat=True)
+        )
+
+    def crew_member_ids(self, crew_id: str) -> set[str]:
+        return set(active_member_ids(crew_id))
 
     def add_manual_report(
         self, resort_id: str, reporter_id: str, report: ManualReportInput, now: datetime

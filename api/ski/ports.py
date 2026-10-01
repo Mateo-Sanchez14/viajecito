@@ -109,7 +109,16 @@ class SkiStore(Protocol):
         """The newest report (by ``observed_at``) of each resort that has one."""
         ...
 
-    def count_manual_reports(self, resort_id: str, since: datetime) -> int: ...
+    def manual_report_times(
+        self, resort_id: str, reporter_id: str, since: datetime
+    ) -> list[datetime]:
+        """``fetched_at`` of the reporter's manual reports for the resort since ``since``,
+        oldest first."""
+        ...
+
+    def crew_member_ids(self, crew_id: str) -> set[str]:
+        """Person ids of the crew's active members."""
+        ...
 
     def add_manual_report(
         self, resort_id: str, reporter_id: str, report: ManualReportInput, now: datetime

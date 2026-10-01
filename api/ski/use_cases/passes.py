@@ -9,10 +9,12 @@ def set_my_pass(
     trip_id: str, person_id: str, item: PassInput, currency: str, store: SkiStore
 ) -> PassRecord:
     """Upsert on (trip, person, resort). Raises ``InvalidSkiInputError`` /
-    ``ResortNotFoundError`` (a resort id that does not exist)."""
+    ``ResortNotFoundError`` (a resort that is not on the trip)."""
     clean = domain.validate_pass(item, currency)
-    if clean.resort_id is not None and store.get_resort(clean.resort_id) is None:
-        raise domain.ResortNotFoundError(clean.resort_id)
+    if clean.resort_id is not None:
+        on_trip = {link.resort.id for link in store.trip_resorts(trip_id)}
+        if clean.resort_id not in on_trip:  # no orphan rows for resorts the trip does not use
+            raise domain.ResortNotFoundError(clean.resort_id)
     return store.upsert_pass(trip_id, person_id, clean)
 
 

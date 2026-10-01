@@ -339,7 +339,12 @@ def post_report(request, trip_id: UUID, resort_id: UUID, payload: ManualReportIn
     except domain.InvalidSkiInputError as exc:
         raise invalid(str(exc)) from exc
     except manual_report.RateLimitedError as exc:
-        raise ApiError(429, "rate_limited", "Too many reports for this resort") from exc
+        raise ApiError(
+            429,
+            "rate_limited",
+            "Too many reports for this resort",
+            headers={"Retry-After": str(exc.retry_after_seconds)},
+        ) from exc
     return Status(HTTPStatus.CREATED, report_out(view))
 
 

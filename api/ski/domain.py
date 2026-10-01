@@ -2,7 +2,7 @@
 
 import re
 import unicodedata
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import datetime, timedelta
 from decimal import Decimal
 
@@ -282,6 +282,16 @@ def view_report(report: ReportData, now: datetime) -> ReportView:
         stale=is_stale(report.observed_at, now),
         age_hours=age_hours(report.observed_at, now),
     )
+
+
+def redact_report(report: ReportData, crew_member_ids: set[str]) -> ReportData:
+    """Reports are per resort and so shared by every crew. A manual report written by someone
+    outside the viewing crew (or no longer in it) keeps only its numbers: no reporter and no
+    free-text note. Provider reports carry neither, so they pass through unchanged."""
+    reporter = report.reporter
+    if reporter is not None and reporter.person_id in crew_member_ids:
+        return report
+    return replace(report, reporter=None, status_text="")
 
 
 def clean_text(text: str, limit: int) -> str:

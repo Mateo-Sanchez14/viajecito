@@ -134,7 +134,7 @@ class TripResortPatchIn(Schema):
     """Only the fields sent are applied."""
 
     nights: int | None = Field(None, ge=0, le=365)
-    position: int | None = Field(None, ge=0, le=1000)
+    position: int = Field(None, ge=0, le=1000)  # may be left out, never null
 
 
 class ManualReportIn(Schema):

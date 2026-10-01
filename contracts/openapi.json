@@ -3967,17 +3967,10 @@
             "title": "Nights"
           },
           "position": {
-            "anyOf": [
-              {
-                "maximum": 1000,
-                "minimum": 0,
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Position"
+            "maximum": 1000,
+            "minimum": 0,
+            "title": "Position",
+            "type": "integer"
           }
         },
         "title": "TripResortPatchIn",
