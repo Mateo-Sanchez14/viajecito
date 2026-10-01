@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import messages from "../messages/es-AR.json";
+import messages from "../messages/es-AR";
 
 const phone = process.env.E2E_PHONE ?? "+54 9 11 5555 1234";
 const fakeGowaUrl = process.env.FAKE_GOWA_URL ?? "http://localhost:4000";

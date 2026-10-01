@@ -4,7 +4,7 @@ import { createOpenApiHttp } from "openapi-msw";
 import { describe, expect, it } from "vitest";
 import type { paths } from "@/shared/api/schema";
 import { server } from "@/test/server";
-import messages from "../../../../messages/es-AR.json";
+import messages from "../../../../messages/es-AR";
 import { renderWithProviders } from "@/test/render";
 import { HealthStatus } from "./HealthStatus";
 

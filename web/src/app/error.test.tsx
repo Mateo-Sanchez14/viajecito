@@ -1,7 +1,7 @@
 import { fireEvent, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { renderWithProviders } from "@/test/render";
-import messages from "../../messages/es-AR.json";
+import messages from "../../messages/es-AR";
 import ErrorPage from "./error";
 
 describe("root error page", () => {

@@ -1,0 +1,82 @@
+{
+  "trips": {
+    "title": "Viajes",
+    "status": {
+      "idea": "Idea",
+      "planning": "Planificando",
+      "booked": "Reservado",
+      "ongoing": "En curso",
+      "done": "Terminado"
+    },
+    "types": {
+      "generic": "Viaje general",
+      "ski": "Viaje de esquí"
+    },
+    "list": {
+      "empty": "Todavía no hay viajes en este grupo, creá el primero",
+      "open": "Abrir viaje",
+      "loading": "Cargando viajes…",
+      "error": "No pudimos cargar los viajes, probá de nuevo"
+    },
+    "create": {
+      "title": "Nuevo viaje",
+      "open": "Crear un viaje",
+      "name": "Nombre del viaje",
+      "namePlaceholder": "Bariloche 2027",
+      "type": "Tipo de viaje",
+      "startOn": "Ida",
+      "endOn": "Vuelta",
+      "destination": "Destino",
+      "destinationPlaceholder": "Bariloche, Río Negro",
+      "currency": "Moneda",
+      "submit": "Crear viaje",
+      "submitting": "Creando…",
+      "errors": {
+        "nameRequired": "Ponele un nombre al viaje",
+        "endBeforeStart": "La fecha de vuelta no puede ser antes que la de ida",
+        "currencyInvalid": "La moneda tiene que ser un código de 3 letras, por ejemplo USD",
+        "failed": "No pudimos crear el viaje, probá de nuevo"
+      }
+    },
+    "overview": {
+      "dates": "Fechas",
+      "destination": "Destino",
+      "noDestination": "Todavía sin destino",
+      "participants": "Quiénes van",
+      "noParticipants": "Todavía no hay nadie anotado",
+      "modules": "Secciones",
+      "openSection": "Ir a {section}",
+      "currency": "Moneda"
+    },
+    "rsvp": {
+      "label": "¿Venís?",
+      "in": "Voy",
+      "maybe": "Capaz",
+      "out": "No voy",
+      "pending": "Sin responder",
+      "failed": "No pudimos guardar tu respuesta, probá de nuevo"
+    },
+    "sections": {
+      "overview": "Resumen",
+      "proposals": "Propuestas",
+      "dates": "Fechas",
+      "logistics": "Logística",
+      "itinerary": "Itinerario",
+      "today": "Hoy",
+      "budget": "Plata",
+      "documents": "Documentos",
+      "ski": "Esquí"
+    },
+    "nav": {
+      "label": "Secciones del viaje"
+    },
+    "comingSoon": {
+      "title": "Próximamente",
+      "description": "Estamos armando la sección {section}, ya casi está."
+    },
+    "dateRange": "{start} al {end}",
+    "dateFrom": "Desde el {start}",
+    "dateUntil": "Hasta el {end}",
+    "noDates": "Todavía sin fechas"
+  }
+}

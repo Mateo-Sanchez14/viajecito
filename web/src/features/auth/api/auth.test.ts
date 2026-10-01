@@ -4,7 +4,8 @@ import { afterEach, describe, expect, it } from "vitest";
 import { resetCsrfToken } from "@/shared/api/csrf";
 import type { paths } from "@/shared/api/schema";
 import { server } from "@/test/server";
-import { ApiError, errorCodeToMessageKey } from "./errors";
+import { ApiError } from "@/shared/api/errors";
+import { errorCodeToMessageKey } from "./errors";
 import { requestOtp, verifyOtp } from "./otp";
 import { logout } from "./session";
 

@@ -1,7 +1,7 @@
 # viajecito web
 
 Next.js (App Router, TypeScript, Tailwind v4) front end. Single locale `es-AR` via
-`next-intl` without routing; all user-facing copy lives in `messages/es-AR.json`.
+`next-intl` without routing; all user-facing copy lives in `messages/es-AR/*.json` (one file per feature).
 
 ## Scripts
 
@@ -57,3 +57,47 @@ forwards the session cookie). Test handlers are typed with `openapi-msw` from th
 - `src/ui/{atoms,molecules,...}`: presentational, prop-driven, no fetching.
 - `src/features/<capability>/{containers,components,hooks,api}`: fetch and wire.
 - `src/shared/{api,i18n,lib}`: cross-cutting code.
+
+## i18n split
+
+Copy lives in `messages/es-AR/<feature>.json` (`common`, `auth`, `errors`, `home`, `ops`, `trips`, ...).
+Each file has one top-level namespace named after the feature. `messages/es-AR/index.ts` imports every
+file (one line each, alphabetical) and deep-merges them with `messages/merge.ts`; `src/shared/i18n/config.ts`,
+`src/test/render.tsx` and the tests import that index, never a single file. Components never hardcode
+Spanish and tests read their expectations from the messages.
+
+## Trips and the trip shell
+
+- `/` (`src/app/(app)/page.tsx`): per crew from `MeProvider`, `TripList` plus a collapsible `CreateTripForm`.
+- `/crews/[crewId]/trips/[tripId]/layout.tsx` (server): `requireMe()`, then `getTripServer()`
+  (`GET /api/trips/{id}` with the session cookie). A 404, a non-member or a crew that does not match the URL
+  is `notFound()`. It renders `TripProvider` (client context: `trip`, `modules`, `participants`, `myRsvp`,
+  `refetch`; the trip lives in the query cache under `["trips", id]`) and `TripShellContainer`, which feeds
+  the presentational `ui/organisms/TripShell` (`PageHeader` + `SectionNav`).
+- The section nav is data-driven: an "overview" entry plus one entry per `trip.modules` item, linking to
+  `/crews/{crewId}/trips/{tripId}/{module}`. Labels come from `trips.sections.<module>` (a module without
+  copy shows its key). The current section (and its sub-pages) is highlighted via `usePathname`.
+- `[tripId]/page.tsx` is the overview (dates, destination, participants with RSVP badges, `RsvpControl`,
+  module cards). `[tripId]/[module]/page.tsx` is the "coming soon" fallback for modules without a page.
+- Shared UI for trip pages: atoms `Card`, `Avatar`, `Select`, `Textarea`, `Skeleton`; molecules `PageHeader`,
+  `EmptyState`, `SectionNav`, `ConfirmDialog` (native `<dialog>`).
+
+### Adding a milestone section
+
+1. Add `messages/es-AR/<feature>.json` with a `<feature>` namespace and append one import line plus the
+   argument to `messages/es-AR/index.ts`. Section labels (`trips.sections.<module>`) are core-owned and
+   already exist for every known module (`proposals`, `dates`, `logistics`, `itinerary`, `today`,
+   `budget`, `documents`, `ski`); a module without copy shows its key.
+2. Create `src/features/<capability>/{api,hooks,containers}` and read the current trip with
+   `useTripContext()` (from `@/features/trips/TripProvider`); never refetch it yourself.
+3. Add the static page `src/app/(app)/crews/[crewId]/trips/[tripId]/<module>/page.tsx`; a static segment
+   wins over `[module]`, so the placeholder disappears by itself. Use `params: Promise<...>` for any
+   nested dynamic segment.
+4. The nav entry already exists once the api lists the module in `trip.modules`.
+
+### Trip types
+
+Trip types come from the api's plugin registry (`trips/plugins.py`). Core registers only `generic`, so
+`CreateTripForm` offers only that (the `<Select>` stays so a milestone can extend `TRIP_TYPES` and add
+`trips.types.<key>` copy once its api registers the type). A `/api/trip-types` endpoint that lets the web
+read the registry instead of hardcoding it is a future core request.

@@ -6,7 +6,7 @@ import { resetCsrfToken } from "@/shared/api/csrf";
 import type { paths } from "@/shared/api/schema";
 import { renderWithProviders } from "@/test/render";
 import { server } from "@/test/server";
-import messages from "../../../../messages/es-AR.json";
+import messages from "../../../../messages/es-AR";
 import { LoginFlow } from "./LoginFlow";
 
 const replace = vi.fn();

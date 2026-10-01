@@ -1,6 +1,6 @@
 import { createBrowserClient } from "@/shared/api/client";
 import { resetCsrfToken } from "@/shared/api/csrf";
-import { toApiError } from "./errors";
+import { toApiError } from "@/shared/api/errors";
 
 /** Ends the session. A 401 means it was already gone, which is the outcome we wanted. */
 export async function logout(): Promise<void> {
