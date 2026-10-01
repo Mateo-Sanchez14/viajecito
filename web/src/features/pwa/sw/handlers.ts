@@ -31,6 +31,6 @@ export async function handleSavedFile(
   caches: Pick<CacheStorage, "match">,
   fetchFn: FetchFn,
 ): Promise<Response> {
-  const saved = await caches.match(request, { cacheName: CACHE_NAMES.documentsFiles });
+  const saved = await caches.match(request, { cacheName: CACHE_NAMES.documentsFiles, ignoreSearch: true });
   return saved ?? fetchFn(request);
 }

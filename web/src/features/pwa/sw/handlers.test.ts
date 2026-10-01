@@ -85,6 +85,17 @@ describe("handleSavedFile", () => {
     expect(fetchFn).not.toHaveBeenCalled();
   });
 
+  it("matches the saved file whatever query string the viewer adds (?inline=true)", async () => {
+    const caches = fakeCaches({ [url]: new Response("pdf-bytes") });
+
+    await handleSavedFile(new Request(`${url}?inline=true`), caches, vi.fn());
+
+    expect(caches.match).toHaveBeenCalledWith(expect.anything(), {
+      cacheName: "documents-files-v1",
+      ignoreSearch: true,
+    });
+  });
+
   it("goes to the network, without storing anything, when the file was not saved", async () => {
     const caches = fakeCaches();
     const fetchFn = vi.fn(async () => new Response("fresh"));
