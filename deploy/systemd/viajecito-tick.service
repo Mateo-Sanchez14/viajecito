@@ -1,0 +1,12 @@
+[Unit]
+Description=viajecito tick (process inbound, dispatch outbound, roster sync)
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=/srv/viajecito
+# --env-file resolves ${GHCR_OWNER} in compose.pi.yml; exec -T because there is no TTY under systemd.
+ExecStart=/usr/bin/docker compose --env-file /srv/viajecito/pi.env -f /srv/viajecito/compose.pi.yml exec -T api python manage.py tick
+# tick holds a JobLock, so a slow run never overlaps the next one; still cap it.
+TimeoutStartSec=55

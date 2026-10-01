@@ -1,0 +1,12 @@
+[Unit]
+Description=Run viajecito tick every minute
+
+[Timer]
+OnCalendar=minutely
+AccuracySec=1s
+# A missed tick is simply skipped: the next one catches up.
+Persistent=false
+Unit=viajecito-tick.service
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,11 @@
+[Unit]
+Description=viajecito backup (SQLite snapshot + media to restic)
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=/srv/viajecito
+ExecStart=/srv/viajecito/scripts/backup.sh
+TimeoutStartSec=2h
+Nice=10
