@@ -5,7 +5,7 @@ export default function Home() {
   return (
     <>
       <CrewTrips />
-      <HealthStatus />
+      <div className="home-health"><HealthStatus /></div>
     </>
   );
 }

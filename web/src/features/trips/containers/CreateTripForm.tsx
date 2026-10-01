@@ -93,7 +93,7 @@ export function CreateTripForm({ crewId }: { crewId: string }) {
         </Select>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div className="flex flex-col gap-1">
           <label htmlFor={`${id}-start`} className="text-sm font-medium">{t("create.startOn")}</label>
           <Input id={`${id}-start`} type="date" value={startOn} onChange={(e) => setStartOn(e.target.value)} />
@@ -110,7 +110,7 @@ export function CreateTripForm({ crewId }: { crewId: string }) {
           />
         </div>
         {err("dates") && (
-          <p id={`${id}-dates-error`} role="alert" className="col-span-2 text-sm text-warn">{err("dates")}</p>
+          <p id={`${id}-dates-error`} role="alert" className="sm:col-span-2 text-sm text-warn">{err("dates")}</p>
         )}
       </div>
 
