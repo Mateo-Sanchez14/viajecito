@@ -156,7 +156,7 @@ M0a and M0b done (login with a WhatsApp code works end to end against fake Gowa)
 
 ### M0c follow-ups (added 2026-10-01 after verification)
 
-- [ ] **T9b** (api, delegated): `bootstrap_crew` also creates the admin's `WhatsAppIdentity` so the admin can
+- [x] **T9b** (api, delegated, commit 539a642, 306 tests; merged): `bootstrap_crew` also creates the admin's `WhatsAppIdentity` so the admin can
   `/viaje ping` before the first roster sync.
 - [ ] **T10b** (platform, delegated): fake Gowa `GET /group/participants` + seeding (`PUT /__groups/{id}`),
   `deploy/scripts/bot_smoke.sh` + `make bot-smoke` (replay `/viaje ping` → `pong` reply, duplicate → `duplicate`,
