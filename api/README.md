@@ -297,11 +297,12 @@ message). Every failure is logged and counted in `errors`. The summary gains `re
 `reminders_quiet` and `jobs_run` (plus `<job key>.<counter>` for counters a job returns); tick jobs run in
 registration order, each isolated, and are skipped once the lock deadline is near.
 
-- **Dedupe keys**: the tick persists `"<rule key>:<draft dedupe_key>"` (<= 200 chars), so rules never
-  share a key space. Milestones never prefix their own keys; they keep `dedupe_key` stable per reminder.
-- **Mentions**: `{@<person_id>}` tokens render as the person's display name (phone when they have none; an
-  unknown id as a neutral word). With `GOWA_MENTIONS_ENABLED=1` they render as `@<digits>` and the JIDs
-  (tokens plus `mention_person_ids`) are stored on the row and sent to Gowa as `mentions` (the field name is
+- **Dedupe keys**: `ReminderDraft.dedupe_key` is persisted verbatim as `OutboundMessage.dedupe_key`
+  (globally unique, <= 200 chars), so a re-run queues nothing. Milestones namespace their own keys
+  (`<app>:<rule>:<subject>:<local-date>`, e.g. `proposals:majority:<id>`).
+- **Mentions**: `{@<person_id>}` tokens render as `@<digits>` (the member's E.164 digits without `+`); an
+  unknown id renders as an empty string. With `GOWA_MENTIONS_ENABLED=1` the JIDs (tokens plus
+  `mention_person_ids`) are also stored on the row and sent to Gowa as `mentions` (the field name is
   unconfirmed, hence the flag, default off). Channels get the original draft, tokens included.
 - **Delivery**: rows queued by the reminders phase are backdated past `QUEUED_MIN_AGE_SECONDS` so the same
   pass sends them (rows made by other processes still wait that long, as they may be in flight).

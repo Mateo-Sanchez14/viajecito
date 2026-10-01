@@ -8,7 +8,6 @@ from dataclasses import dataclass
 from datetime import datetime
 
 from messaging import reminders
-from messaging.copy import es_ar
 from messaging.ports import ChatDirectory, OutboundLedger, PersonDirectory, PersonRef
 from shared.phone import phone_to_jid
 
@@ -33,16 +32,14 @@ def render_mentions(
 ) -> tuple[str, list[str]]:
     """Render ``{@<person_id>}`` tokens and return ``(text, jids to @-mention)``.
 
-    Mentions off (the default): a token becomes the person's display name (their phone when they
-    have none), an unknown id becomes a neutral word, and no JIDs are passed.
-    Mentions on: a known token becomes ``@<digits>`` and every mentioned person's JID is returned.
+    A known token always becomes ``@<digits>`` (the member's E.164 digits); an unknown id becomes
+    an empty string. With ``mentions_enabled`` the JIDs of every mentioned person (tokens plus
+    ``mention_person_ids``) are also returned so the gateway can notify them; otherwise none.
     """
 
     def render(match: re.Match[str]) -> str:
         person = people.get(match.group(1))
-        if person is None:
-            return es_ar.UNKNOWN_PERSON
-        return f"@{person.phone.lstrip('+')}" if mentions_enabled else person.name
+        return "" if person is None else f"@{person.phone.lstrip('+')}"
 
     text = _TOKEN.sub(render, body)
     if not mentions_enabled:
@@ -63,9 +60,10 @@ def queue_reminders(
     """Run every rule and queue its drafts as ``OutboundMessage(kind="reminder")`` rows.
 
     Quiet-hours drafts (``respect_quiet_hours``) are skipped; a later tick produces them again.
-    The persisted key is ``"<rule key>:<draft dedupe_key>"``. For NEW rows only, the rule's
-    ``on_queued`` runs in the same transaction as the row (a failure rolls the row back, so the
-    next tick retries), then every channel runs outside it. Failures are logged and counted.
+    The draft's ``dedupe_key`` is persisted verbatim (unique: re-runs queue nothing). For NEW
+    rows only, the rule's ``on_queued`` runs in the same transaction as the row (a failure rolls
+    the row back, so the next tick retries), then every channel runs outside it. Failures are
+    logged and counted.
     """
     queued = quiet = errors = 0
     ctx = reminders.ReminderContext(now=now)
@@ -96,7 +94,7 @@ def queue_reminders(
                         to_jid=chat_id,
                         kind="reminder",
                         body=body,
-                        dedupe_key=f"{rule.key}:{draft.dedupe_key}",
+                        dedupe_key=draft.dedupe_key,
                         reply_to=None,
                         subject_type=draft.subject_type,
                         subject_id=draft.subject_id,

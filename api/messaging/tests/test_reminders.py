@@ -12,7 +12,6 @@ from django.core.management import call_command
 from crews.models import CrewMembership, WhatsAppGroupLink
 from identity.models import Person
 from messaging import reminders
-from messaging.copy import es_ar
 from messaging.models import OutboundMessage
 from messaging.reminders import ReminderContext, ReminderDraft
 from messaging.tests.conftest import CHAT
@@ -203,7 +202,7 @@ def test_two_drafts_queue_two_rows_that_go_out_in_the_same_pass_and_reruns_add_n
     assert [(r.kind, r.status, r.to_jid, r.subject_type, r.subject_id) for r in rows] == [
         ("reminder", "sent", CHAT, "trip", "t1")
     ] * 2
-    assert [r.dedupe_key for r in rows] == ["fake:k:1", "fake:k:2"]  # prefixed by the rule key
+    assert [r.dedupe_key for r in rows] == ["k:1", "k:2"]  # persisted verbatim
     assert [r.body for r in rows] == ["hola 1", "hola 2"]
     second = tick()
     assert second["reminders_queued"] == 0 and OutboundMessage.objects.count() == 2
@@ -277,19 +276,26 @@ def test_a_raising_rule_is_counted_and_does_not_stop_the_others(registry, synced
     reminders.register_reminder_rule("fake", lambda ctx: [draft(synced, "ok")])
     summary = tick()
     assert (summary["errors"], summary["reminders_queued"]) == (2, 1)
-    assert list(OutboundMessage.objects.values_list("dedupe_key", flat=True)) == ["fake:k:ok"]
+    assert list(OutboundMessage.objects.values_list("dedupe_key", flat=True)) == ["k:ok"]
 
 
 @pytest.mark.django_db
 @time_machine.travel(JULY_NOON, tick=False)
-def test_rules_do_not_share_a_dedupe_key_space(registry, synced, gowa):
+def test_the_draft_dedupe_key_is_persisted_verbatim_and_stays_unique(registry, synced, gowa):
+    reminders.register_reminder_rule(
+        "fake", lambda ctx: [draft(synced, dedupe_key="proposals:majority:P1")]
+    )
+    assert tick()["reminders_queued"] == 1
+    assert OutboundMessage.objects.get().dedupe_key == "proposals:majority:P1"
+    assert tick()["reminders_queued"] == 0 and OutboundMessage.objects.count() == 1
+
+
+@pytest.mark.django_db
+@time_machine.travel(JULY_NOON, tick=False)
+def test_two_rules_producing_the_same_key_queue_it_once(registry, synced, gowa):
     for key in ("rule_a", "rule_b"):
         reminders.register_reminder_rule(key, lambda ctx: [draft(synced, "once")])
-    assert tick()["reminders_queued"] == 2
-    assert set(OutboundMessage.objects.values_list("dedupe_key", flat=True)) == {
-        "rule_a:k:once",
-        "rule_b:k:once",
-    }
+    assert tick()["reminders_queued"] == 1
 
 
 # --- on_queued and channels -----------------------------------------------------------------
@@ -382,24 +388,22 @@ def ana(synced):
 
 @pytest.mark.django_db
 @time_machine.travel(JULY_NOON, tick=False)
-def test_mention_tokens_render_as_display_names_by_default(registry, ana, gowa):
+def test_mention_tokens_render_as_digits_by_default(registry, ana, gowa):
     nameless = Person.objects.create_user("+5491155559999")
-    body = f"Falta {{@{ana.pk}}} y {{@{nameless.pk}}} y {{@00000000-0000-0000-0000-000000000000}}"
+    body = f"Falta {{@{ana.pk}}} y {{@{nameless.pk}}} y {{@00000000-0000-0000-0000-000000000000}}!"
     reminders.register_reminder_rule(
         "fake", lambda ctx: [draft(ana.memberships.get().crew, body=body)]
     )
     tick()
     row = OutboundMessage.objects.get()
-    assert row.body == f"Falta Ana y +5491155559999 y {es_ar.UNKNOWN_PERSON}"
-    assert row.mentions == []
+    assert row.body == "Falta @5491155551234 y @5491155559999 y !"  # unknown id: empty string
+    assert row.mentions == []  # JIDs are only stored and sent with GOWA_MENTIONS_ENABLED
     assert "mentions" not in json.loads(gowa.send.calls.last.request.content)
 
 
 @pytest.mark.django_db
 @time_machine.travel(JULY_NOON, tick=False)
-def test_with_mentions_enabled_tokens_become_digits_and_jids_reach_gowa(
-    registry, ana, gowa, settings
-):
+def test_with_mentions_enabled_the_jids_also_reach_gowa(registry, ana, gowa, settings):
     settings.GOWA_MENTIONS_ENABLED = True
     crew = ana.memberships.get().crew
     reminders.register_reminder_rule("fake", lambda ctx: [draft(crew, body=f"Falta {{@{ana.pk}}}")])

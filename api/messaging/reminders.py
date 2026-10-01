@@ -13,9 +13,10 @@ Milestones register what they contribute from ``AppConfig.ready()``:
 - ``register_digest_section(key, fn, order=...)``: ``fn(trip_id, local_date)`` returns one block
   of copy (or ``None``); ``digest_sections`` collects them for the morning digest.
 
-Rules must be idempotent: a reminder always carries the same ``dedupe_key``. The tick persists it
-as ``"<rule key>:<dedupe_key>"`` so rules never share a key space; milestones never prefix their own
-keys. A draft skipped during quiet hours is simply produced again by a later tick.
+Rules must be idempotent: a reminder always carries the same ``dedupe_key``, persisted verbatim as
+``OutboundMessage.dedupe_key`` (globally unique), so milestones namespace their own keys
+(``<app>:<rule>:<subject>:<local-date>``). A draft skipped during quiet hours is simply produced
+again by a later tick.
 """
 
 import logging
@@ -35,7 +36,7 @@ class ReminderDraft:
     crew_id: str  # core resolves the group chat from WhatsAppGroupLink
     trip_id: str | None
     body: str  # final voseo copy (<= 4000 chars); may contain {@<person_id>} tokens
-    dedupe_key: str  # <= 200 chars once prefixed with the rule key; unique per reminder
+    dedupe_key: str  # <= 200 chars; stored verbatim, globally unique
     timezone: str  # IANA name used for quiet hours (normally Trip.timezone)
     subject_type: str = ""
     subject_id: str = ""
