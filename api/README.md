@@ -52,4 +52,5 @@ uv run python manage.py export_openapi_schema --api config.api.api --output ../c
 | `STATIC_ROOT` | `<repo>/data/static` | served by whitenoise |
 | `GOWA_BASE_URL`, `GOWA_BASIC_AUTH_USER`, `GOWA_BASIC_AUTH_PASS`, `GOWA_WEBHOOK_SECRET` | see `.env.example` | WhatsApp gateway (used from M0b) |
 
+Only `api/.env` is read (no parent-directory lookup); real environment variables always win.
 Data directories are created on settings import if missing.

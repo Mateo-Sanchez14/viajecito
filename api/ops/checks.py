@@ -31,7 +31,7 @@ def check_media() -> CheckResult:
         probe = root / f".health-{uuid.uuid4().hex}"
         probe.write_bytes(b"ok")
         probe.unlink()
-    except OSError:
+    except Exception:
         logger.exception("health: media check failed")
         return "error"
     return "ok"

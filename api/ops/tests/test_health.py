@@ -1,6 +1,7 @@
 import stat
 
 import pytest
+from django.db import OperationalError, connection
 from django.test import Client
 
 from config.version import VERSION
@@ -62,3 +63,17 @@ def test_check_media_creates_missing_directory_and_leaves_no_probe(media_root):
 @pytest.mark.django_db
 def test_check_db_ok():
     assert checks.check_db() == "ok"
+
+
+def test_check_db_returns_error_when_cursor_fails(monkeypatch):
+    def broken_cursor(*args, **kwargs):
+        raise OperationalError("database is locked")
+
+    monkeypatch.setattr(connection, "cursor", broken_cursor)
+    assert checks.check_db() == "error"
+
+
+@pytest.mark.parametrize("bad_root", [None, 123])
+def test_check_media_never_raises_on_misconfigured_root(settings, bad_root):
+    settings.MEDIA_ROOT = bad_root
+    assert checks.check_media() == "error"

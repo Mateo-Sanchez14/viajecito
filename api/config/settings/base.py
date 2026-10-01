@@ -6,9 +6,9 @@ from urllib.parse import urlparse
 from environs import Env
 
 env = Env()
-env.read_env()  # picks up api/.env when present; real environment variables always win
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent  # api/
+env.read_env(BASE_DIR / ".env", recurse=False)  # only api/.env; real env vars win
 REPO_DIR = BASE_DIR.parent  # repo root; runtime data lives in <repo>/data
 DATA_DIR = REPO_DIR / "data"
 

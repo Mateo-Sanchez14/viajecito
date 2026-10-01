@@ -89,3 +89,14 @@ def test_prod_settings_enable_secure_cookies(monkeypatch):
 @pytest.mark.parametrize("flag", ["SESSION_COOKIE_SECURE", "CSRF_COOKIE_SECURE"])
 def test_non_prod_cookies_not_secure(flag):
     assert getattr(settings, flag) is False
+
+
+def test_only_api_env_file_is_read(monkeypatch):
+    import environs
+
+    calls = []
+    monkeypatch.setattr(
+        environs.Env, "read_env", lambda self, *args, **kwargs: calls.append((args, kwargs))
+    )
+    base = _reload_base(monkeypatch)
+    assert calls == [((base.BASE_DIR / ".env",), {"recurse": False})]
