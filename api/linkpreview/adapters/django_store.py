@@ -49,7 +49,9 @@ class DjangoPreviewStore:
         return to_ref(row) if row else None
 
     def find(self, *, canonical_url: str, url: str) -> PreviewRef | None:
-        row = LinkPreview.objects.filter(Q(canonical_url=canonical_url) | Q(url=url)).first()
+        row = LinkPreview.objects.filter(canonical_url=canonical_url).first()
+        if row is None and url:
+            row = LinkPreview.objects.filter(url=url).order_by("created_at").first()
         return to_ref(row) if row else None
 
     def get_or_create_pending(self, url: str, canonical_url: str) -> PreviewRef:

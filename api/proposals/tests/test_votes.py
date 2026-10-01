@@ -1,6 +1,5 @@
 import pytest
 
-from proposals.domain.status import OPEN_STATUSES  # noqa: F401
 from proposals.models import Comment, Vote
 from proposals.use_cases.add_comment import add_comment
 from proposals.use_cases.cast_vote import ProposalClosedError, cast_vote, remove_vote
