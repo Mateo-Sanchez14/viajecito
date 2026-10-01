@@ -1,6 +1,6 @@
 from django.core.files.base import ContentFile
 from django.db import transaction
-from django.db.models import F
+from django.db.models import F, Sum
 
 from documents.domain import DocumentError
 from documents.models import Document, VaultQuota
@@ -11,7 +11,12 @@ class DjangoDocumentStore:
         return transaction.atomic()
 
     def create(self, trip_id, person_id, data, mime, name, digest, fields, quota):
-        counter, _ = VaultQuota.objects.get_or_create(trip_id=trip_id)
+        existing_size = (
+            Document.objects.filter(trip_id=trip_id).aggregate(total=Sum("size"))["total"] or 0
+        )
+        counter, _ = VaultQuota.objects.get_or_create(
+            trip_id=trip_id, defaults={"plaintext_bytes": existing_size}
+        )
         counter = VaultQuota.objects.select_for_update().get(pk=counter.pk)
         if counter.plaintext_bytes + len(data) > quota:
             raise DocumentError("quota_exceeded", "Trip storage quota exceeded")

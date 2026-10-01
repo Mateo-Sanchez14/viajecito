@@ -135,3 +135,13 @@ def test_delete_removes_ciphertext_and_releases_quota(
     with django_capture_on_commit_callbacks(execute=True):
         assert send(client, "delete", f"/api/documents/{row['id']}").status_code == 204
     assert not path.exists() and VaultQuota.objects.get(pk=trip.pk).plaintext_bytes == 0
+
+
+def test_quota_recovery_counts_existing_documents(trip, ana, as_person, settings):
+    from documents.models import VaultQuota
+
+    client = as_person(ana)
+    assert upload(client, trip).status_code == 201
+    VaultQuota.objects.all().delete()
+    settings.DOCUMENTS_TRIP_QUOTA_BYTES = len(PDF)
+    assert upload(client, trip).status_code == 507
