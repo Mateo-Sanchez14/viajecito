@@ -4,6 +4,7 @@ Endpoints (WAHA docs): ``POST /api/sendText``, ``GET /api/{session}/groups/{id}/
 ``GET /api/{session}/lids/{lid}`` and ``GET /api/sessions/{session}``; auth is ``X-Api-Key``.
 """
 
+import logging
 from collections.abc import Sequence
 from typing import Any
 from urllib.parse import quote
@@ -12,6 +13,8 @@ import httpx
 
 from messaging.ports import GatewayError, Participant
 from messaging.waha.parser import USER_SERVER, normalize_jid, stanza_id
+
+logger = logging.getLogger(__name__)
 
 ADMIN_ROLES = {"admin", "superadmin"}
 
@@ -96,13 +99,19 @@ class WahaClient:
             raise GatewayError("waha response is not a participants list") from exc
 
     def own_jids(self) -> set[str]:
-        """JIDs of the session's own account (best effort; empty when WAHA does not say)."""
+        """JIDs of the session's own account (best effort; empty, with a warning, when unknown)."""
         try:
-            me = self._request("GET", f"/api/sessions/{_seg(self._session)}").json().get("me") or {}
-            raw = (me.get("id"), me.get("lid"))
-        except (GatewayError, ValueError, AttributeError):
+            me = self._request("GET", f"/api/sessions/{_seg(self._session)}").json().get("me")
+            jids = {normalize_jid(me.get(key)) for key in ("id", "lid")} - {""}
+        except (GatewayError, ValueError, AttributeError) as exc:
+            logger.warning(
+                "WAHA session %r did not report its own account (%s); the bot account "
+                "will not be excluded from roster syncs",
+                self._session,
+                exc,
+            )
             return set()
-        return {normalize_jid(jid) for jid in raw if isinstance(jid, str) and jid}
+        return jids
 
     def _participant(self, item: dict) -> Participant:
         jid = normalize_jid(item["id"])

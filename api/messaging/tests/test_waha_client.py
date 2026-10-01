@@ -193,9 +193,21 @@ def test_own_jid_reads_the_session_me(client):
 
 
 @respx.mock
-def test_own_jids_is_empty_when_unavailable(client):
+def test_own_jids_is_empty_and_warns_when_unavailable(client, caplog):
     respx.get(f"{BASE}/api/sessions/default").mock(return_value=httpx.Response(500))
-    assert client.own_jids() == set()
+    with caplog.at_level("WARNING"):
+        assert client.own_jids() == set()
+    assert "bot account will not be excluded" in caplog.text
+
+
+@respx.mock
+def test_own_jids_warns_when_the_session_has_no_me(client, caplog):
+    respx.get(f"{BASE}/api/sessions/default").mock(
+        return_value=httpx.Response(200, json={"name": "default", "me": None})
+    )
+    with caplog.at_level("WARNING"):
+        assert client.own_jids() == set()
+    assert "bot account will not be excluded" in caplog.text
 
 
 @respx.mock
