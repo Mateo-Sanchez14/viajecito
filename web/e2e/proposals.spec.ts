@@ -1,68 +1,88 @@
-import { expect, test, type APIRequestContext } from "@playwright/test";
+import { createHmac, randomUUID } from "node:crypto";
+import { expect, test } from "@playwright/test";
+import type { paths } from "../src/shared/api/schema";
 import messages from "../messages/es-AR";
 
-/**
- * Needs the dev stack with `LINKPREVIEW_FETCHER=static` and fake Gowa, after
- *   make replay FIXTURE=api/proposals/tests/fixtures/gowa/group_link.json
- * so the group link already became a proposal on the crew's default trip.
- */
-const phone = process.env.E2E_PHONE ?? "+54 9 11 5555 1234";
+/** Dev stack: static previews, fake Gowa and the webhook secret from .env.example. */
 const fakeGowaUrl = process.env.FAKE_GOWA_URL ?? "http://localhost:4000";
+const apiUrl = process.env.E2E_API_URL ?? "http://localhost:8000";
+const webhookSecret = process.env.E2E_WEBHOOK_SECRET ?? "dev-webhook-secret";
+const chatId = process.env.E2E_CHAT_ID ?? "120363000000000000@g.us";
 
-// Logging in requests an OTP; a retry would hit the api's 60 s per-phone rate limit.
-test.describe.configure({ retries: 0 });
-
-type Sent = { phone?: string; message?: string; reply_message_id?: string | null };
-
-async function latestMessage(request: APIRequestContext, digits: string): Promise<string | undefined> {
-  const response = await request.get(`${fakeGowaUrl}/__sent/latest?phone=${digits}`);
-  if (!response.ok()) return undefined;
-  return ((await response.json()) as Sent).message;
-}
-
-/** Waits for an OTP message newer than `previous` and returns its 6-digit code. */
-async function readNewCode(request: APIRequestContext, digits: string, previous?: string): Promise<string> {
-  let code: string | undefined;
-  await expect
-    .poll(
-      async () => {
-        const message = await latestMessage(request, digits);
-        if (!message || message === previous) return undefined;
-        code = /\b(\d{6})\b/.exec(message)?.[1];
-        return code;
-      },
-      { timeout: 15_000 },
-    )
-    .toBeDefined();
-  return code as string;
-}
+type Me = paths["/api/me"]["get"]["responses"][200]["content"]["application/json"];
+type Sent = { message?: string; reply_message_id?: string | null };
 
 test("a link captured from the group shows up on the web and can be voted", async ({ page, request }) => {
-  // The replay left one card threaded to the inbound message. Read it before logging in:
-  // the login adds its own (unthreaded) OTP message to the same log.
-  const sent = (await (await request.get(`${fakeGowaUrl}/__sent`)).json()) as Sent[];
-  const cards = sent.filter((entry) => entry.reply_message_id);
-  expect(cards).toHaveLength(1);
+  // Use the setup session. Re-requesting its OTP would invalidate shared authentication.
+  const meResponse = await request.get("/api/me");
+  expect(meResponse.ok()).toBe(true);
+  const me = (await meResponse.json()) as Me;
+  const crew = me.crews[0];
+  expect(crew).toBeDefined();
 
-  const digits = phone.replace(/\D/g, "");
-  const previous = await latestMessage(request, digits);
-  await page.goto("/login");
-  await page.getByLabel(messages.auth.phone.label).fill(phone);
-  await page.getByRole("button", { name: messages.auth.phone.submit }).click();
-  await expect(page.getByLabel(messages.auth.code.label)).toBeVisible();
-  await page.getByLabel(messages.auth.code.label).fill(await readNewCode(request, digits, previous));
-  await page.getByRole("button", { name: messages.auth.code.submit }).click();
-  await expect(page.getByText(messages.home.greeting.replace("{name}", "").trim())).toBeVisible();
+  if (!crew.default_trip_id) {
+    const csrfResponse = await request.get("/api/auth/csrf");
+    expect(csrfResponse.ok()).toBe(true);
+    const { csrf_token } = (await csrfResponse.json()) as { csrf_token: string };
+    const tripResponse = await request.post(`/api/crews/${crew.id}/trips`, {
+      headers: { "X-CSRFToken": csrf_token },
+      data: { name: `Proposals e2e ${randomUUID()}` },
+    });
+    expect(tripResponse.status()).toBe(201);
+  }
 
-  await page.locator('a[href*="/trips/"]').first().click();
-  await page.getByRole("link", { name: messages.trips.modules.proposals, exact: true }).first().click();
+  // Another spec may have created the first trip; capture targets the crew's actual default.
+  const refreshedMeResponse = await request.get("/api/me");
+  expect(refreshedMeResponse.ok()).toBe(true);
+  const refreshedMe = (await refreshedMeResponse.json()) as Me;
+  const tripId = refreshedMe.crews.find((entry) => entry.id === crew.id)?.default_trip_id;
+  expect(tripId).toBeTruthy();
 
+  const inboundId = `e2e-link-${randomUUID()}`;
+  const payload = JSON.stringify({
+    event: "message",
+    device_id: "e2e-gowa",
+    payload: {
+      id: inboundId,
+      chat_id: chatId,
+      from: `${me.person.phone.replace(/\D/g, "")}@s.whatsapp.net`,
+      from_name: "E2E Admin",
+      timestamp: new Date().toISOString(),
+      is_from_me: false,
+      body: `https://www.booking.com/hotel/ar/e2e-${randomUUID()}.html`,
+    },
+  });
+  const signature = createHmac("sha256", webhookSecret).update(payload).digest("hex");
+  const webhookResponse = await request.post(`${apiUrl}/hooks/gowa/`, {
+    headers: { "Content-Type": "application/json", "X-Hub-Signature-256": `sha256=${signature}` },
+    data: payload,
+  });
+  expect(webhookResponse.ok()).toBe(true);
+  expect(await webhookResponse.json()).toEqual({ status: "accepted" });
+
+  // Processing is async. Wait for precisely this inbound message, not a global ledger count.
+  await expect.poll(async () => {
+    const response = await request.get(`${fakeGowaUrl}/__sent`);
+    expect(response.ok()).toBe(true);
+    const sent = (await response.json()) as Sent[];
+    return sent.filter((entry) => entry.reply_message_id === inboundId);
+  }, { timeout: 15_000 }).toHaveLength(1);
+
+  await page.goto(`/crews/${crew.id}/trips/${tripId}/proposals`);
   const list = page.getByRole("list", { name: messages.proposals.title });
   await expect(list.getByRole("listitem")).toHaveCount(1);
 
-  await list.getByRole("link").first().click();
-  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+  const proposalLink = list.getByRole("link").first();
+  const proposalTitle = await proposalLink.innerText();
+  await proposalLink.click();
+  await page.waitForURL(/\/proposals\/[^/]+$/);
+  await expect(page.getByRole("heading", { level: 1, name: proposalTitle, exact: true })).toBeVisible();
   const up = page.getByRole("group", { name: messages.proposals.vote.label }).getByRole("button").first();
+  const voteSaved = page.waitForResponse((response) =>
+    response.url().endsWith("/vote") && response.request().method() === "PUT",
+  );
   await up.click();
+  expect((await voteSaved).ok()).toBe(true);
+  await page.reload();
   await expect(up).toHaveAttribute("aria-pressed", "true");
 });
