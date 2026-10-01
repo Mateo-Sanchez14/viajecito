@@ -19,8 +19,8 @@ Any link dropped in the group (or pasted on the web) becomes a proposal card wit
 - Models: writers sonnet, verifiers opus (user decision). Delivery: merge to `main` + push per milestone.
 
 ## Tasks
-- [ ] **A1 api** — delegated (writer sonnet, worktree `m1-api`; verifier opus; one correction round).
-- [ ] **A2 web** — delegated (writer sonnet, worktree `m1-web`; verifier opus; one correction round).
+- [x] **A1 api** — delegated (writer sonnet, worktree `m1-api`; verifier opus; one correction round).
+- [x] **A2 web** — delegated (writer sonnet, worktree `m1-web`; verifier opus; one correction round).
   Builds against the contract's API table; generates types from a draft added to `contracts/openapi.json`
   in its branch; the orchestrator regenerates from the real api at integration.
 - [ ] **A3 integrate** — inline: merge api then web, regenerate contract/types, env parsing for the
@@ -35,9 +35,9 @@ Any link dropped in the group (or pasted on the web) becomes a proposal card wit
 ## Progress
 | Task | Status | Evidence |
 |---|---|---|
-| A1 | writer running (sonnet, launched 2026-10-01 after M-core bc1bece) | — |
-| A2 | verifier APPROVE WITH MINORS → correction round running (es-AR price parsing, empty title PATCH, paths-derived input types, rollback test, link scheme guard) | writer: lint/typecheck/test/build/api:types:check green |
-| A3 | pending | — |
+| A1 | integrated/verified | adcc1cb; 1778 pytest + export/lint/migrations |
+| A2 | integrated/verified | bd6c33d; 569 web tests/typecheck/lint/types/build |
+| A3 | integration corrections verified; e2e failing, no push | see evidence below |
 
 ## Resumption — 2026-10-01 (Codex)
 - Baseline: clean `main`/`origin/main` at `fafb953`; handoff records A1/A2 verified and corrected, but existing checklist/mirror is stale. Do not mark complete until integration checks reproduce.
@@ -55,3 +55,12 @@ Any link dropped in the group (or pasted on the web) becomes a proposal card wit
 - Additional structural `git diff --check --cached` warned about inherited new blank EOF lines in VoteButtons.test.tsx and ProposalBoard.tsx; no code changed merely for cosmetics. Functional gates passed.
 - Bounded corrections (delegated; strict TDD; no push by writers): `codex/m1-settings` owns API env/test settings/shared PersonRefOut; `codex/m1-platform-env` owns root/deploy env and dev compose; `codex/m1-ski-form` owns ski form/tests. Independent verifier + one correction round + parent spot check pending for each.
 - A1/A2 historical RED/GREEN proof remains the previous-session handoff; this session reproduced integration GREEN, not historical RED. A3 stays unchecked until smoke/push.
+
+### Integration corrections and runtime gate
+- Settings/schema work units: `60a705f`/`4b67c3b`, merged `8b83d7a`; independent approval, RED 35 failed/24 passed → GREEN 1815 passed; parent focused spot 62 passed. Ruff, 10 linter contracts, migrations and export pass.
+- Platform work unit: `0a87594`, merged `f6fff4a`; independent approval, RED 43 assertions → GREEN 3 tests and 33 existing helper assertions; parent 3 tests passed. Append-only env examples, explicit static dev previews, optional VAPID preserved.
+- Ski work unit: `10be55d`, merged `737f9c7`; independent approval, RED 2 failed/6 passed → GREEN 8 focused and 570 full; parent reproduced 570. Type/lint/types/build pass. No actionable verifier findings, so correction rounds were unnecessary.
+- Each correction merge exported schema and passed 1815 pytest before commit (12.22s / 12.66s / 11.85s). Contract/types regenerated with no drift. Authored corrections: 454 additions+deletions across work units; direct-main delivery exception explicitly authorized, no PR chain.
+- Runtime RED: `make e2e` on 737f9c7: 2 failed, 6 passed, 2 skipped. Failures: proposals immediate sent-card assertion; signed-in PWA heading missing. Root causes not yet verified. Dev skips cover production-only service worker/offline tests; those remain pending production verification.
+- [ ] **A3-E1** — delegated web e2e correction, branch `codex/m1-e2e-fix`, worktree `m1-e2e-fix`; observed runtime RED above; independent verification/correction/spot check then rerun full smoke required. No scope expansion.
+- `make bot-smoke` is running sequentially after e2e stack cleanup. Push and Wave B remain blocked by e2e gate.
