@@ -24,10 +24,12 @@ class SubscriptionData:
 
 @dataclass(frozen=True)
 class SendResult:
-    """``ok`` delivered, ``gone`` the push service says the subscription is dead (404/410),
-    ``error`` any other failure (counted against the subscription)."""
+    """``ok`` delivered; ``gone`` the push service says the subscription is dead (404/410);
+    ``error`` any other HTTP failure (counted against the subscription); ``config_error`` the
+    request never got an HTTP response (bad key, bad subject, network): our side, so it never
+    counts against a subscription."""
 
-    outcome: Literal["ok", "gone", "error"]
+    outcome: Literal["ok", "gone", "error", "config_error"]
 
 
 class SubscriptionStore(Protocol):

@@ -1,8 +1,11 @@
 """Notifications settings, read lazily with defaults (the orchestrator adds the env parsing)."""
 
+import base64
 from collections.abc import Sequence
 
+from cryptography.hazmat.primitives import serialization
 from django.conf import settings
+from py_vapid import Vapid
 
 from notifications.domain.subscriptions import DEFAULT_ENDPOINT_HOSTS
 
@@ -16,14 +19,36 @@ def vapid_private_key() -> str:
 
 
 def vapid_subject() -> str:
-    """``mailto:`` or ``https://<host>``; falls back to the public origin."""
-    return getattr(settings, "NOTIFICATIONS_VAPID_SUBJECT", "") or getattr(
-        settings, "PUBLIC_ORIGIN", ""
+    """``mailto:`` or ``https://<host>``; falls back to the public origin when that is https."""
+    subject = getattr(settings, "NOTIFICATIONS_VAPID_SUBJECT", "") or ""
+    if subject:
+        return subject
+    origin = getattr(settings, "PUBLIC_ORIGIN", "") or ""
+    return origin if origin.startswith("https://") else ""
+
+
+def _subject_ok(subject: str) -> bool:
+    return (subject.startswith("mailto:") and len(subject) > len("mailto:")) or (
+        subject.startswith("https://") and len(subject) > len("https://")
     )
 
 
+def _keys_ok(public: str, private: str) -> bool:
+    try:
+        derived = Vapid.from_string(private).public_key.public_bytes(
+            serialization.Encoding.X962, serialization.PublicFormat.UncompressedPoint
+        )
+    except Exception:  # any parse failure means the key is unusable; never log key material
+        return False
+    return base64.urlsafe_b64encode(derived).decode().rstrip("=") == public.rstrip("=")
+
+
 def push_enabled() -> bool:
-    return bool(vapid_public_key() and vapid_private_key())
+    """Push needs a parseable private key matching the public one and a ``mailto:``/``https:``
+    subject; anything else disables the channel and the endpoints (503) instead of failing per
+    send."""
+    public, private = vapid_public_key(), vapid_private_key()
+    return bool(public and private and _subject_ok(vapid_subject()) and _keys_ok(public, private))
 
 
 def endpoint_hosts() -> Sequence[str]:
@@ -35,10 +60,11 @@ def endpoint_hosts() -> Sequence[str]:
     return tuple(host.strip() for host in raw if host.strip())
 
 
-def push_timeout_seconds() -> float:
-    return float(getattr(settings, "NOTIFICATIONS_PUSH_TIMEOUT_SECONDS", 5))
+def push_timeout() -> tuple[float, float]:
+    """``(connect, read)`` seconds per push request: a dead service must not stall the tick."""
+    return (3, 2)
 
 
 def push_budget_seconds() -> float:
     """Wall-clock cap for all the sends of one reminder (keeps the tick channel fast)."""
-    return float(getattr(settings, "NOTIFICATIONS_PUSH_BUDGET_SECONDS", 20))
+    return float(getattr(settings, "NOTIFICATIONS_PUSH_BUDGET_SECONDS", 10))

@@ -14,7 +14,7 @@ from messaging.models import OutboundMessage
 from messaging.reminders import ReminderDraft
 from notifications import ports
 from notifications.adapters import wiring
-from notifications.copy.es_ar import COUNTDOWN_BODY, COUNTDOWN_TITLE
+from notifications.copy.es_ar import ALGUIEN, COUNTDOWN_BODY, COUNTDOWN_TITLE
 from notifications.models import NotificationPreference, PushDelivery, PushSubscription
 from notifications.tests.conftest import AUTH, P256DH
 from trips.models import Trip
@@ -284,3 +284,54 @@ def test_a_real_tick_mirrors_the_countdown_to_push_once(sender, trip, ana, crew,
         OutboundMessage.objects.filter(dedupe_key=f"notifications:countdown:{trip.pk}:T-7").count()
         == 1
     )
+
+
+def test_a_nameless_person_in_a_mention_never_leaks_their_phone(sender, trip, beto):
+    from identity.models import Person
+
+    ghost = Person.objects.create_user("+5491155557777")  # no display name
+    subscribe(beto)
+    body = f"{{@{ghost.pk}}} te toca reservar"
+    wiring.push_channel(make_draft(trip, body=body, mention_person_ids=(str(beto.pk),)))
+    payload_body = sender.sent[0][1]["body"]
+    assert payload_body == f"{ALGUIEN} te toca reservar"
+    assert "5491155557777" not in json.dumps(sender.sent[0][1])
+
+
+def test_config_errors_never_touch_subscriptions_and_abort_the_draft(
+    sender, trip, ana, beto, caplog
+):
+    subs = [subscribe(ana), subscribe(beto)]
+    sender.outcomes = {s.endpoint: "config_error" for s in subs}
+    with caplog.at_level("ERROR"):
+        for n in range(8):  # far more than the 5-failure prune threshold
+            wiring.push_channel(make_draft(trip, dedupe_key=f"logistics:nag:t1:{n}"))
+    assert PushSubscription.objects.count() == 2
+    assert all(s.failure_count == 0 for s in PushSubscription.objects.all())
+    assert sender.calls == 8  # the first config error aborts the rest of each draft
+    assert sum("push configuration error" in r.message for r in caplog.records) == 1
+
+
+def test_deliver_push_reports_config_errors(sender, trip, ana):
+    from notifications.use_cases.push_delivery import deliver_push
+
+    subscribe(ana)
+    sender.outcomes = {s.endpoint: "config_error" for s in PushSubscription.objects.all()}
+    result = deliver_push(make_draft(trip), wiring.push_services())
+    assert result.config_error == 1
+    assert result.sent == 0
+
+
+def test_http_errors_still_count_against_the_subscription(sender, trip, ana):
+    sub = subscribe(ana)
+    sender.outcomes[sub.endpoint] = "error"
+    wiring.push_channel(make_draft(trip))
+    sub.refresh_from_db()
+    assert sub.failure_count == 1
+
+
+def test_an_invalid_configuration_disables_the_channel(sender, trip, ana, settings):
+    settings.NOTIFICATIONS_VAPID_SUBJECT = "http://localhost:3000"
+    subscribe(ana)
+    wiring.push_channel(make_draft(trip))
+    assert sender.calls == 0

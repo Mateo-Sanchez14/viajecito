@@ -3,7 +3,9 @@ import json
 from datetime import UTC, datetime
 
 import pytest
+from cryptography.hazmat.primitives import serialization
 from django.test import Client
+from py_vapid import Vapid
 
 from crews.models import Crew, CrewMembership
 from identity.models import Person
@@ -41,14 +43,30 @@ def send(client, method, path, payload=None):
 
 @pytest.fixture(autouse=True)
 def isolated_registries():
+    from notifications.use_cases.push_delivery import reset_config_error_latch
+
+    reset_config_error_latch()
     with reminders.isolated():
         yield
 
 
+def _vapid_pair() -> tuple[str, str]:
+    key = Vapid()
+    key.generate_keys()
+    public = key.public_key.public_bytes(
+        serialization.Encoding.X962, serialization.PublicFormat.UncompressedPoint
+    )
+    private = key.private_key.private_numbers().private_value.to_bytes(32, "big")
+    return b64(public), b64(private)
+
+
+PUBLIC_KEY, PRIVATE_KEY = _vapid_pair()
+
+
 @pytest.fixture
 def vapid(settings):
-    settings.NOTIFICATIONS_VAPID_PUBLIC_KEY = "BPublicKeyForTests"
-    settings.NOTIFICATIONS_VAPID_PRIVATE_KEY = "private-key-for-tests"
+    settings.NOTIFICATIONS_VAPID_PUBLIC_KEY = PUBLIC_KEY
+    settings.NOTIFICATIONS_VAPID_PRIVATE_KEY = PRIVATE_KEY
     settings.NOTIFICATIONS_VAPID_SUBJECT = "mailto:owner@example.test"
 
 
@@ -59,8 +77,10 @@ class FakeSender:
         self.sent: list[tuple[SubscriptionData, dict]] = []
         self.outcomes: dict[str, str] = {}
         self.raises: Exception | None = None
+        self.calls = 0
 
     def send(self, subscription: SubscriptionData, payload: str) -> SendResult:
+        self.calls += 1
         if self.raises is not None:
             raise self.raises
         self.sent.append((subscription, json.loads(payload)))

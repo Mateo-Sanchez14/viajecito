@@ -23,7 +23,9 @@ class NoRedirectSession(requests.Session):
 
 
 class WebPushSender:
-    def __init__(self, *, private_key: str, subject: str, timeout: float) -> None:
+    def __init__(
+        self, *, private_key: str, subject: str, timeout: float | tuple[float, float]
+    ) -> None:
         self._private_key = private_key
         self._subject = subject
         self._timeout = timeout
@@ -47,6 +49,9 @@ class WebPushSender:
                 )
         except WebPushException as exc:
             status = getattr(exc.response, "status_code", None)
+            if status is None:
+                logger.warning("push to %s failed before any response", host)
+                return SendResult("config_error")
             if status in GONE_STATUSES:
                 return SendResult("gone")
             logger.warning("push to %s failed with status %s", host, status)
@@ -54,5 +59,5 @@ class WebPushSender:
         except Exception as exc:
             # Never log ``exc`` details that could echo key material; the type is enough.
             logger.warning("push to %s failed: %s", host, type(exc).__name__)
-            return SendResult("error")
+            return SendResult("config_error")
         return SendResult("ok")

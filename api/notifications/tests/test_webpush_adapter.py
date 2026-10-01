@@ -56,7 +56,7 @@ def calls(monkeypatch):
 
 
 def sender() -> WebPushSender:
-    return WebPushSender(private_key=PRIVATE, subject=SUBJECT, timeout=5)
+    return WebPushSender(private_key=PRIVATE, subject=SUBJECT, timeout=(3, 2))
 
 
 def test_webpush_is_called_with_vapid_ttl_timeout_and_urgency(calls):
@@ -71,7 +71,7 @@ def test_webpush_is_called_with_vapid_ttl_timeout_and_urgency(calls):
     assert call["vapid_private_key"] == PRIVATE
     assert call["vapid_claims"] == {"sub": SUBJECT}
     assert call["ttl"] == 43200
-    assert call["timeout"] == 5
+    assert call["timeout"] == (3, 2)
     assert call["headers"] == {"Urgency": "normal"}
     assert isinstance(call["requests_session"], NoRedirectSession)
 
@@ -89,20 +89,6 @@ def test_each_send_gets_its_own_claims_dict(calls):
 def test_push_service_statuses_map_to_outcomes(calls, status, outcome):
     calls.outcome = WebPushException("boom", response=response(status))
     assert sender().send(subscription(), "x").outcome == outcome
-
-
-@pytest.mark.parametrize(
-    "failure",
-    [
-        WebPushException("no response"),
-        requests.ConnectionError("down"),
-        requests.Timeout("slow"),
-        ValueError("bad key"),
-    ],
-)
-def test_failures_without_a_status_are_plain_errors(calls, failure):
-    calls.outcome = failure
-    assert sender().send(subscription(), "x").outcome == "error"
 
 
 def test_logs_never_contain_the_private_key(calls, caplog):
@@ -162,3 +148,19 @@ def test_the_real_library_signs_and_sends_a_well_formed_request(monkeypatch):
     assert request.headers["Urgency"] == "normal"
     assert request.headers["Content-Encoding"] == "aes128gcm"
     assert request.headers["Authorization"].startswith("vapid ")
+
+
+@pytest.mark.parametrize(
+    "failure",
+    [
+        WebPushException("no response"),
+        requests.ConnectionError("down"),
+        requests.Timeout("slow"),
+        ValueError("bad key"),
+    ],
+)
+def test_errors_before_any_http_response_are_config_errors_not_subscription_failures(
+    calls, failure
+):
+    calls.outcome = failure
+    assert sender().send(subscription(), "x").outcome == "config_error"

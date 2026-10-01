@@ -37,8 +37,10 @@ TEST_URL = "/me/notifications"
 _MENTION = re.compile(r"\{@([^{}]*)\}")
 
 
-class PushUnavailableError(Exception):
-    """No VAPID keys are configured."""
+@dataclass
+class PushResult:
+    sent: int = 0  # deliveries that succeeded
+    config_error: int = 0  # sends that never got an HTTP response (our configuration or network)
 
 
 @dataclass(frozen=True)
@@ -51,7 +53,7 @@ class PushServices:
     allowed_hosts: Iterable[str]
     participants: Callable[[str], list[tuple[str, str]]]  # trip_id -> [(person_id, rsvp)]
     names: Callable[[list[str]], dict[str, str]]  # person ids -> display names
-    budget_seconds: float = 20.0
+    budget_seconds: float = 10.0
     monotonic: Callable[[], float] = time.monotonic
 
 
@@ -75,9 +77,16 @@ def recipient_ids(draft: ReminderDraft, services: PushServices) -> list[str]:
 
 
 def _send_all(
-    subscriptions: list[SubscriptionData], payload: str, services: PushServices, budget: "_Budget"
+    subscriptions: list[SubscriptionData],
+    payload: str,
+    services: PushServices,
+    budget: "_Budget",
+    result: PushResult,
 ) -> int:
-    """Send to each subscription; prunes dead ones. Returns how many deliveries succeeded."""
+    """Send to each subscription; prunes dead ones. Returns how many deliveries succeeded.
+
+    Only an HTTP answer counts against a subscription. A ``config_error`` (no HTTP response) never
+    touches it and stops the draft: every further send would fail the same way."""
     ok = 0
     for subscription in subscriptions:
         if not budget.allow():
@@ -88,15 +97,19 @@ def _send_all(
             services.subscriptions.delete(subscription.id)  # allowlist changed since registering
             continue
         try:
-            result = services.sender.send(subscription, payload)
+            outcome = services.sender.send(subscription, payload).outcome
         except Exception:
             logger.exception("push sender crashed for subscription %s", subscription.id)
-            continue
+            outcome = "config_error"
         now = services.clock.now()
-        if result.outcome == "ok":
+        if outcome == "config_error":
+            result.config_error += 1
+            budget.abort()
+            break
+        if outcome == "ok":
             services.subscriptions.mark_ok(subscription.id, now)
             ok += 1
-        elif result.outcome == "gone":
+        elif outcome == "gone":
             services.subscriptions.delete(subscription.id)
         else:
             failures = services.subscriptions.mark_failed(subscription.id, now)
@@ -110,22 +123,45 @@ class _Budget:
 
     def __init__(self, services: PushServices) -> None:
         self._sends = 0
+        self._aborted = False
         self._deadline = services.monotonic() + services.budget_seconds
         self._monotonic = services.monotonic
 
+    def abort(self) -> None:
+        self._aborted = True
+
     def allow(self) -> bool:
-        if self._sends >= MAX_SENDS_PER_DRAFT or self._monotonic() >= self._deadline:
+        if self._aborted or self._sends >= MAX_SENDS_PER_DRAFT:
+            return False
+        if self._monotonic() >= self._deadline:
             return False
         self._sends += 1
         return True
 
 
-def deliver_push(draft: ReminderDraft, services: PushServices) -> None:
+_config_error_logged = False
+
+
+def _log_config_error_once() -> None:
+    """The tick is one process per minute, so a process-wide latch is once per tick."""
+    global _config_error_logged
+    if not _config_error_logged:
+        _config_error_logged = True
+        logger.error("push configuration error: sends failed before any HTTP response")
+
+
+def reset_config_error_latch() -> None:
+    global _config_error_logged
+    _config_error_logged = False
+
+
+def deliver_push(draft: ReminderDraft, services: PushServices) -> PushResult:
     """Mirror one newly queued group reminder to the people it concerns. Idempotent per
     ``(dedupe_key, person)``; failures of one person never stop the others."""
+    result = PushResult()
     people = recipient_ids(draft, services)
     if not people:
-        return
+        return result
     token_ids = list(dict.fromkeys(_MENTION.findall(draft.body)))
     names = services.names(token_ids) if token_ids else {}
     payload = json.dumps(
@@ -145,10 +181,14 @@ def deliver_push(draft: ReminderDraft, services: PushServices) -> None:
                 continue
             if not services.ledger.reserve(draft.dedupe_key, person_id):
                 continue
-            ok = _send_all(subscriptions, payload, services, budget)
+            ok = _send_all(subscriptions, payload, services, budget, result)
+            result.sent += ok
             services.ledger.finish(draft.dedupe_key, person_id, "sent" if ok else "failed", ok)
         except Exception:
             logger.exception("push delivery failed for person %s", person_id)
+    if result.config_error:
+        _log_config_error_once()
+    return result
 
 
 def send_test_push(person_id: str, services: PushServices) -> int:
@@ -163,7 +203,11 @@ def send_test_push(person_id: str, services: PushServices) -> int:
     content = PushContent(title="", body=TEST_PUSH, dedupe_key=key, url_path=TEST_URL)
     payload = json.dumps(build_payload(content, {}, int(now.timestamp())), ensure_ascii=False)
     ok = _send_all(
-        services.subscriptions.list_for_person(person_id), payload, services, _Budget(services)
+        services.subscriptions.list_for_person(person_id),
+        payload,
+        services,
+        _Budget(services),
+        PushResult(),
     )
     services.ledger.finish(key, person_id, "sent" if ok else "failed", ok)
     return ok

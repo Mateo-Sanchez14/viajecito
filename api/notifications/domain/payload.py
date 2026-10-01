@@ -6,7 +6,7 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import Protocol
 
-from notifications.copy.es_ar import TITLE_DEFAULT
+from notifications.copy.es_ar import ALGUIEN, TITLE_DEFAULT
 
 MAX_BODY_CHARS = 240
 MAX_TITLE_CHARS = 100
@@ -32,6 +32,18 @@ class Draftish(Protocol):
     body: str
     dedupe_key: str
     url_path: str
+
+
+_PHONE_LIKE = re.compile(r"\+?[\d\s().-]{6,}")
+
+
+def neutral_names(names: Mapping[str, str]) -> dict[str, str]:
+    """Display names safe for a lock screen: a person without a real name (the directory falls back
+    to their phone) becomes a neutral word, never a phone number."""
+    return {
+        person_id: ALGUIEN if not name.strip() or _PHONE_LIKE.fullmatch(name.strip()) else name
+        for person_id, name in names.items()
+    }
 
 
 def category_of(dedupe_key: str) -> str:

@@ -1,6 +1,7 @@
 """Push copy (Rioplatense Spanish, voseo). Never hardcode Spanish anywhere else."""
 
 TITLE_DEFAULT = "viajecito"
+ALGUIEN = "alguien"  # stands in for a person without a display name (never their phone)
 TEST_PUSH = "¡Funciona! Así te van a llegar los avisos 🎒"
 COUNTDOWN_TITLE = "Cuenta regresiva"
 COUNTDOWN_BODY = {

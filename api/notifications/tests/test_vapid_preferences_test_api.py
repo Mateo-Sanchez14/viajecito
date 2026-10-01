@@ -1,7 +1,7 @@
 import pytest
 
 from notifications.models import NotificationPreference, PushDelivery, PushSubscription
-from notifications.tests.conftest import AUTH, P256DH, send, sub_body
+from notifications.tests.conftest import AUTH, P256DH, PRIVATE_KEY, PUBLIC_KEY, send, sub_body
 
 pytestmark = pytest.mark.django_db
 
@@ -29,7 +29,7 @@ def test_the_vapid_key_needs_a_session(anon, vapid):
 def test_the_vapid_key_is_served_to_members(as_person, ana, vapid):
     response = send(as_person(ana), "get", f"{BASE}/vapid_public_key")
     assert response.status_code == 200
-    assert response.json() == {"public_key": "BPublicKeyForTests"}
+    assert response.json() == {"public_key": PUBLIC_KEY}
 
 
 def test_the_vapid_key_is_a_503_when_push_is_not_configured(as_person, ana, settings):
@@ -48,7 +48,7 @@ def test_one_missing_half_of_the_key_pair_also_disables_push(as_person, ana, vap
 def test_the_private_key_never_appears_in_any_response(as_person, ana, sender):
     client = as_person(ana)
     for path in ("/vapid_public_key", "/preferences", "/subscriptions"):
-        assert "private-key-for-tests" not in send(client, "get", BASE + path).content.decode()
+        assert PRIVATE_KEY not in send(client, "get", BASE + path).content.decode()
 
 
 # --- preferences --------------------------------------------------------------------------
