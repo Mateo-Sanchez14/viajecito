@@ -26,7 +26,6 @@ dev = [
     "factory-boy>=3.3",
     "time-machine>=2.16",
     "respx>=0.22",
-    "httpx>=0.28",
     "hypothesis>=6",
 ]
 

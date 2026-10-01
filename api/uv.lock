@@ -1503,7 +1503,6 @@ dependencies = [
 [package.dev-dependencies]
 dev = [
     { name = "factory-boy" },
-    { name = "httpx" },
     { name = "hypothesis" },
     { name = "import-linter" },
     { name = "pytest" },
@@ -1531,7 +1530,6 @@ requires-dist = [
 [package.metadata.requires-dev]
 dev = [
     { name = "factory-boy", specifier = ">=3.3" },
-    { name = "httpx", specifier = ">=0.28" },
     { name = "hypothesis", specifier = ">=6" },
     { name = "import-linter", specifier = ">=2.3" },
     { name = "pytest", specifier = ">=8" },
