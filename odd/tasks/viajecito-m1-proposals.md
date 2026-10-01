@@ -47,4 +47,11 @@ Any link dropped in the group (or pasted on the web) becomes a proposal card wit
 - Forecast: existing M1 branch >400 authored lines; preserve already verified work-unit slices and direct-main delivery. New integration corrections tracked separately.
 - Integration checklist: API merge/export/pytest/lint-imports/ruff/migration drift; web union/regenerate/typecheck/lint/test/types drift/build; ski form; wave A env parsing; shared PersonRefOut; make e2e; make bot-smoke; push SHA.
 - Shared-main protocol: clean main before every merge, no UU commit, no merge commit before API export and pytest pass. Stop on unexpected changes; never overwrite WAHA work.
-- Current next step: merge M1 API without automatic commit and run required checks.
+- Current next step: finish and independently verify bounded integration corrections; run sequential e2e/bot smoke; push only after green.
+
+### Reproduced integration evidence
+- API merged `adcc1cb`: export succeeded; pytest 1778 passed (17.16s); import-linter 10 kept/0 broken; Ruff passed; makemigrations no changes.
+- Web merged `bd6c33d`: conflicts resolved by directory-derived messages union, overview-card union, exported OpenAPI and generated TS. API re-export + pytest 1778 passed (13.20s) before merge commit; web typecheck/lint passed, 569 tests/95 files passed, api:types:check and production build passed.
+- Additional structural `git diff --check --cached` warned about inherited new blank EOF lines in VoteButtons.test.tsx and ProposalBoard.tsx; no code changed merely for cosmetics. Functional gates passed.
+- Bounded corrections (delegated; strict TDD; no push by writers): `codex/m1-settings` owns API env/test settings/shared PersonRefOut; `codex/m1-platform-env` owns root/deploy env and dev compose; `codex/m1-ski-form` owns ski form/tests. Independent verifier + one correction round + parent spot check pending for each.
+- A1/A2 historical RED/GREEN proof remains the previous-session handoff; this session reproduced integration GREEN, not historical RED. A3 stays unchecked until smoke/push.
