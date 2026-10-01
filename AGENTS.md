@@ -126,3 +126,10 @@ everything under `src/app/(app)/` is behind a server-side `GET /api/me` check th
 code from fake Gowa (`GET /__sent?phone=`) against the dev stack.
 
 Fake Gowa (M0b): add `GET /__sent/latest?phone=<E.164 digits>` returning the newest send for that phone (404 if none).
+
+## Auth gate rule (web, from M1 on)
+
+The `(app)` layout calls `requireMe()` and redirects anonymous visitors to `/login`, but Next.js layouts do
+not re-run on client navigation and do not stop a page segment from rendering. Any server page or server
+component under `(app)` that fetches data itself must call `requireMe()` (wrapped in React `cache()` so the
+call is deduplicated per request) before fetching. The api enforces auth on every endpoint regardless.
