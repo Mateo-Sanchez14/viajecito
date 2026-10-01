@@ -343,3 +343,36 @@ call is deduplicated per request) before fetching. The api enforces auth on ever
   propagates and rolls back the publisher's write); `shared.events_django.publish_after_commit` is the
   non-critical alternative. The registries `messaging/reminders.py` (rules, channels, tick jobs, digest
   sections), the subcommand registry and `HandlerContext.send_card` follow `docs/contracts/README.md` §2.
+
+## WAHA provider contract (2026-10-01)
+
+Production uses the WAHA container already running on the Pi (compose project `waha`, network
+`waha_default`, alias `waha`, port 3000, GOWS engine, dedicated bot number) instead of gastito's Gowa.
+This supersedes the Gowa go-live steps (droplet webhook, gastito change); the Gowa adapter stays for dev/e2e.
+
+- **Provider switch**: `WHATSAPP_PROVIDER` = `gowa` (default) | `waha`. A factory picks the client
+  (sender, replier, roster) behind the existing `messaging/ports.py`; use cases do not change.
+- **Env (api)**: `WAHA_BASE_URL` (prod `http://waha:3000`), `WAHA_API_KEY` (sent as `X-Api-Key`),
+  `WAHA_SESSION` (default `default`), `WAHA_WEBHOOK_HMAC_KEY` (required when provider is `waha` in prod),
+  `EXTRA_ALLOWED_HOSTS` (comma-separated, appended to `ALLOWED_HOSTS`; prod `viajecito-api` so WAHA can
+  call the api over the Docker network).
+- **Webhook**: `POST /hooks/waha/`, plain Django view, `csrf_exempt`, raw body, verifies `X-Webhook-Hmac`
+  = hex HMAC-SHA512 of the raw body with `WAHA_WEBHOOK_HMAC_KEY` (`hmac.compare_digest`; optional check
+  that `X-Webhook-Hmac-Algorithm` is `sha512`), fails closed with `403 {"code":"invalid_signature"}`.
+  Same filtering, ledger and async processing as `/hooks/gowa/`: `event != "message"` → ignored `event`;
+  `payload.fromMe` → `own_message`; chat not a group (`@g.us`) → `not_group`; unlinked group →
+  `unlinked_group`; idempotent on (`device_id` = WAHA `session`, `gowa_message_id` = `payload.id`).
+  A WAHA parser maps the payload to the same `GroupMessage` (group chat id, sender jid/lid from
+  `participant`, reply-to id, body, timestamp); WAHA `@c.us` jids normalize to `@s.whatsapp.net` so
+  roster identities match. Exact field names are confirmed against WAHA docs and recorded in fixtures under
+  `api/messaging/tests/fixtures/waha/`.
+- **Outbound**: send text with `POST {WAHA_BASE_URL}/api/sendText` (`session`, `chatId`, `text`, optional
+  `reply_to`); OTP DMs go to `<digits>@c.us`. Roster sync reads the group participants endpoint of the
+  WAHA version in use and upserts identities exactly like the Gowa roster.
+- **Replay**: `python manage.py replay_waha <fixture.json> [--url ...]` signs with sha512 and POSTs.
+- **Deploy (platform)**: `compose.pi.yml` attaches `api` to the external network `waha_default` (name from
+  `WAHA_NETWORK` in pi.env, default `waha_default`) with alias `viajecito-api`, keeping the default network.
+  The WAHA session webhook URL is `http://viajecito-api:8000/hooks/waha/`, events `["message"]`, hmac key =
+  `WAHA_WEBHOOK_HMAC_KEY`. `smoke.sh` signs its webhook probe for the configured provider. The deploy README
+  replaces the droplet/gastito go-live steps with "configure the WAHA session webhook" (preserving the
+  session's existing config, e.g. other webhooks used by `notify`).

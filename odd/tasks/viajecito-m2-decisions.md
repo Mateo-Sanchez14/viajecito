@@ -19,7 +19,7 @@ The group converges on dates: availability grid per person, a best-window sugges
 - Models: writers sonnet, verifiers opus (user decision). Delivery: merge to `main` + push per milestone.
 
 ## Tasks
-- [ ] **A1 api** — delegated (writer sonnet, worktree `m2-api`; verifier opus; one correction round).
+- [x] **A1 api** — done: 9 commits (16de7f6…a8381ef); verifier APPROVE WITH MINORS → fixed (schema renames, no_window, nameless members, PATCH kind forbidden, maybe_weight 2 decimals, tests); 682 tests; merged into main locally.
 - [ ] **A2 web** — delegated (writer sonnet, worktree `m2-web`; verifier opus; one correction round).
   Builds against the contract's API table; generates types from a draft added to `contracts/openapi.json`
   in its branch; the orchestrator regenerates from the real api at integration.
@@ -34,6 +34,6 @@ The group converges on dates: availability grid per person, a best-window sugges
 ## Progress
 | Task | Status | Evidence |
 |---|---|---|
-| A1 | pending | — |
-| A2 | pending | — |
+| A1 | **done** (verifier APPROVE WITH MINORS → corrected; 682 tests; merged) | writer: pytest 671 passed, ruff/lint-imports clean, export idempotent. TDD gap admitted on availability/close endpoints (mutation-checked). |
+| A2 | writer running (sonnet, launched 2026-10-01 after M-core bc1bece) | — |
 | A3 | pending | — |

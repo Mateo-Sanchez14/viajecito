@@ -19,7 +19,7 @@ Installable PWA with countdown and offline cache of Today and documents list, We
 - Models: writers sonnet, verifiers opus (user decision). Delivery: merge to `main` + push per milestone.
 
 ## Tasks
-- [ ] **A1 api** — delegated (writer sonnet, worktree `m6-api`; verifier opus; one correction round).
+- [x] **A1 api** — done: 13 commits; verifier REQUEST CHANGES → fixed (no phones in payloads, config errors classified, per-person caps + fair budget, allowlist fallback, prune once/day, 307 regression test); 701 tests; merged into main locally.
 - [ ] **A2 web** — delegated (writer sonnet, worktree `m6-web`; verifier opus; one correction round).
   Builds against the contract's API table; generates types from a draft added to `contracts/openapi.json`
   in its branch; the orchestrator regenerates from the real api at integration.
@@ -34,6 +34,6 @@ Installable PWA with countdown and offline cache of Today and documents list, We
 ## Progress
 | Task | Status | Evidence |
 |---|---|---|
-| A1 | pending | — |
-| A2 | pending | — |
+| A1 | **done** (verifier REQUEST CHANGES → corrected; 701 tests; merged) | writer: notifications 122 passed; full suite 666 + 1 core test fixed on main (209110c, reminders.isolated()); ruff/lint-imports clean; export idempotent |
+| A2 | writer running (sonnet, launched 2026-10-01 after M-core bc1bece) | — |
 | A3 | pending | — |
