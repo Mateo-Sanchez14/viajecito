@@ -334,3 +334,19 @@ Writers code against these facts; read `api/README.md` for examples.
   `events.isolated()`. `pytest-django`'s default `django_db` never fires `on_commit` callbacks: tests of
   `publish_after_commit` subscribers use `django_capture_on_commit_callbacks(execute=True)`.
 - **Settings added by core**: `GOWA_MENTIONS_ENABLED` (default 0).
+
+### Addendum 2 (after the registries verification)
+
+- `fx_rates`: rates are quantized to 8 decimals and must have an exponent within [-9, 12]; at most 10 keys.
+- The reminders phase respects the tick deadline (`reminders_deadline_skipped` in the summary); work left
+  over runs in the next pass.
+- Test helpers: `shared.events.isolated()`, `messaging.reminders.isolated()`, and the subcommand
+  registry's `isolated()` context managers. Use them instead of touching private registries.
+- Store-free core use cases for milestones: `trips.use_cases.list_active_trips()`,
+  `trips.use_cases.trip_participants(trip_id)` (person_id, display_name with phone fallback, rsvp),
+  `identity.use_cases.display_names(person_ids)`.
+- `OutboundMessage.subject_id` is 255 characters (M3 may carry comma-separated task ids).
+- `send_card` re-attempts a `failed` row with attempts left and returns the real status; `duplicate` is
+  returned only for rows already `sent`/`queued`/`sending`.
+- Unknown `/viaje` subcommands get the full help text (hint line first).
+- `update_trip(..., actor_id=...)`: `actor_id` is accepted for future auditing and not persisted yet.
