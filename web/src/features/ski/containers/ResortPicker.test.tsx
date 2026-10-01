@@ -15,8 +15,8 @@ import { ResortPicker } from "./ResortPicker";
 const t = messages.ski.resorts;
 const catalog = [
   makeResort(),
-  makeResort({ id: RESORT_2_ID, slug: "las-lenas", name: "Las Leñas", region: "Mendoza" }),
-  makeResort({ id: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa3", slug: "portillo", name: "Portillo", country: "CL", region: "Valparaíso" }),
+  makeResort({ id: RESORT_2_ID, slug: "las-lenas", name: "Las Le\u00f1as", region: "Mendoza" }),
+  makeResort({ id: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa3", slug: "portillo", name: "Portillo", country: "CL", region: "Valparaiso" }),
 ];
 const catalogHandler = http.get("/api/ski/resorts", ({ response }) => response(200).json(catalog));
 
@@ -41,7 +41,7 @@ describe("ResortPicker", () => {
     expect(within(added).getByText("Cerro Catedral")).toBeInTheDocument();
     const available = await screen.findByRole("list", { name: t.available });
     expect(within(available).queryByText("Cerro Catedral")).not.toBeInTheDocument();
-    expect(within(available).getByText("Las Leñas")).toBeInTheDocument();
+    expect(within(available).getByText("Las Le\u00f1as")).toBeInTheDocument();
     expect(within(available).getByText("Portillo")).toBeInTheDocument();
   });
 
@@ -53,7 +53,7 @@ describe("ResortPicker", () => {
     fireEvent.change(screen.getByLabelText(t.search), { target: { value: "LENAS" } });
 
     const available = screen.getByRole("list", { name: t.available });
-    expect(within(available).getByText("Las Leñas")).toBeInTheDocument();
+    expect(within(available).getByText("Las Le\u00f1as")).toBeInTheDocument();
     expect(within(available).queryByText("Portillo")).not.toBeInTheDocument();
   });
 
@@ -80,7 +80,7 @@ describe("ResortPicker", () => {
     );
     setup();
 
-    fireEvent.click(await screen.findByRole("button", { name: t.addNamed.replace("{name}", "Las Leñas") }));
+    fireEvent.click(await screen.findByRole("button", { name: t.addNamed.replace("{name}", "Las Le\u00f1as") }));
 
     await waitFor(() => expect(body).toEqual({ resort_id: RESORT_2_ID }));
   });
@@ -96,7 +96,7 @@ describe("ResortPicker", () => {
     );
     setup();
 
-    fireEvent.click(await screen.findByRole("button", { name: t.addNamed.replace("{name}", "Las Leñas") }));
+    fireEvent.click(await screen.findByRole("button", { name: t.addNamed.replace("{name}", "Las Le\u00f1as") }));
 
     expect(await screen.findByRole("alert")).toHaveTextContent(messages.ski.errors.resort_already_added);
   });

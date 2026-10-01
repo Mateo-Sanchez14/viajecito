@@ -67,7 +67,7 @@ describe("PassTracker", () => {
     const list = await screen.findByRole("list", { name: t.crew });
     expect(within(list).getByText("Lucia Gomez")).toBeInTheDocument();
     expect(within(list).getByText(t.status.bought)).toBeInTheDocument();
-    expect(within(list).getByText(/Pase 5 días/)).toBeInTheDocument();
+    expect(within(list).getByText(/Pase 5 dias/)).toBeInTheDocument();
   });
 
   it("flips my status and clears my missing entry before the api answers", async () => {
@@ -131,12 +131,12 @@ describe("PassTracker", () => {
     setup();
     await screen.findByText(t.allCovered);
 
-    fireEvent.change(screen.getByLabelText(t.product), { target: { value: "Pase 7 días" } });
+    fireEvent.change(screen.getByLabelText(t.product), { target: { value: "Pase 7 dias" } });
     fireEvent.change(screen.getByLabelText(t.days), { target: { value: "7" } });
     fireEvent.click(screen.getByRole("button", { name: t.saveDetails }));
 
     await waitFor(() =>
-      expect(body).toMatchObject({ resort_id: RESORT_ID, status: "bought", product: "Pase 7 días", days: 7 }),
+      expect(body).toMatchObject({ resort_id: RESORT_ID, status: "bought", product: "Pase 7 dias", days: 7 }),
     );
   });
 });

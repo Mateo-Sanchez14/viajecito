@@ -19,7 +19,7 @@ export function makeResort(overrides: Partial<Schemas["ResortOut"]> = {}): Schem
     slug: "cerro-catedral",
     name: "Cerro Catedral",
     country: "AR",
-    region: "Río Negro",
+    region: "Rio Negro",
     lat: -41.17,
     lng: -71.44,
     base_elev_m: 1030,
@@ -59,7 +59,7 @@ export function makePassRow(overrides: Partial<Schemas["PassRowOut"]> = {}): Sch
   return {
     person: LUCIA_REF,
     resort_id: RESORT_ID,
-    product: "Pase 5 días",
+    product: "Pase 5 dias",
     days: 5,
     status: "bought",
     price: "250.00",

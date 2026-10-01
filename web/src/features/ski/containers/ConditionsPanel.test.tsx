@@ -34,7 +34,7 @@ describe("ConditionsPanel", () => {
           resorts: [
             makeTripResort(),
             makeTripResort({
-              resort: makeResort({ id: RESORT_2_ID, name: "Las Leñas" }),
+              resort: makeResort({ id: RESORT_2_ID, name: "Las Le\u00f1as" }),
               position: 1,
               latest_report: makeReport({ stale: true, age_hours: 20 }),
             }),
@@ -45,7 +45,7 @@ describe("ConditionsPanel", () => {
     setup();
 
     expect(await screen.findByRole("heading", { name: "Cerro Catedral" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Las Leñas" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Las Le\u00f1as" })).toBeInTheDocument();
     expect(screen.getAllByText(/Dato de hace/)).toHaveLength(1);
     expect(screen.getByText(t.conditions.stale.replace("{hours}", "20"))).toBeInTheDocument();
   });
