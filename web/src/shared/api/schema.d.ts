@@ -375,6 +375,187 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/ski/resorts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Ski Resorts
+         * @description Active seeded resorts, for any authenticated person.
+         */
+        get: operations["ski_api_list_resorts"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/trips/{trip_id}/ski/resorts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Add Trip Resort
+         * @description 400 `invalid_request` (unknown resort). 409 `resort_already_added`.
+         */
+        post: operations["ski_api_add_trip_resort"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/trips/{trip_id}/ski/resorts/{resort_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Remove Trip Resort
+         * @description Snow reports of the resort are kept.
+         */
+        delete: operations["ski_api_remove_trip_resort"];
+        options?: never;
+        head?: never;
+        /** Update Trip Resort */
+        patch: operations["ski_api_update_trip_resort"];
+        trace?: never;
+    };
+    "/api/trips/{trip_id}/ski": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Ski Overview */
+        get: operations["ski_api_get_overview"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/trips/{trip_id}/ski/conditions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Ski Conditions
+         * @description Cheap read of the latest report per resort (used by Today).
+         */
+        get: operations["ski_api_get_conditions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/trips/{trip_id}/ski/resorts/{resort_id}/reports": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Snow Reports */
+        get: operations["ski_api_list_reports"];
+        put?: never;
+        /**
+         * Post Manual Snow Report
+         * @description At least one field. 400 `invalid_request`; 429 `rate_limited` (6 per resort per hour).
+         */
+        post: operations["ski_api_post_report"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/trips/{trip_id}/ski/passes/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Set My Lift Pass
+         * @description Upsert on (trip, me, resort); `resort_id` null means "any / not decided".
+         */
+        put: operations["ski_api_put_my_pass"];
+        post?: never;
+        /** Delete My Lift Pass */
+        delete: operations["ski_api_delete_my_pass"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/trips/{trip_id}/ski/gear/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Set My Gear Plan
+         * @description Replaces all of my rows for the trip.
+         */
+        put: operations["ski_api_put_my_gear"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/me/ski_profile": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get My Ski Profile
+         * @description Only the owner reads their profile (it holds sizes and weight).
+         */
+        get: operations["ski_api_get_my_profile"];
+        /** Save My Ski Profile */
+        put: operations["ski_api_put_my_profile"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -873,6 +1054,349 @@ export interface components {
         TestPushOut: {
             /** Sent */
             sent: number;
+        };
+        /** ResortOut */
+        ResortOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Slug */
+            slug: string;
+            /** Name */
+            name: string;
+            /**
+             * Country
+             * @enum {string}
+             */
+            country: "AR" | "CL";
+            /** Region */
+            region: string;
+            /** Lat */
+            lat: number;
+            /** Lng */
+            lng: number;
+            /** Base Elev M */
+            base_elev_m: number;
+            /** Summit Elev M */
+            summit_elev_m: number;
+            /** Website Url */
+            website_url: string;
+        };
+        /** SnowReportOut */
+        SnowReportOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "open_meteo" | "manual";
+            /**
+             * Observed At
+             * Format: date-time
+             */
+            observed_at: string;
+            /**
+             * Fetched At
+             * Format: date-time
+             */
+            fetched_at: string;
+            /** Base Cm */
+            base_cm: number | null;
+            /** New 24H Cm */
+            new_24h_cm: number | null;
+            /** Forecast 72H Cm */
+            forecast_72h_cm: number | null;
+            /** Temp C */
+            temp_c: number | null;
+            /** Lifts Open */
+            lifts_open: number | null;
+            /** Lifts Total */
+            lifts_total: number | null;
+            /** Runs Open */
+            runs_open: number | null;
+            /** Runs Total */
+            runs_total: number | null;
+            /** Status Text */
+            status_text: string;
+            reporter: components["schemas"]["PersonRefOut"] | null;
+            /** Stale */
+            stale: boolean;
+            /** Age Hours */
+            age_hours: number;
+        };
+        /** TripResortOut */
+        TripResortOut: {
+            resort: components["schemas"]["ResortOut"];
+            /** Nights */
+            nights: number | null;
+            /** Position */
+            position: number;
+            latest_report: components["schemas"]["SnowReportOut"] | null;
+        };
+        /** TripResortIn */
+        TripResortIn: {
+            /**
+             * Resort Id
+             * Format: uuid
+             */
+            resort_id: string;
+            /** Nights */
+            nights?: number | null;
+        };
+        /**
+         * TripResortPatchIn
+         * @description Only the fields sent are applied.
+         */
+        TripResortPatchIn: {
+            /** Nights */
+            nights?: number | null;
+            /** Position */
+            position?: number;
+        };
+        /** GearRollupOut */
+        GearRollupOut: {
+            /** Rows */
+            rows: components["schemas"]["GearRowOut"][];
+            /** Rent Counts */
+            rent_counts: {
+                [key: string]: number;
+            };
+            /** Sizes */
+            sizes: components["schemas"]["SizeOut"][];
+            /** Sizes Hidden */
+            sizes_hidden: number;
+        };
+        /** GearRowOut */
+        GearRowOut: {
+            person: components["schemas"]["PersonRefOut"];
+            /**
+             * Item
+             * @enum {string}
+             */
+            item: "skis" | "board" | "boots" | "poles" | "helmet" | "goggles" | "jacket" | "pants" | "other";
+            /**
+             * Mode
+             * @enum {string}
+             */
+            mode: "own" | "rent" | "borrow";
+            /** Price */
+            price: string | null;
+            /** Currency */
+            currency: string;
+            /** Note */
+            note: string;
+        };
+        /** LevelGroupOut */
+        LevelGroupOut: {
+            /**
+             * Discipline
+             * @enum {string}
+             */
+            discipline: "ski" | "snowboard" | "both";
+            /**
+             * Level
+             * @enum {string}
+             */
+            level: "first_time" | "beginner" | "intermediate" | "advanced" | "expert";
+            /** People */
+            people: components["schemas"]["PersonRefOut"][];
+        };
+        /** MissingPassOut */
+        MissingPassOut: {
+            person: components["schemas"]["PersonRefOut"];
+            /** Resort Id */
+            resort_id: string | null;
+        };
+        /** PassRowOut */
+        PassRowOut: {
+            person: components["schemas"]["PersonRefOut"];
+            /** Resort Id */
+            resort_id: string | null;
+            /** Product */
+            product: string;
+            /** Days */
+            days: number | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "needed" | "bought" | "season_pass" | "not_needed";
+            /** Price */
+            price: string | null;
+            /** Currency */
+            currency: string;
+        };
+        /** PassSummaryOut */
+        PassSummaryOut: {
+            /** Rows */
+            rows: components["schemas"]["PassRowOut"][];
+            /** Missing */
+            missing: components["schemas"]["MissingPassOut"][];
+        };
+        /** SizeOut */
+        SizeOut: {
+            person: components["schemas"]["PersonRefOut"];
+            /** Boot Size Eu */
+            boot_size_eu: number | null;
+            /** Height Cm */
+            height_cm: number | null;
+            /** Weight Kg */
+            weight_kg: number | null;
+        };
+        /** SkiOverviewOut */
+        SkiOverviewOut: {
+            /** Resorts */
+            resorts: components["schemas"]["TripResortOut"][];
+            passes: components["schemas"]["PassSummaryOut"];
+            gear: components["schemas"]["GearRollupOut"];
+            /** Levels */
+            levels: components["schemas"]["LevelGroupOut"][];
+        };
+        /** ConditionsResortOut */
+        ConditionsResortOut: {
+            /**
+             * Resort Id
+             * Format: uuid
+             */
+            resort_id: string;
+            /** Name */
+            name: string;
+            latest_report: components["schemas"]["SnowReportOut"] | null;
+        };
+        /** SkiConditionsOut */
+        SkiConditionsOut: {
+            /** Resorts */
+            resorts: components["schemas"]["ConditionsResortOut"][];
+        };
+        /** ManualReportIn */
+        ManualReportIn: {
+            /** Base Cm */
+            base_cm?: number | null;
+            /** New 24H Cm */
+            new_24h_cm?: number | string | null;
+            /** Temp C */
+            temp_c?: number | string | null;
+            /** Lifts Open */
+            lifts_open?: number | null;
+            /** Lifts Total */
+            lifts_total?: number | null;
+            /** Runs Open */
+            runs_open?: number | null;
+            /** Runs Total */
+            runs_total?: number | null;
+            /**
+             * Status Text
+             * @default
+             */
+            status_text: string;
+        };
+        /** PassIn */
+        PassIn: {
+            /** Resort Id */
+            resort_id?: string | null;
+            /**
+             * Product
+             * @default
+             */
+            product: string;
+            /** Days */
+            days?: number | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "needed" | "bought" | "season_pass" | "not_needed";
+            /** Price */
+            price?: number | string | null;
+            /** Currency */
+            currency?: string | null;
+        };
+        /** GearIn */
+        GearIn: {
+            /** Items */
+            items: components["schemas"]["GearItemIn"][];
+        };
+        /** GearItemIn */
+        GearItemIn: {
+            /**
+             * Item
+             * @enum {string}
+             */
+            item: "skis" | "board" | "boots" | "poles" | "helmet" | "goggles" | "jacket" | "pants" | "other";
+            /**
+             * Mode
+             * @enum {string}
+             */
+            mode: "own" | "rent" | "borrow";
+            /** Price */
+            price?: number | string | null;
+            /** Currency */
+            currency?: string | null;
+            /**
+             * Note
+             * @default
+             */
+            note: string;
+        };
+        /** SkiProfileOut */
+        SkiProfileOut: {
+            /**
+             * Discipline
+             * @enum {string}
+             */
+            discipline: "ski" | "snowboard" | "both";
+            /**
+             * Level
+             * @enum {string}
+             */
+            level: "first_time" | "beginner" | "intermediate" | "advanced" | "expert";
+            /** Owns Gear */
+            owns_gear: boolean;
+            /** Boot Size Eu */
+            boot_size_eu: number | null;
+            /** Height Cm */
+            height_cm: number | null;
+            /** Weight Kg */
+            weight_kg: number | null;
+            /** Share Sizes With Trip */
+            share_sizes_with_trip: boolean;
+        };
+        /** SkiProfileIn */
+        SkiProfileIn: {
+            /**
+             * Discipline
+             * @default ski
+             * @enum {string}
+             */
+            discipline: "ski" | "snowboard" | "both";
+            /**
+             * Level
+             * @default beginner
+             * @enum {string}
+             */
+            level: "first_time" | "beginner" | "intermediate" | "advanced" | "expert";
+            /**
+             * Owns Gear
+             * @default false
+             */
+            owns_gear: boolean;
+            /** Boot Size Eu */
+            boot_size_eu?: number | string | null;
+            /** Height Cm */
+            height_cm?: number | null;
+            /** Weight Kg */
+            weight_kg?: number | null;
+            /**
+             * Share Sizes With Trip
+             * @default false
+             */
+            share_sizes_with_trip: boolean;
         };
     };
     responses: never;
@@ -2168,6 +2692,755 @@ export interface operations {
             };
             /** @description Service Unavailable */
             503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    ski_api_list_resorts: {
+        parameters: {
+            query?: {
+                country?: ("AR" | "CL") | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResortOut"][];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    ski_api_add_trip_resort: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                trip_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TripResortIn"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TripResortOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    ski_api_remove_trip_resort: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                trip_id: string;
+                resort_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    ski_api_update_trip_resort: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                trip_id: string;
+                resort_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TripResortPatchIn"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TripResortOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    ski_api_get_overview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                trip_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SkiOverviewOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    ski_api_get_conditions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                trip_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SkiConditionsOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    ski_api_list_reports: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                trip_id: string;
+                resort_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SnowReportOut"][];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    ski_api_post_report: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                trip_id: string;
+                resort_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ManualReportIn"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SnowReportOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    ski_api_put_my_pass: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                trip_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PassIn"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PassRowOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    ski_api_delete_my_pass: {
+        parameters: {
+            query?: {
+                resort_id?: string | null;
+            };
+            header?: never;
+            path: {
+                trip_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    ski_api_put_my_gear: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                trip_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GearIn"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GearRowOut"][];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    ski_api_get_my_profile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SkiProfileOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    ski_api_put_my_profile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SkiProfileIn"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SkiProfileOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
