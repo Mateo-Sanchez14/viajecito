@@ -72,7 +72,11 @@ CI fails when the committed types drift from the contract (`make api-types-check
 api/        Django (Ninja) backend
 web/        Next.js app
 contracts/  openapi.json snapshot exported from the api
-deploy/     docker/ Dockerfiles, dev/fake_gowa Gowa stub (Pi compose and scripts land in M0c)
+deploy/     docker/ Dockerfiles, dev/fake_gowa Gowa stub, Pi compose, systemd units, scripts (see deploy/README.md)
 odd/        feature documents and task tracking
 .github/    CI: api, web, platform, e2e (login flow) and arm64 image builds
 ```
+
+## Production (Raspberry Pi)
+
+Deployment, backups, restore and the go-live checklist: [deploy/README.md](deploy/README.md).
