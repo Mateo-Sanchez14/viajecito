@@ -29,5 +29,5 @@ api `uv run pytest`, ruff, lint-imports, `makemigrations --check`; web `pnpm lin
 |---|---|---|
 | C1 | **done** (verifier REQUEST CHANGES → minors fixed; commits 74e5688…9639cf8; 438 tests; merged into main locally) | `uv run pytest` 390 passed, ruff/lint-imports clean, fresh migrate ok, export idempotent (writer) |
 | C2 | **done** (verifier REQUEST CHANGES → 3 majors + 6 minors fixed; commits eee79e3…25175a0; merged into main locally) | `pnpm test` 142 passed, lint/typecheck/build/api:types:check green (writer) |
-| C3 | opus design writer running | — |
+| C3 | **done**: docs/contracts/{README,m1..m6}.md (2440 lines) merged into main; core requests R-1…R-6 → C1c (api) + C2b (web) |
 | C4 | code integration **done** and pushed: api 438, web 150, fake-gowa 26, contract unchanged, types match; `make e2e` 2 passed; `make bot-smoke` passed (tick summary now includes reminders_queued/reminder_errors). Pending: merge C3 contracts, then wave A |
