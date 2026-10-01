@@ -14,3 +14,7 @@ if not OTP_PEPPER:
     raise ImproperlyConfigured("OTP_PEPPER must not be empty in production")
 # prod is only reachable through cloudflared, which always sets CF-Connecting-IP.
 TRUST_CF_CONNECTING_IP = env.bool("TRUST_CF_CONNECTING_IP", True)  # noqa: F405
+# No fallback: an empty secret would make the webhook reject everything (it fails closed).
+GOWA_WEBHOOK_SECRET = env.str("GOWA_WEBHOOK_SECRET")  # noqa: F405
+if not GOWA_WEBHOOK_SECRET:
+    raise ImproperlyConfigured("GOWA_WEBHOOK_SECRET must not be empty in production")

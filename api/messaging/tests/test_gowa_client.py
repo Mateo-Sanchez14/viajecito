@@ -86,3 +86,82 @@ def test_non_json_body_raises_gateway_error(client):
     respx.post(f"{BASE}/send/message").mock(return_value=httpx.Response(200, text="<html>"))
     with pytest.raises(GatewayError):
         client.send_text("1@s.whatsapp.net", "hola")
+
+
+PARTICIPANTS = {
+    "code": "SUCCESS",
+    "message": "Success getting group participants",
+    "results": {
+        "group_id": "120363000000000000@g.us",
+        "name": "Los Pibes",
+        "participants": [
+            {
+                "jid": "251556000000001@lid",
+                "phone_number": "5491100000001@s.whatsapp.net",
+                "lid": "251556000000001@lid",
+                "display_name": "Ana",
+                "is_admin": True,
+                "is_super_admin": False,
+            },
+            {"jid": "5491100000002@s.whatsapp.net", "lid": None, "display_name": None},
+        ],
+    },
+}
+
+
+@respx.mock
+def test_group_participants_gets_the_roster(client):
+    route = respx.get(f"{BASE}/group/participants").mock(
+        return_value=httpx.Response(200, json=PARTICIPANTS)
+    )
+    people = client.group_participants("120363000000000000@g.us")
+    request = route.calls.last.request
+    assert request.url.params["group_id"] == "120363000000000000@g.us"
+    assert request.headers["authorization"].startswith("Basic ")
+    assert [(p.jid, p.phone_number, p.lid, p.display_name, p.is_admin) for p in people] == [
+        (
+            "251556000000001@lid",
+            "5491100000001@s.whatsapp.net",
+            "251556000000001@lid",
+            "Ana",
+            True,
+        ),
+        ("5491100000002@s.whatsapp.net", None, None, "", False),
+    ]
+
+
+@respx.mock
+def test_device_id_is_sent_as_header_when_configured():
+    route = respx.get(f"{BASE}/group/participants").mock(
+        return_value=httpx.Response(200, json=PARTICIPANTS)
+    )
+    GowaClient(BASE, device_id="5491100000009@s.whatsapp.net").group_participants("g@g.us")
+    assert route.calls.last.request.headers["x-device-id"] == "5491100000009@s.whatsapp.net"
+
+
+@respx.mock
+def test_device_id_header_is_also_sent_with_messages():
+    route = respx.post(f"{BASE}/send/message").mock(return_value=httpx.Response(200, json=OK))
+    GowaClient(BASE, device_id="dev-1").send_text("5491155551234@s.whatsapp.net", "hola")
+    assert route.calls.last.request.headers["x-device-id"] == "dev-1"
+
+
+@respx.mock
+def test_group_participants_http_error_raises_gateway_error(client):
+    respx.get(f"{BASE}/group/participants").mock(return_value=httpx.Response(500))
+    with pytest.raises(GatewayError, match="500"):
+        client.group_participants("g@g.us")
+
+
+@respx.mock
+def test_group_participants_malformed_body_raises_gateway_error(client):
+    respx.get(f"{BASE}/group/participants").mock(return_value=httpx.Response(200, json={"x": 1}))
+    with pytest.raises(GatewayError, match="participants"):
+        client.group_participants("g@g.us")
+
+
+@respx.mock
+def test_group_participants_network_error_raises_gateway_error(client):
+    respx.get(f"{BASE}/group/participants").mock(side_effect=httpx.ConnectError("boom"))
+    with pytest.raises(GatewayError):
+        client.group_participants("g@g.us")

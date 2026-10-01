@@ -1,0 +1,13 @@
+{
+  "event": "message",
+  "device_id": "5491100000009@s.whatsapp.net",
+  "payload": {
+    "id": "3EB0AAAA0000000003",
+    "chat_id": "120363000000000000@g.us",
+    "from": "251556000000002@lid",
+    "from_name": "Fake Friend",
+    "timestamp": "2025-10-15T10:30:00Z",
+    "is_from_me": false,
+    "body": "/v ayuda"
+  }
+}

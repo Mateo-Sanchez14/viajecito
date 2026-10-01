@@ -79,6 +79,7 @@ def test_test_settings_use_file_based_database():
 def test_prod_settings_enable_secure_cookies(monkeypatch):
     monkeypatch.setenv("DJANGO_SECRET_KEY", "x" * 50)
     monkeypatch.setenv("OTP_PEPPER", "p" * 32)
+    monkeypatch.setenv("GOWA_WEBHOOK_SECRET", "w" * 32)
     import config.settings.prod as prod
 
     prod = importlib.reload(prod)
@@ -131,8 +132,33 @@ def test_trust_cf_connecting_ip_defaults_off_and_on_in_prod(monkeypatch):
     assert _reload_base(monkeypatch).TRUST_CF_CONNECTING_IP is False
     monkeypatch.setenv("DJANGO_SECRET_KEY", "x" * 50)
     monkeypatch.setenv("OTP_PEPPER", "p" * 32)
+    monkeypatch.setenv("GOWA_WEBHOOK_SECRET", "w" * 32)
     import config.settings.prod as prod
 
     assert importlib.reload(prod).TRUST_CF_CONNECTING_IP is True
     monkeypatch.setenv("TRUST_CF_CONNECTING_IP", "0")
     assert importlib.reload(prod).TRUST_CF_CONNECTING_IP is False
+
+
+def test_gowa_webhook_defaults(monkeypatch):
+    base = _reload_base(monkeypatch)
+    assert base.GOWA_WEBHOOK_SECRET == "" and base.GOWA_DEVICE_ID == ""
+    assert base.MESSAGING_PROCESS_SYNC is False
+    assert (base.INBOUND_STUCK_MINUTES, base.ROSTER_SYNC_HOURS) == (2, 24)
+
+
+@pytest.mark.parametrize("value", [None, ""])
+def test_prod_requires_a_webhook_secret(monkeypatch, value):
+    from django.core.exceptions import ImproperlyConfigured
+
+    monkeypatch.setenv("DJANGO_SECRET_KEY", "x" * 50)
+    monkeypatch.setenv("OTP_PEPPER", "p" * 32)
+    if value is None:
+        monkeypatch.delenv("GOWA_WEBHOOK_SECRET", raising=False)
+    else:
+        monkeypatch.setenv("GOWA_WEBHOOK_SECRET", value)
+    import config.settings.prod as prod
+
+    expected = Exception if value is None else ImproperlyConfigured  # unset: environs EnvError
+    with pytest.raises(expected, match="GOWA_WEBHOOK_SECRET"):
+        importlib.reload(prod)

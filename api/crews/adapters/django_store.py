@@ -1,9 +1,14 @@
+from datetime import datetime
+
+from django.apps import apps
 from django.contrib.auth import get_user_model
 from django.db import transaction
+from django.db.models import Q
 from django.utils import timezone
 
 from crews.domain import CrewSummary
 from crews.models import Crew, CrewMembership, Invite, WhatsAppGroupLink
+from shared.phone import phone_to_jid
 
 
 class DjangoCrewStore:
@@ -71,3 +76,53 @@ class DjangoCrewStore:
                 invite.save(update_fields=["accepted_at"])
                 accepted += 1
         return accepted
+
+    def is_active_member(self, crew_id: str, person_id: str) -> bool:
+        return CrewMembership.objects.filter(
+            crew_id=crew_id, person_id=person_id, status=CrewMembership.Status.ACTIVE
+        ).exists()
+
+    def roster_last_synced_at(self, crew_id: str) -> datetime | None:
+        return (
+            WhatsAppGroupLink.objects.filter(crew_id=crew_id)
+            .values_list("last_synced_at", flat=True)
+            .first()
+        )
+
+    def chat_id_for_crew(self, crew_id: str) -> str | None:
+        link = WhatsAppGroupLink.objects.filter(crew_id=crew_id).first()
+        return link.chat_id if link else None
+
+    def upsert_roster_member(
+        self, crew_id: str, *, phone: str, lid: str | None, display_name: str
+    ) -> bool:
+        person_model = get_user_model()
+        # The identity model belongs to the identity app; resolving it by label keeps crews free
+        # of an import on it (and of the dependency cycle that would create).
+        identity_model = apps.get_model("identity", "WhatsAppIdentity")
+        with transaction.atomic():
+            person = person_model.objects.filter(phone=phone).first()
+            if person is None:
+                person = person_model.objects.create_user(phone, display_name=display_name)
+            identity, _ = identity_model.objects.get_or_create(
+                jid=phone_to_jid(phone), defaults={"person": person}
+            )
+            lid_is_free = lid and not identity_model.objects.filter(lid=lid).exists()
+            if identity.person_id == person.pk and not identity.lid and lid_is_free:
+                identity.lid = lid
+                identity.save(update_fields=["lid"])
+            _, created = CrewMembership.objects.get_or_create(
+                crew_id=crew_id,
+                person=person,
+                defaults={"role": "member", "source": "group_sync", "status": "active"},
+            )
+        return created
+
+    def mark_roster_synced(self, crew_id: str, when: datetime) -> None:
+        WhatsAppGroupLink.objects.filter(crew_id=crew_id).update(last_synced_at=when)
+
+    def crews_needing_sync(self, before: datetime) -> list[str]:
+        links = WhatsAppGroupLink.objects.filter(
+            Q(last_synced_at__isnull=True) | Q(last_synced_at__lt=before)
+        ).order_by("last_synced_at", "pk")
+        return [str(crew_id) for crew_id in links.values_list("crew_id", flat=True)]

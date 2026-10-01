@@ -97,3 +97,16 @@ def person_data(person: Person) -> PersonData:
         display_name=person.display_name,
         locale=person.locale,
     )
+
+
+class DjangoIdentityDirectory:
+    def person_id_by_jid(self, jid: str) -> str | None:
+        return self._first(WhatsAppIdentity.objects.filter(jid=jid))
+
+    def person_id_by_lid(self, lid: str) -> str | None:
+        return self._first(WhatsAppIdentity.objects.filter(lid=lid))
+
+    @staticmethod
+    def _first(rows) -> str | None:
+        person_id = rows.values_list("person_id", flat=True).first()
+        return str(person_id) if person_id else None
