@@ -34,6 +34,6 @@ The group converges on dates: availability grid per person, a best-window sugges
 ## Progress
 | Task | Status | Evidence |
 |---|---|---|
-| A1 | pending | — |
-| A2 | pending | — |
+| A1 | writer done (7 commits 16de7f6…b90b5a3; 671 tests; best-window with 40 random cases vs oracle; /viaje fechas; missing-votes rule); opus verifier running | writer: pytest 671 passed, ruff/lint-imports clean, export idempotent. TDD gap admitted on availability/close endpoints (mutation-checked). |
+| A2 | writer running (sonnet, launched 2026-10-01 after M-core bc1bece) | — |
 | A3 | pending | — |

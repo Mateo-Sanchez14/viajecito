@@ -34,6 +34,6 @@ Trip type `ski` with resorts (CL + AR), snow reports from Open-Meteo behind a pr
 ## Progress
 | Task | Status | Evidence |
 |---|---|---|
-| A1 | pending | — |
-| A2 | pending | — |
+| A1 | writer running (sonnet, launched 2026-10-01 after M-core bc1bece) | — |
+| A2 | writer done (8 commits baf88cc…17bd947 + refactor; 211 web tests; dashboard, pass tracker, gear planner, profile, resort picker, conditions, overview card, /me/ski); opus verifier running | writer: lint/typecheck/test/build/api:types:check green at 17bd947 |
 | A3 | pending | — |
