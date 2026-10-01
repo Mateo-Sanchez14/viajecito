@@ -15,7 +15,7 @@ export function initialsOf(name: string): string {
   return letters.length > 0 ? letters.join("") : "?";
 }
 
-const BASE = "inline-flex size-9 shrink-0 items-center justify-center rounded-full";
+const BASE = "ui-avatar inline-flex size-9 shrink-0 items-center justify-center rounded-full";
 
 /** Round avatar: the image when there is one, otherwise the person's initials. */
 export function Avatar({ name, src, className = "" }: AvatarProps) {

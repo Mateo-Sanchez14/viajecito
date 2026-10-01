@@ -22,7 +22,7 @@ export function Button({
   return (
     <button
       type={type}
-      className={`${VARIANT_CLASSES[variant]} disabled:cursor-not-allowed disabled:opacity-50 ${className}`}
+      className={`ui-button ui-button-${variant} ${VARIANT_CLASSES[variant]} disabled:cursor-not-allowed disabled:opacity-50 ${className}`}
       {...props}
     />
   );

@@ -16,7 +16,7 @@ type SectionNavProps = {
 /** Horizontal tab-like navigation; scrolls sideways on narrow screens. */
 export function SectionNav({ label, items, className = "" }: SectionNavProps) {
   return (
-    <nav aria-label={label} className={`w-full overflow-x-auto ${className}`}>
+    <nav aria-label={label} className={`ui-section-nav w-full overflow-x-auto ${className}`}>
       <ul className="flex w-max min-w-full gap-1 border-b border-border">
         {items.map((item) => (
           <li key={item.key}>
