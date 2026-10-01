@@ -4,6 +4,7 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
 
+from shared.timezones import InvalidTimezoneError, validate_timezone
 from trips import domain
 
 
@@ -42,11 +43,17 @@ class Trip(models.Model):
             domain.validate_dates(self.start_on, self.end_on)
         except domain.InvalidTripInputError as exc:
             raise ValidationError({"end_on": str(exc)}) from exc
+        if self.timezone:
+            try:
+                validate_timezone(self.timezone)
+            except InvalidTimezoneError as exc:
+                raise ValidationError({"timezone": "Enter a valid IANA timezone."}) from exc
 
     def save(self, *args, **kwargs):
         self.currency = domain.normalize_currency(self.currency)
         if not self.timezone:
             self.timezone = self.crew.timezone
+        validate_timezone(self.timezone)
         super().save(*args, **kwargs)
 
 

@@ -6,6 +6,7 @@ from django.db import models
 from django.utils import timezone
 
 from shared.phone import InvalidPhoneError, normalize_phone
+from shared.timezones import InvalidTimezoneError, validate_timezone
 
 
 class Crew(models.Model):
@@ -23,6 +24,17 @@ class Crew(models.Model):
 
     def __str__(self) -> str:
         return self.name
+
+    def clean(self) -> None:
+        super().clean()
+        try:
+            validate_timezone(self.timezone)
+        except InvalidTimezoneError as exc:
+            raise ValidationError({"timezone": "Enter a valid IANA timezone."}) from exc
+
+    def save(self, *args, **kwargs):
+        validate_timezone(self.timezone)
+        super().save(*args, **kwargs)
 
 
 class WhatsAppGroupLink(models.Model):

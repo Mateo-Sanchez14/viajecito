@@ -4,6 +4,9 @@ Milestones register rules from ``AppConfig.ready()``. The ``tick`` job runs ever
 active trip; a rule yields the drafts that are due *now*. Rules must be idempotent: the same
 reminder always carries the same ``dedupe_key``, so re-running a tick never sends it twice (and a
 draft skipped during quiet hours is simply produced again by a later tick).
+
+The tick persists each draft under ``"<rule key>:<dedupe_key>"``. Rules never prefix their own
+keys: the registration key already namespaces them, so two rules may reuse the same draft key.
 """
 
 from collections.abc import Callable, Iterable

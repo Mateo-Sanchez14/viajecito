@@ -2,6 +2,7 @@ import uuid
 
 import pytest
 
+from crews.models import Crew
 from trips.models import Participation, Trip
 from trips.tests.conftest import join, send
 
@@ -293,3 +294,10 @@ def test_display_name_falls_back_to_the_phone(as_person, crew, trip, ana):
     assert names[str(nameless.pk)] == "+5491155555555"
     put = send(as_person(nameless), "put", f"{trip_url(trip)}/participation", {"rsvp": "in"})
     assert put.json()["display_name"] == "+5491155555555"
+
+
+def test_create_is_400_when_the_crews_timezone_is_invalid(as_person, crew, ana):
+    Crew.objects.filter(pk=crew.pk).update(timezone="Mars/Olympus")  # bypasses save()
+    response = send(as_person(ana), "post", trips_url(crew), {"name": "x"})
+    assert response.status_code == 400 and response.json()["code"] == "invalid_request"
+    assert Trip.objects.count() == 0

@@ -246,6 +246,9 @@ from `AppConfig.ready()`.
 - **Payload**: keyword arguments with ids and plain values only (never model instances).
 - **Inside a transaction** use `shared.events_django.publish_after_commit(...)`: it defers through
   `transaction.on_commit` (dropped on rollback) and publishes immediately outside an atomic block.
+- **Testing**: pytest-django's default `django_db` wraps the test in a transaction that is never
+  committed, so `on_commit` callbacks never fire. Tests of `publish_after_commit` subscribers must use
+  the `django_capture_on_commit_callbacks(execute=True)` fixture (or `django_db(transaction=True)`).
 
 ## Reminder rules and the tick `reminders` phase
 
@@ -263,3 +266,12 @@ returns the reminders that are due *now*; milestones register theirs from `AppCo
   runs every rule inside try/except (logged and counted, never fatal), and drops drafts produced while the
   trip's local time is in quiet hours (22:00-09:00 in `trip_timezone`); a later tick produces them again.
   The tick summary gains `reminders_queued` and `reminder_errors`.
+- **Dedupe keys**: the tick persists `"<rule key>:<draft dedupe_key>"`, so rules never share a key space.
+  Milestones never prefix their own keys; they only keep `dedupe_key` stable per reminder.
+- **Delivery**: reminders queued in a tick are sent by the NEXT tick (outbound rows must be older than
+  `QUEUED_MIN_AGE_SECONDS`, 60 s, so a row is never sent while the process that made it may still be
+  working on it).
+- **Failures**: one failing rule or trip (e.g. an invalid `Trip.timezone`) is logged with the trip id,
+  counted in `reminder_errors` and skipped; the other trips and rules still run.
+- **Timezones** of `Crew` and `Trip` are validated against IANA names (`shared/timezones.py`) in
+  `clean()` and `save()`; the trips API answers `400 invalid_request` when the crew's is invalid.

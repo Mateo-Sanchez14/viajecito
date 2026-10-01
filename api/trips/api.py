@@ -6,6 +6,7 @@ from ninja.security import django_auth
 
 from crews.api_auth import current_person, member_of_crew
 from shared.api_errors import ApiError, ErrorOut
+from shared.timezones import InvalidTimezoneError
 from trips.adapters.django_store import DjangoTripStore
 from trips.api_auth import member_of_trip
 from trips.domain import InvalidTripInputError, TripData, TripDetail
@@ -30,7 +31,7 @@ def store() -> DjangoTripStore:
     return DjangoTripStore()
 
 
-def invalid(exc: InvalidTripInputError) -> ApiError:
+def invalid(exc: InvalidTripInputError | InvalidTimezoneError) -> ApiError:
     return ApiError(HTTPStatus.BAD_REQUEST, "invalid_request", str(exc))
 
 
@@ -81,7 +82,7 @@ def create_trip(request, crew_id: UUID, payload: TripCreateIn):
     person_id = str(membership.person_id)
     try:
         trip = create_trip_use_case(str(crew_id), person_id, store(), **payload.model_dump())
-    except InvalidTripInputError as exc:
+    except (InvalidTripInputError, InvalidTimezoneError) as exc:
         raise invalid(exc) from exc
     return Status(HTTPStatus.CREATED, trip_out(detail_of(trip, person_id)))
 
@@ -119,7 +120,7 @@ def update_trip(request, trip_id: UUID, payload: TripPatchIn):
     access = member_of_trip(request, trip_id)
     try:
         trip = update_trip_use_case(str(trip_id), payload.model_dump(exclude_unset=True), store())
-    except InvalidTripInputError as exc:
+    except (InvalidTripInputError, InvalidTimezoneError) as exc:
         raise invalid(exc) from exc
     return Status(HTTPStatus.OK, trip_out(detail_of(trip, str(access.membership.person_id))))
 
@@ -142,6 +143,6 @@ def set_participation(request, trip_id: UUID, payload: ParticipantIn):
     person = current_person(request)
     try:
         row = set_participation_use_case(str(trip_id), str(person.pk), payload.rsvp, store())
-    except InvalidTripInputError as exc:
+    except (InvalidTripInputError, InvalidTimezoneError) as exc:
         raise invalid(exc) from exc
     return Status(HTTPStatus.OK, ParticipantOut(**vars(row)))

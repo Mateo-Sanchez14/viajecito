@@ -130,7 +130,7 @@ def test_a_rule_with_two_drafts_queues_two_rows_and_a_rerun_adds_none(registry, 
     assert [(r.status, r.kind, r.to_jid, r.subject_type) for r in rows] == [
         ("queued", "reminder", CHAT, "trip")
     ] * 2
-    assert [r.dedupe_key for r in rows] == [f"test:{trip.pk}:1", f"test:{trip.pk}:2"]
+    assert [r.dedupe_key for r in rows] == [f"fake:test:{trip.pk}:1", f"fake:test:{trip.pk}:2"]
     second = tick()
     assert (second["reminders_queued"], second["reminder_errors"]) == (0, 0)
     assert OutboundMessage.objects.count() == 2
@@ -227,3 +227,31 @@ def test_a_raising_rule_is_counted_and_does_not_stop_the_others(registry, trip):
     assert summary["reminders_queued"] == 2  # the failing generator queued nothing
     assert not OutboundMessage.objects.filter(dedupe_key="half").exists()
     assert summary["errors"] == 0
+
+
+@pytest.mark.django_db
+@time_machine.travel(JULY_NOON, tick=False)
+def test_a_trip_with_an_invalid_timezone_is_counted_and_does_not_stop_the_others(registry, trip):
+    Trip.objects.filter(pk=trip.pk).update(timezone="Mars/Olympus")  # bypasses save()
+    good = Trip.objects.create(crew=trip.crew, name="Good", timezone=BA)
+    reminders.register_reminder_rule("fake", two_drafts)
+    summary = tick()
+    assert (summary["reminder_errors"], summary["reminders_queued"]) == (1, 2)
+    assert summary["errors"] == 0
+    assert OutboundMessage.objects.filter(subject_id=str(good.pk)).count() == 2
+
+
+@pytest.mark.django_db
+@time_machine.travel(JULY_NOON, tick=False)
+def test_rules_do_not_share_a_dedupe_key_space(registry, trip):
+    def same_key(ctx):
+        yield ReminderDraft(
+            to_jid=ctx.chat_id, body="x", dedupe_key="once", subject_type="trip", subject_id="1"
+        )
+
+    reminders.register_reminder_rule("rule_a", same_key)
+    reminders.register_reminder_rule("rule_b", same_key)
+    assert tick()["reminders_queued"] == 2
+    keys = set(OutboundMessage.objects.values_list("dedupe_key", flat=True))
+    assert keys == {"rule_a:once", "rule_b:once"}
+    assert tick()["reminders_queued"] == 0  # still idempotent per rule

@@ -75,3 +75,17 @@ def test_a_fresh_invite_after_removal_reactivates(crew):
     assert accept_invites(person.pk, PHONE, DjangoCrewStore()) == 1
     membership.refresh_from_db()
     assert membership.status == "active"
+
+
+@pytest.mark.django_db
+def test_crew_rejects_an_unknown_timezone_on_clean_and_save():
+    from django.core.exceptions import ValidationError
+
+    from shared.timezones import InvalidTimezoneError
+
+    crew = Crew(name="x", timezone="Mars/Olympus")
+    with pytest.raises(ValidationError) as exc:
+        crew.full_clean()
+    assert "timezone" in exc.value.message_dict
+    with pytest.raises(InvalidTimezoneError):
+        crew.save()

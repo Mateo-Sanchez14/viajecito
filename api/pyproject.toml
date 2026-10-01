@@ -72,6 +72,7 @@ source_modules = [
     "trips.domain", "trips.use_cases", "trips.ports", "trips.plugins",
     "messaging.reminders",
     "shared.phone", "shared.clock", "shared.events",
+    "shared.timezones",
 ]
 forbidden_modules = ["django", "ninja", "httpx"]
 

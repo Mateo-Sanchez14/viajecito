@@ -61,3 +61,14 @@ def test_deleting_the_default_trip_nulls_the_crew_pointer(crew):
     trip.delete()
     crew.refresh_from_db()
     assert crew.default_trip_id is None
+
+
+def test_trip_rejects_an_unknown_timezone_on_clean_and_save(crew):
+    from shared.timezones import InvalidTimezoneError
+
+    trip = Trip(crew=crew, name="x", timezone="Mars/Olympus")
+    with pytest.raises(ValidationError) as exc:
+        trip.full_clean()
+    assert "timezone" in exc.value.message_dict
+    with pytest.raises(InvalidTimezoneError):
+        trip.save()
