@@ -51,6 +51,7 @@ testpaths = [
     "proposals",
     "logistics",
     "documents",
+    "budget",
 ]
 python_files = ["test_*.py"]
 
@@ -81,6 +82,7 @@ known-first-party = [
     "proposals",
     "logistics",
     "documents",
+    "budget",
 ]
 
 [tool.importlinter]
@@ -102,6 +104,7 @@ root_packages = [
     "proposals",
     "logistics",
     "documents",
+    "budget",
 ]
 
 include_external_packages = true
@@ -116,6 +119,7 @@ forbidden_modules = [
     "proposals",
     "logistics",
     "documents",
+    "budget",
 ]
 
 [[tool.importlinter.contracts]]
@@ -139,6 +143,7 @@ source_modules = [
     "logistics.domain", "logistics.use_cases", "logistics.ports",
     "logistics.domain_nag",
     "documents.domain", "documents.use_cases", "documents.ports",
+    "budget.domain", "budget.use_cases",
     "ski.domain",
     "ski.use_cases",
     "ski.ports",
