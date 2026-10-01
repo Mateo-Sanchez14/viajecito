@@ -10,6 +10,9 @@ dependencies = [
     "whitenoise>=6.9",
     "environs>=14",
     "phonenumbers>=9.0.40",
+    "httpx>=0.28",
+    "selectolax>=0.3",
+    "pillow>=11",
     "pywebpush>=2.5.0",
 ]
 
@@ -24,6 +27,7 @@ dev = [
     "time-machine>=2.16",
     "respx>=0.22",
     "httpx>=0.28",
+    "hypothesis>=6",
 ]
 
 [tool.uv]
@@ -43,6 +47,8 @@ testpaths = [
     "decisions",
     "notifications",
     "ski",
+    "linkpreview",
+    "proposals",
 ]
 python_files = ["test_*.py"]
 
@@ -69,6 +75,8 @@ known-first-party = [
     "decisions",
     "notifications",
     "ski",
+    "linkpreview",
+    "proposals",
 ]
 
 [tool.importlinter]
@@ -86,6 +94,8 @@ root_packages = [
     "ninja",
     "httpx",
     "ski",
+    "linkpreview",
+    "proposals",
 ]
 
 include_external_packages = true
@@ -96,6 +106,8 @@ type = "forbidden"
 source_modules = ["shared"]
 forbidden_modules = [
     "config", "ops", "identity", "crews", "messaging", "trips", "decisions", "notifications", "ski",
+    "linkpreview",
+    "proposals",
 ]
 
 [[tool.importlinter.contracts]]
@@ -111,6 +123,8 @@ source_modules = [
     "messaging.reminders",
     "shared.phone", "shared.clock", "shared.events",
     "shared.timezones",
+    "linkpreview.domain", "linkpreview.use_cases", "linkpreview.ports",
+    "proposals.domain", "proposals.use_cases", "proposals.ports", "proposals.copy",
     "notifications.domain",
     "notifications.use_cases",
     "notifications.ports",
@@ -220,4 +234,33 @@ ignore_imports = [
     "decisions.tests.* -> trips.models",
     "decisions.tests.* -> messaging.domain",
     "decisions.tests.* -> messaging.models",
+]
+
+[[tool.importlinter.contracts]]
+name = "linkpreview is independent of the other milestone apps"
+type = "forbidden"
+source_modules = ["linkpreview"]
+forbidden_modules = ["proposals"]
+
+[[tool.importlinter.contracts]]
+name = "proposals reaches linkpreview and core apps only through use cases"
+type = "forbidden"
+source_modules = ["proposals"]
+forbidden_modules = [
+    "linkpreview.models", "linkpreview.ports", "linkpreview.adapters", "linkpreview.api",
+    "linkpreview.schemas",
+    "identity.models", "identity.ports", "identity.adapters",
+    "crews.models", "crews.domain", "crews.adapters",
+    "trips.models", "trips.domain", "trips.ports", "trips.adapters", "trips.schemas",
+]
+allow_indirect_imports = true
+# Tests create rows and seed the fake fetcher; the API authorizes with the core helpers.
+ignore_imports = [
+    "proposals.tests.* -> identity.models",
+    "proposals.tests.* -> crews.models",
+    "proposals.tests.* -> trips.models",
+    "proposals.tests.* -> linkpreview.models",
+    "proposals.tests.* -> linkpreview.adapters.*",
+    # The single typed bridge to linkpreview: maps its ``PreviewRef`` to proposals' own type.
+    "proposals.adapters.previews -> linkpreview.ports",
 ]

@@ -6,6 +6,8 @@ PROJECT_APPS = [
     "crews",
     "messaging",
     "trips",
+    "linkpreview",
+    "proposals",
     "decisions",
     "notifications",
     "ski",
