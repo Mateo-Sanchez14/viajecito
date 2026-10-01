@@ -1,3 +1,4 @@
+import { SkiOverviewCard } from "@/features/ski/containers/SkiOverviewCard";
 import type { TripCard } from "./types";
 
 export type { TripCard } from "./types";
@@ -8,4 +9,6 @@ export type { TripCard } from "./types";
  *   { key: "proposals", module: "proposals", order: 10, Component: ProposalsOverviewCard },
  * Modules enabled on a trip without an entry here get a core placeholder card.
  */
-export const tripCards: TripCard[] = [];
+export const tripCards: TripCard[] = [
+  { key: "ski", module: "ski", order: 15, Component: SkiOverviewCard },
+];
