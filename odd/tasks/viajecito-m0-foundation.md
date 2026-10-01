@@ -77,7 +77,7 @@ Legend: route = `inline` (orchestrator) | `delegated` (one bounded writer + one 
   expanded `README.md` quickstart.
   Acceptance: fake-gowa `pytest` green; `docker compose config -q` passes; workflows valid YAML;
   Dockerfiles follow the AGENTS.md runtime contract (built for real in T4).
-- [ ] **T4 integrate M0a** — route: inline.
+- [x] **T4 integrate M0a** — route: inline.
   Merge `feat/m0a-{api,web,platform}` → `feat/m0-foundation`; regenerate `contracts/openapi.json`
   from the real api and `pnpm api:types`; run all checks; `docker compose build` + `make up` smoke
   (`/api/health` via web rewrite and fake-gowa `/health`); RDD assess on the range `main..HEAD`.
@@ -123,7 +123,7 @@ Legend: route = `inline` (orchestrator) | `delegated` (one bounded writer + one 
 | T1 | **done** 2026-10-01 (verifier opus: APPROVE WITH MINORS → 5 minors fixed in one correction round) | delegated | `feat/m0a-api`: 88ddcdd, 3ecc6a7, d89d7cb, 1e28b08, f7840ca, 9f6edab | writer: `uv run pytest` 23 passed; `ruff check` + `ruff format --check` clean; `lint-imports` 1 kept/0 broken; `manage.py check` ok; `migrate` ok on fresh path; schema export idempotent (same md5 twice). RED observed per unit (collection errors before implementation). Verifier reproduced all checks; after corrections `uv run pytest` 27 passed, contract unchanged. Orchestrator spot check: `uv run pytest` 27 passed in 0.29s; `lint-imports` 1 kept/0 broken; tree clean. |
 | T2 | **done** 2026-10-01 (verifier opus: REQUEST CHANGES → 1 blocker, 2 majors, minors fixed in one correction round) | delegated | `feat/m0a-web`: 1cfd2d6, 982219c, b2acb63, db2f519, 458df7e, d00d114, 05894a9, 2ebf413, eaf6582 | writer: `pnpm lint` clean; `pnpm typecheck` clean (also from fresh checkout); `pnpm test` 5 files / 14 passed; `pnpm api:types:check` exit 0 (exit 1 on drift); `pnpm build` ok (Next 16.3.8, standalone server.js present); no Spanish outside es-AR.json. RED observed per unit (unresolved imports before implementation). Not run: Playwright. Verifier blockers/majors fixed: `public/` added, `fetchHealth` throws on non-200/503 (RED 3 failed → GREEN 19 passed) + ErrorBoundary, `start` runs standalone server, rewrite only outside production, server-only client. Orchestrator spot check: `pnpm test` 19 passed; `pnpm typecheck` clean; tree clean. |
 | T3 | **done** 2026-10-01 (verifier opus: REQUEST CHANGES → 3 blockers, 1 major, 5 minors fixed in one correction round) | delegated | `feat/m0a-platform`: 531058f, 1d2f473, 7990fb6, 02f50b1, fa9e762, 67d7c70, 29160b7, e8d63a4 | writer: fake-gowa `uv run pytest` 13 passed; `docker build` fake-gowa ok + `/health` answers; `docker compose config -q` ok; 4 workflows parse; `make help` 15 targets; `make -n up/test` ok. RED observed (ModuleNotFoundError app before implementation). Not built: api/web images (no api/web in that worktree). Verifier blockers fixed: pnpm version conflict in web.yml, pnpm-workspace.yaml copied into web image, recursive .dockerignore globs; env_file optional; healthcheck-based depends_on. Orchestrator spot check: fake-gowa `uv run pytest` 13 passed; `docker compose config -q` without .env ok; tree clean. |
-| T4 | pending | inline | `feat/m0-foundation` | — |
+| T4 | **done** 2026-10-01 | inline | `feat/m0-foundation`: d6d7199 (merge api), 031fff6 (merge platform), a6bfe23 (merge web), edbf2cc (types from real contract), 93d253b (M0b contract draft) | integrated tree: api `uv run pytest` 27 passed, ruff + lint-imports clean; fake-gowa 13 passed; web lint/typecheck clean, `pnpm test` 19 passed, `api:types:check` no drift, `pnpm build` ok; images built: api prod+dev, web runner; api prod image: entrypoint migrates + collectstatic + gunicorn, `/api/health` 200; web runner `GET /` 200; `docker compose up --build`: api healthy, fake-gowa healthy, web `GET /` 200, rewrite `/api/health` 200. Follow-up: api entrypoint ignores CMD args (use `--entrypoint python` for ad-hoc `manage.py`). |
 | T5–T11 | pending | — | — | — |
 
 ## Forecast (authored changed lines, lockfiles and generated files excluded)
@@ -133,7 +133,7 @@ chain strategy to be asked before the first PR. Slice boundaries will be recorde
 
 ## Next step
 
-Launch T1, T2, T3 writers in parallel (isolated worktrees), then one opus verifier per worktree.
+M0a done. Launch T5 (api), T6 (web) and T7 (platform) writers in parallel in worktrees `m0b-api`, `m0b-web`, `m0b-platform` (branches `feat/m0b-*` from `feat/m0-foundation` at 93d253b), then one opus verifier each, then T8 integration.
 
 ## RDD log
 
