@@ -1,0 +1,47 @@
+{
+  "name": "web",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -H 0.0.0.0 -p 3000",
+    "build": "next build",
+    "start": "node .next/standalone/server.js",
+    "lint": "eslint",
+    "typecheck": "next typegen && tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "api:types": "openapi-typescript ../contracts/openapi.json -o src/shared/api/schema.d.ts",
+    "api:types:check": "openapi-typescript ../contracts/openapi.json -o \"${TMPDIR:-/tmp}/viajecito-schema.d.ts\" && diff -u src/shared/api/schema.d.ts \"${TMPDIR:-/tmp}/viajecito-schema.d.ts\""
+  },
+  "dependencies": {
+    "@tanstack/react-query": "^5.104.0",
+    "next": "16.3.8",
+    "next-intl": "^4.14.8",
+    "openapi-fetch": "^0.17.0",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "server-only": "^0.0.1"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.63.0",
+    "@tailwindcss/postcss": "^4",
+    "@testing-library/dom": "^10.4.2",
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.3",
+    "@types/node": "^24.19.0",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@vitejs/plugin-react": "^6.1.1",
+    "eslint": "^9",
+    "eslint-config-next": "16.3.8",
+    "jsdom": "^30.1.1",
+    "msw": "^2.15.0",
+    "openapi-msw": "^2.0.0",
+    "openapi-typescript": "^7.13.0",
+    "tailwindcss": "^4",
+    "typescript": "^5",
+    "vitest": "^5.0.3"
+  },
+  "packageManager": "pnpm@12.8.1"
+}
