@@ -1,7 +1,9 @@
 """Filter and store one Gowa webhook delivery (idempotent), then schedule its processing."""
 
+from collections.abc import Callable
 from dataclasses import dataclass
 
+from messaging.domain import GroupMessage
 from messaging.gowa.parser import parse_message_event
 from messaging.ports import GroupLinks, InboundStore, ProcessScheduler
 
@@ -24,11 +26,12 @@ def ingest_inbound(
     store: InboundStore,
     links: GroupLinks,
     scheduler: ProcessScheduler,
+    parse: Callable[[dict], GroupMessage | None] = parse_message_event,
 ) -> IngestResult:
     """Nothing is stored for events we ignore. No network I/O happens here."""
     if payload.get("event") != "message":
         return IngestResult("ignored", "event")
-    message = parse_message_event(payload)
+    message = parse(payload)
     if message is None:
         return IngestResult("ignored", "invalid_message")
     if message.is_from_me:

@@ -127,6 +127,7 @@ GOWA_WEBHOOK_SECRET = env.str("GOWA_WEBHOOK_SECRET", "")  # empty fails closed; 
 GOWA_DEVICE_ID = env.str("GOWA_DEVICE_ID", "")  # optional, sent as X-Device-Id
 # Reminder mentions always render as @<digits>; this flag only controls whether the mentioned JIDs
 # are also passed to Gowa (its ``mentions`` field is unconfirmed, hence off by default).
+WAHA_WEBHOOK_HMAC_KEY = env.str("WAHA_WEBHOOK_HMAC_KEY", "")  # empty fails closed
 GOWA_MENTIONS_ENABLED = env.bool("GOWA_MENTIONS_ENABLED", False)
 
 # Inbound processing. False: process on a worker thread after the webhook commits; True: inline.

@@ -47,7 +47,7 @@ def _timestamp(value: Any) -> datetime | None:
 
 
 def _sender(body: dict, chat_id: str) -> tuple[str, str]:
-    """``(jid, lid)`` of the author. Groups carry it in ``participant``; direct chats in ``from``."""
+    """``(jid, lid)`` of the author: ``participant`` in groups, ``from`` in direct chats."""
     info = _dict(_dict(body.get("_data")).get("Info"))
     raw = _text(body.get("participant")) or _text(info.get("Sender"))
     if not raw and not chat_id.endswith("@g.us"):
