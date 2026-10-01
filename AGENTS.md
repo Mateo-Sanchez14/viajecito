@@ -381,3 +381,9 @@ This supersedes the Gowa go-live steps (droplet webhook, gastito change); the Go
   (sendText ids `true_<chat>_<stanza>[_<participant>]`, `replyTo.id` in any form), so quoted-card matching
   is provider-agnostic; jids in WAHA URL paths are percent-encoded. GOWS group payload fields are still
   doc-derived: replace the fixtures with a live capture after go-live.
+
+## Session handoff
+
+Resuming work in a new session (any tool): read `odd/HANDOFF.md` first (state, ordered next steps, merge
+recipes, gotchas), then the relevant `odd/tasks/*.md`, then `docs/contracts/`. The plan of record is
+`docs/plan-of-record.md`. Engram memory: project `viajecito`.
