@@ -377,3 +377,7 @@ Batch reminder `OutboundMessage.subject_id` is unindexed text, not a 255-charact
 it preserves all comma-separated task UUIDs even when a batch contains more than six tasks.
 This does not change the independent 4,000-character message-body contract or choose an
 overflow presentation policy.
+
+The Wave B pure-layer and cross-app import contracts cover logistics, budget,
+documents and itinerary; messaging may not bypass their use-case seams either.
+Only exact test fixture imports are exempt, never production code.
