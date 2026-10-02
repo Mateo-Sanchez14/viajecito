@@ -35,8 +35,8 @@ Installable PWA with countdown and offline cache of Today and documents list, We
 | Task | Status | Evidence |
 |---|---|---|
 | A1 | **done** (verifier REQUEST CHANGES → corrected; 701 tests; merged) | writer: notifications 122 passed; full suite 666 + 1 core test fixed on main (209110c, reminders.isolated()); ruff/lint-imports clean; export idempotent |
-| A2 | writer running (sonnet, launched 2026-10-01 after M-core bc1bece) | — |
-| A3 | pending | — |
+| A2 | done | Corrected and merged b843de0; Wave A delivered |
+| A3 | done (Wave A) | Prior export/types/e2e/bot-smoke/push; map tracked separately |
 
 ## Map continuation — 2026-10-01
 - M1 delivered main ec96636; created feat/m6-map worktree ~/Development/viajecito-worktrees/m6-map. Prior full observation2708 is stale for already integrated PWA/push; actual document/core state preserved.
@@ -54,3 +54,8 @@ Installable PWA with countdown and offline cache of Today and documents list, We
 ### Final map correction — 2026-10-02
 - Independent map review8a751c5 reproduced two P2 gaps: nested main/secondh1 under trip shell and Leaflet popup-close24px instead of44px. Full582 tests/build pass; actual mocked-tile browser proof in /tmp/m6-map-verifier.
 - Same author m4_web_writer receives its ONE correction round, scoped map source/tests only. RED/GREEN plus integrated landmark/touch measurements, independent corrected-diff recheck/parent spot then merge required.
+
+### Observed map integration — 2026-10-02
+- ONE correctiondd6409d independently APPROVED: focused13/full584, types/lint/drift/build; real390/1440 mocked tiles, main1/h1one/axe0,44px close fully inside popup after Leaflet auto-pan settles.
+- Parent merged2244443 after export1980pytest, frozen deps/actual regenerated types/typecheck/lint595webtests/drift/build green. Parent map spot inspected corrected scope and independent browser proof.
+- Map source/review/main integration complete; M1 map checkbox remains open for final combined smoke and push only. Production offline Today/documents check will run after M4 web integration.

@@ -51,3 +51,8 @@ RDD clone-local OFF: disabled/unmanaged, ordinary independent verification. Esti
 - V1/V2 candidate559b20b+b050650 independently approved owned scope578 tests/16 real mobile-desktop light-dark views; auth/create/RSVP/loading/errors checked. V1/V2 checkboxes represent observed author and independent outcomes; V3 integration remains open.
 - Approved bounded presentation-only extension: existing features/auth/containers/ShellHeader.tsx notification wrapper/link, plus existing proposals overview links/checkbox styles. Align shell and provide44px targets without auth/push/business changes; exact existing owner paths to be reported, no new subtree invention. Same visual author one polish/correction round with RED browser regressions; different independent corrected-diff review.
 - Parent/platform must provision Chromium before web CI unit tests; independently reproduced missing executable in clean CI. Writer may not edit .github.
+
+### Observed parent integration — 2026-10-02
+- Final polish1d41a4a independently approved:582 tests/full checks and12 actual320/390/1440 light/dark views, axe zero, no horizontal overflow, native checkbox corner toggles, aligned1120px shell and44px links.
+- Parent merged78e2c7a after API export1980pytest and frozen web install/generated actual Wave B schema/typecheck/lint582tests/drift/build green. Chromium CI provision merged27ffb0a after full API gate.
+- Visual implementation/review/integration complete; V3 remains open only for final combined e2e/bot-smoke and push, not agent work.
