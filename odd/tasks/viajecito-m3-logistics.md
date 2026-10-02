@@ -35,9 +35,9 @@ Tasks with owners and due dates (todo / bring / booking), packing templates per 
 ## Progress
 | Task | Status | Evidence |
 |---|---|---|
-| B1 | pending | — |
-| B2 | pending | — |
-| B3 | pending | — |
+| B1 | integrated | Corrected48261d9, parent298c8f0, fullAPI1906 then2004 aftercore |
+| B2 | corrected; final checks/review | a98685e; actualsharedtypes/client C2 finishing after fixed05a41ee |
+| B3 | main integration in progress | Core86cf620/platformfb8e1d8/generator05a41ee/CIffcf36b; finalM3web/e2e/prod/push pending |
 
 ## Codex resumption — 2026-10-01
 - Baseline ec96636, M1 fully integrated/pushed; API1816 tests, web571, e2e8passed/2production-only skips, bot smoke passed. Current docs reconciled against full Engram wave-b observation2712 (stale pre-M1 status).
@@ -103,9 +103,14 @@ Tasks with owners and due dates (todo / bring / booking), packing templates per 
 ### Observed core/platform integration and real generator seam — 2026-10-02
 - C0e506211 independently APPROVED2004tests/14importcontracts/frozen/Ruff/migrations/export; parent merged86cf620 after same complete API gate. C1662b249 independently APPROVED7envtests/33shell assertions/unchanged literal parser; parent mergedfb8e1d8 after2004API/export and focused tests.
 - Test-only deterministic ski privacy correction0b984cc: actual UUID contains181, reproducedRED then exact private-field assertions GREEN/full1980; main mergeb64f4f8 after2004pytest. No production privacy code changed.
-- [ ] **C3 generated request defaults** — delegated bounded web toolchain writer (nontrivial regression plus shared config), isolated codex/openapi-request-defaults fromb64f4f8. Exact upstream pinned openapi-typescript7.13 defaultNonNullable=true incorrectly promotes optional defaulted referenced request fields: API PackingPatchIn has no required list and supports partial PATCH. Set --default-non-nullable false in BOTH api:types and drift script, regenerate only shared schema, compile-test four single-field path-derived PATCH bodies and assert shipped-body only given field. No API behavior/schema changes, no stale packed/position sends, no type casts. Independent verifier and parent regression/fullweb/API merge gate required. TDD strict pnpm test/typecheck; RDD off/direct-main exception-ok.
+- [x] **C3 generated request defaults** — delegated bounded web toolchain writer (nontrivial regression plus shared config), isolated codex/openapi-request-defaults fromb64f4f8. Exact upstream pinned openapi-typescript7.13 defaultNonNullable=true incorrectly promotes optional defaulted referenced request fields: API PackingPatchIn has no required list and supports partial PATCH. Set --default-non-nullable false in BOTH api:types and drift script, regenerate only shared schema, compile-test four single-field path-derived PATCH bodies and assert shipped-body only given field. No API behavior/schema changes, no stale packed/position sends, no type casts. Independent verifier and parent regression/fullweb/API merge gate required. TDD strict pnpm test/typecheck; RDD off/direct-main exception-ok.
 - Current B2 correctiona98685e plus real-parent ingestion68aeb9a passed1980API beforecommit and606webtests; waits C3 shared generator seam.
 
-- [ ] **C4 CI roster seeding** — independently confirmed CI bootstraps only admin while login spec uses a second eligible phone; it would wait for a nonexistent OTP. Delegated bounded platform writer in codex/e2e-ci-roster from current main. Own Makefile named seed-e2e-roster target wrapping existing SEED_E2E_ROSTER, .github/workflows/e2e.yml call after bootstrap, directlyrelated offline regression. Preserve one shared login/session, no real sends/ledger clearing, no recipe duplication. Strict observed RED→GREEN and focused checks; separate verifier, API export/pytest before merge.
+- [x] **C4 CI roster seeding** — independently confirmed CI bootstraps only admin while login spec uses a second eligible phone; it would wait for a nonexistent OTP. Delegated bounded platform writer in codex/e2e-ci-roster from current main. Own Makefile named seed-e2e-roster target wrapping existing SEED_E2E_ROSTER, .github/workflows/e2e.yml call after bootstrap, directlyrelated offline regression. Preserve one shared login/session, no real sends/ledger clearing, no recipe duplication. Strict observed RED→GREEN and focused checks; separate verifier, API export/pytest before merge.
 
 - C3 bounded presentation normalization extension authorized after verified API evidence: only web/src/features/ski/lib/passes.ts and its new passes.test.ts. PassIn.product defaults empty string and replacing a pass writes it, so normalize omitted input with product??''; do not preserve stale previous product or weaken PassRow output. Regression omitted clears prior/nonempty explicit preserved/unrelated member unchanged. No other ski/production/schema changes.
+
+### Observed generator/CI/runtime correction integration
+- C3c5e5817 independently603tests/8focused/generation audit approved; parent05a41ee after2004API/export and629combinedweb/type/lint/drift/build. C4c9963ed independently5offline regressions approved; mainffcf36b after2004API and5focusedtests. Initial parent focusedtest wrongfilename failedimport; corrected exacttest passed beforecommit.
+- Bot-smoke sample-only API-identical750df78 PASS: pong replies exact message, duplicate replay, tick0errors; fullteardown. Todaye2e oldh1 expectation actualRED8pass1fail, parenttest-only1926ff5 observedGREEN9pass2production-onlyskips and independentlyapproved; main4c6b3e9 after2004API gate. No productionpagechange.
+- M3web ingested fixed05a41ee as5e642e4 AFTER export/full2004pytest, appended cards union, restored exactownedstash; finalC2cleanSHA checks/review next. Overflow productdecision remains unanswered/unchanged safe failure; not silently accepted.

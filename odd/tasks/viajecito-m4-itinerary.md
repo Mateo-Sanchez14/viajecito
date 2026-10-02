@@ -21,7 +21,7 @@ Day-by-day itinerary with an unscheduled tray, meeting points and quick notes; t
 
 ## Tasks
 - [x] **B1 api** — delegated (writer sonnet; verifier opus).
-- [ ] **B2 web** — delegated (writer sonnet; verifier opus). Builds against the contract's API table with a draft
+- [x] **B2 web** — delegated (writer sonnet; verifier opus). Builds against the contract's API table with a draft
   added to `contracts/openapi.json` (orchestrator regenerates from the real api at integration).
 - [ ] **B3 integrate** — inline: merge api then web, regenerate contract/types, env parsing for the contract's
   settings, full checks, `make e2e` + `make bot-smoke`, merge to `main`, push.
@@ -34,9 +34,9 @@ Day-by-day itinerary with an unscheduled tray, meeting points and quick notes; t
 ## Progress
 | Task | Status | Evidence |
 |---|---|---|
-| B1 | pending | — |
-| B2 | pending | — |
-| B3 | pending | — |
+| B1 | integrated | Corrected78ceef6 → mainb44754f after1980API |
+| B2 | integrated | Corrected174a84f independently597tests+6hydratedviewports, maine33ce43 after2004API/621web/fullchecks |
+| B3 | final delivery checks | Main4c6b3e9 includescore/generator/Todaye2efix; productionSW/combinede2e/push pending |
 
 ## Codex resumption — 2026-10-01
 - Baseline ec96636, M1 fully integrated/pushed; API1816 tests, web571, e2e8passed/2production-only skips, bot smoke passed. Current docs reconciled against full Engram wave-b observation2712 (stale pre-M1 status).
@@ -74,3 +74,8 @@ Day-by-day itinerary with an unscheduled tray, meeting points and quick notes; t
 ### Independent web correction and real-contract integration
 - Web7891dea independently reproduced594 tests/focused23/lint/types/build. One P2: ItineraryPlanner/TodayView main+h1 duplicate parent appmain/tripheaderh1; external integrated regressions reproduced2/2. Same author m4_web_writer receives ONE correction, wrapperssection/div andh2 with meaningful RED/GREEN.
 - Approved C2 integration scope: clean fixed parent27ffb0a ingestion --no-ff/no-commit with export+pytest before mergecommit, regenerate actual sharedtypes/client, delete itinerary draftgenerator/JSON/schema and replace temporary Todaydocumenttypes/rawfetch with sharedgeneratedpaths/client. Preserve20s/ETag304, permissions/localtime/order behavior. Different independent final review required; no API/core edits beyond controlled parent ingestion.
+
+### Observed web and runtime integration — 2026-10-02
+- Final corrected174a84f independentAPPROVE:597web/26focused/fullchecks; actualhydrated320/390/1440 itinerary+Today main1/h1one/nooverflow/noJSerrors. Actual sharedpaths/client-only,20s/ETag304/CSRF/auth kept, all drafts removed.
+- Parentmaine33ce43 after2004API/export and621web/types/lint/drift/build. Generator C3 later05a41ee passed629combinedweb unchangedresponses.
+- Actualsample-onlymakee2e exposed test-only oldTodayh1selector (8pass1fail/2production skips); correction1926ff5 h2+1main/1h1 observedGREEN9pass/2production-onlyskips. Different independent spotapproved; parentmerge4c6b3e9 after2004API/export. Productionserviceworker/offlineToday/documents checks and finalcombineddelivery/push remain.
