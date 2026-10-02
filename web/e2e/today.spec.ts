@@ -48,9 +48,11 @@ test("a scheduled meeting point appears in Today", async ({
   );
   expect(entryResponse.status()).toBe(201);
   await page.goto(`/crews/${trip.crew_id}/trips/${trip.id}/today`);
+  await expect(page.getByRole("main")).toHaveCount(1);
+  await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);
   await expect(
     page.getByRole("heading", {
-      level: 1,
+      level: 2,
       name: messages.today.title,
       exact: true,
     }),
