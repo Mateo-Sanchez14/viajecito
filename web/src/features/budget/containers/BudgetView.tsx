@@ -102,8 +102,8 @@ export function BudgetView({
   const budget = useBudget(tripId);
   const data = budget.data;
   return (
-    <main className="flex flex-col gap-5" data-crew-id={crewId}>
-      <h1 className="text-2xl font-semibold">{t("title")}</h1>
+    <div className="flex flex-col gap-5" data-crew-id={crewId}>
+      <h2 className="text-2xl font-semibold">{t("title")}</h2>
       {budget.isPending && <p role="status">{t("loading")}</p>}
       {budget.isError && <p role="alert">{t("loadFailed")}</p>}
       {data && (
@@ -184,6 +184,6 @@ export function BudgetView({
           )}
         </>
       )}
-    </main>
+    </div>
   );
 }

@@ -4,6 +4,9 @@ Owned capabilities: logistics (tasks and personal packing), budget (forecast and
 private document vault controls. Server sections authenticate before loading the trip. Queries share
 contract keys and refetch intervals; task and packing toggles cancel/refetch with snapshot rollback.
 Custom packing entries accept a section key and an optional positive quantity alongside their label.
+Stored quantities remain visible and editable in each personal packing row; clearing the field removes
+the optional quantity. Invalid quantities are not submitted. Capability sections preserve the existing
+trip shell's single main landmark and level-one heading.
 
 ## Temporary parallel API schema
 

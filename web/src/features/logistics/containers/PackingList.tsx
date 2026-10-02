@@ -114,6 +114,26 @@ export function PackingList({ tripId }: { tripId: string }) {
                         }}
                       />
                     </label>
+                    <label>
+                      <span className="sr-only">{t("quantity")}</span>
+                      <input
+                        key={`${entry.id}:quantity:${entry.quantity}`}
+                        type="number"
+                        min={1}
+                        step={1}
+                        aria-label={t("packing.quantity", { item: entry.label })}
+                        defaultValue={entry.quantity ?? ""}
+                        disabled={update.isPending}
+                        className="min-h-11 w-24 rounded border px-2"
+                        onBlur={(event) => {
+                          if (!event.currentTarget.checkValidity()) return;
+                          const value = event.currentTarget.value;
+                          const quantity = value === "" ? null : Number(value);
+                          if (quantity !== entry.quantity)
+                            update.mutate({ id: entry.id, body: { quantity } });
+                        }}
+                      />
+                    </label>
                     <button
                       className="min-h-11 underline"
                       onClick={() => remove.mutate(entry.id)}

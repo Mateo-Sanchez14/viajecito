@@ -116,8 +116,8 @@ export function DocumentVault({
       cache.invalidateQueries({ queryKey: ["documents", tripId] }),
   });
   return (
-    <main className="flex flex-col gap-5">
-      <h1 className="text-2xl font-semibold">{t("title")}</h1>
+    <div className="flex flex-col gap-5">
+      <h2 className="text-2xl font-semibold">{t("title")}</h2>
       <label>
         {t("filter")}
         <select
@@ -218,6 +218,6 @@ export function DocumentVault({
           )
         );
       })}
-    </main>
+    </div>
   );
 }

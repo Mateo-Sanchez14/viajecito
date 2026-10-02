@@ -7,8 +7,8 @@ export function LogisticsBoard({ tripId }: { tripId: string }) {
   const t = useTranslations("logistics");
   const [tab, setTab] = useState<"tasks" | "packing">("tasks");
   return (
-    <main className="flex flex-col gap-5">
-      <h1 className="text-2xl font-semibold">{t("title")}</h1>
+    <div className="flex flex-col gap-5">
+      <h2 className="text-2xl font-semibold">{t("title")}</h2>
       <div role="tablist" aria-label={t("title")}>
         {(["tasks", "packing"] as const).map((key) => (
           <button
@@ -31,6 +31,6 @@ export function LogisticsBoard({ tripId }: { tripId: string }) {
           <PackingList tripId={tripId} />
         )}
       </div>
-    </main>
+    </div>
   );
 }

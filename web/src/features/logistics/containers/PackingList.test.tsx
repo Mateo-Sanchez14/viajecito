@@ -85,3 +85,30 @@ it("adds a custom item with quantity and section", async () => {
     expect(body).toEqual({ label: "Cables", section: "tech", quantity: 2 }),
   );
 });
+it("reloads stored quantities and edits or clears them through PATCH", async () => {
+  let quantity: number | null = 3;
+  const entry = () => ({ id: "p1", section: "custom", item_key: null, label: "Socks", quantity, packed: false, position: 0 });
+  server.use(
+    http.get("*/api/trips/:id/packing/summary", () => HttpResponse.json([])),
+    http.get("*/api/trips/:id/packing/me", () => HttpResponse.json({ templates_available: [], applied: [], sections: [{ key: "custom", label: "Custom", entries: [entry()] }], progress: { packed: 0, total: 1 } })),
+    http.get("*/api/auth/csrf", () => HttpResponse.json({ csrf_token: "tok" })),
+    http.patch("*/api/packing_entries/:id", async ({ request }) => {
+      const body = await request.json() as { quantity: number | null };
+      quantity = body.quantity;
+      return HttpResponse.json(entry());
+    }),
+  );
+  const view = renderWithProviders(<PackingList tripId="t1" />);
+  const input = await screen.findByRole("spinbutton", { name: "Cantidad de Socks" });
+  expect(input).toHaveValue(3);
+  fireEvent.change(input, { target: { value: "4" } });
+  fireEvent.blur(input);
+  await waitFor(() => expect(quantity).toBe(4));
+  view.unmount();
+  renderWithProviders(<PackingList tripId="t1" />);
+  const reloaded = await screen.findByRole("spinbutton", { name: "Cantidad de Socks" });
+  expect(reloaded).toHaveValue(4);
+  fireEvent.change(reloaded, { target: { value: "" } });
+  fireEvent.blur(reloaded);
+  await waitFor(() => expect(quantity).toBeNull());
+});

@@ -52,7 +52,8 @@
       "add": "Agregar a la valija",
       "edit": "Editar {item}",
       "crew": "Valijas del grupo",
-      "section": "Sección"
+      "section": "Sección",
+      "quantity": "Cantidad de {item}"
     },
     "empty": {
       "tasks": "No hay tareas. ¡Qué organizados!",
