@@ -57,6 +57,8 @@ jobs:
         run: docker compose up --build -d --wait --wait-timeout 300
       - name: Migrate and bootstrap the dev crew
         run: make bootstrap-dev-crew
+      - name: Seed both e2e phones and sync the roster
+        run: make seed-e2e-roster
       - name: Run e2e
         working-directory: web
         run: pnpm test:e2e --reporter=github,html
