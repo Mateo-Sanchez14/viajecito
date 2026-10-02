@@ -21,3 +21,10 @@ GOWA_WEBHOOK_SECRET = "test-webhook-secret"
 # All suites use deterministic, inline previews without public network access.
 LINKPREVIEW_FETCHER = "fake"
 LINKPREVIEW_FETCH_SYNC = True
+
+
+# Public, deterministic LOCAL-ONLY key: restarts must not make existing dev/test uploads unreadable.
+# Production never imports this fallback. Explicit configuration wins (including rotation order).
+DOCUMENTS_FERNET_KEYS = DOCUMENTS_FERNET_KEYS or (  # noqa: F405
+    "MDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDA=",
+)

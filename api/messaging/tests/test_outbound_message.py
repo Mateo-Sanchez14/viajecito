@@ -79,4 +79,4 @@ def test_gateway_error_type_is_what_the_use_case_catches(ledger):
 
 
 def test_subject_id_is_wide_enough_for_comma_separated_ids():
-    assert OutboundMessage._meta.get_field("subject_id").max_length == 255
+    assert OutboundMessage._meta.get_field("subject_id").max_length is None
