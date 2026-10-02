@@ -3,7 +3,7 @@
 E2E_PHONE ?= +5491155551234
 E2E_LOGIN_PHONE ?= +5491100000002
 export DATA_DIR ?= ./data
-.PHONY: help up down logs ps api-test web-test test lint api-schema api-types api-types-check fake-gowa-test replay deploy bootstrap-dev-crew e2e e2e-keep bot-smoke replay-waha
+.PHONY: help up down logs ps api-test web-test test lint api-schema api-types api-types-check fake-gowa-test replay deploy bootstrap-dev-crew seed-e2e-roster e2e e2e-keep bot-smoke replay-waha
 
 help: ## Show this help
 	@awk 'BEGIN {FS = ":.*## "} /^[a-zA-Z0-9_-]+:.*## / {printf "  \033[36m%-18s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -63,6 +63,9 @@ e2e e2e-keep: export DATA_DIR := ./data/e2e
 
 bootstrap-dev-crew: ## Create the dev crew and its admin (E2E_PHONE) in the running stack
 	$(BOOTSTRAP_CREW)
+
+seed-e2e-roster: ## Enroll both e2e phones in fake Gowa and sync the crew roster
+	$(SEED_E2E_ROSTER)
 
 e2e: ## Run the Playwright login e2e on a fresh stack and data dir, then tear it down
 	@rm -rf $(DATA_DIR); trap 'docker compose down -v' EXIT; docker compose up --build -d --wait && $(BOOTSTRAP_CREW) && $(SEED_E2E_ROSTER) && $(E2E_RUN)
