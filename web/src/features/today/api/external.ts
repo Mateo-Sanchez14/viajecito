@@ -1,38 +1,20 @@
 import { createBrowserClient } from "@/shared/api/client";
 import { toApiError } from "@/shared/api/errors";
-import type { components } from "@/shared/api/schema";
-/** M3 contract output until its real generated type is integrated. */
-export type Document = {
-  id: string;
-  trip_id: string;
-  title: string;
-  kind: "ticket" | "reservation" | "insurance" | "id" | "photo" | "other";
-  mime: string;
-  size: number;
-  visibility: "crew" | "owner_only";
-  owner: components["schemas"]["PersonRefOut"] | null;
-  uploader: components["schemas"]["PersonRefOut"];
-  valid_until: string | null;
-  proposal_id: string | null;
-  created_at: string;
-  download_path: string;
-  can_delete: boolean;
-};
+import type { components, paths } from "@/shared/api/schema";
+export type Document =
+  paths["/api/trips/{trip_id}/documents"]["get"]["responses"][200]["content"]["application/json"][number];
 export type SkiConditions = components["schemas"]["SkiConditionsOut"];
 export async function getDocuments(
   tripId: string,
   signal?: AbortSignal,
 ): Promise<Document[]> {
-  const response = await fetch(
-    new URL(
-      `/api/trips/${encodeURIComponent(tripId)}/documents`,
-      globalThis.location.origin,
-    ),
-    { credentials: "same-origin", signal },
-  );
-  if (!response.ok)
-    throw toApiError(await response.json().catch(() => null), response);
-  return response.json();
+  const result = await createBrowserClient().GET("/api/trips/{trip_id}/documents", {
+    params: { path: { trip_id: tripId } },
+    signal,
+  });
+  if (!result.response.ok || !result.data)
+    throw toApiError(result.error, result.response);
+  return result.data;
 }
 export async function getSnow(tripId: string) {
   const result = await createBrowserClient().GET(

@@ -34,19 +34,27 @@ it("sends local times, day dates and CSRF on all itinerary and note writes", asy
   );
   await createEntry("trip", {
     title: "Meet",
+    kind: "activity",
+    location_label: "",
+    is_meeting_point: false,
+    notes: "",
     day_date: "2026-10-01",
     start_time: "09:00",
   });
   await updateEntry("entry", { day_date: null });
   await moveEntry("entry", "up");
-  await saveDay("trip", "2026-10-01", { title: "First day" });
-  await addNote("trip", { body: "Remember tickets" });
+  await saveDay("trip", "2026-10-01", { title: "First day", notes: "" });
+  await addNote("trip", { body: "Remember tickets", pinned: false });
   await updateNote("note", { pinned: true });
   await deleteNote("note");
   await deleteEntry("entry");
   expect(calls).toHaveLength(8);
   expect(calls[0].body).toEqual({
     title: "Meet",
+    kind: "activity",
+    location_label: "",
+    is_meeting_point: false,
+    notes: "",
     day_date: "2026-10-01",
     start_time: "09:00",
   });

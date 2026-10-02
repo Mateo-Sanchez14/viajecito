@@ -1,21 +1,25 @@
 import { expect, it } from "vitest";
 import { validateEntry, optimisticMove } from "./entries";
+import type { EntryCreate } from "../api/itinerary";
+const entryDefaults: Omit<EntryCreate, "title"> = {
+  kind: "activity", location_label: "", is_meeting_point: false, notes: "",
+};
 it("rejects missing title, invalid local times, time without a day and invalid coordinates", () => {
-  expect(validateEntry({ title: " " })).toBe("invalid_request");
-  expect(validateEntry({ title: "Meet", start_time: "10:00" })).toBe(
+  expect(validateEntry({ ...entryDefaults, title: " " })).toBe("invalid_request");
+  expect(validateEntry({ ...entryDefaults, title: "Meet", start_time: "10:00" })).toBe(
     "invalid_times",
   );
   expect(
-    validateEntry({
+    validateEntry({ ...entryDefaults,
       title: "Meet",
       day_date: "2026-10-01",
       start_time: "10:00",
       end_time: "09:00",
     }),
   ).toBe("invalid_times");
-  expect(validateEntry({ title: "Meet", lat: 91 })).toBe("invalid_request");
+  expect(validateEntry({ ...entryDefaults, title: "Meet", lat: 91 })).toBe("invalid_request");
   expect(
-    validateEntry({
+    validateEntry({ ...entryDefaults,
       title: "Meet",
       day_date: "2026-10-01",
       start_time: "09:00",

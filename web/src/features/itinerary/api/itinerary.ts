@@ -1,7 +1,6 @@
-import createClient from "openapi-fetch";
-import { csrfMiddleware } from "@/shared/api/csrf";
+import { createBrowserClient } from "@/shared/api/client";
 import { toApiError } from "@/shared/api/errors";
-import type { paths } from "./draft.schema";
+import type { paths } from "@/shared/api/schema";
 
 export type Itinerary =
   paths["/api/trips/{trip_id}/itinerary"]["get"]["responses"][200]["content"]["application/json"];
@@ -22,15 +21,6 @@ export type NotePatch =
 export type Today =
   paths["/api/trips/{trip_id}/today"]["get"]["responses"][200]["content"]["application/json"];
 
-/** Parallel draft client; swap to the shared generated client after API integration. */
-export function client() {
-  const value = createClient<paths>({
-    baseUrl: globalThis.location?.origin ?? "/",
-    credentials: "same-origin",
-  });
-  value.use(csrfMiddleware);
-  return value;
-}
 function unwrap<T>(result: {
   data?: T;
   error?: unknown;
@@ -52,12 +42,12 @@ export const itineraryKeys = {
 };
 export async function getItinerary(id: string) {
   return unwrap(
-    await client().GET("/api/trips/{trip_id}/itinerary", tripPath(id)),
+    await createBrowserClient().GET("/api/trips/{trip_id}/itinerary", tripPath(id)),
   );
 }
 export async function createEntry(id: string, body: EntryCreate) {
   return unwrap(
-    await client().POST("/api/trips/{trip_id}/itinerary/entries", {
+    await createBrowserClient().POST("/api/trips/{trip_id}/itinerary/entries", {
       ...tripPath(id),
       body,
     }),
@@ -65,7 +55,7 @@ export async function createEntry(id: string, body: EntryCreate) {
 }
 export async function updateEntry(id: string, body: EntryPatch) {
   return unwrap(
-    await client().PATCH("/api/itinerary_entries/{entry_id}", {
+    await createBrowserClient().PATCH("/api/itinerary_entries/{entry_id}", {
       params: { path: { entry_id: id } },
       body,
     }),
@@ -73,7 +63,7 @@ export async function updateEntry(id: string, body: EntryPatch) {
 }
 export async function moveEntry(id: string, direction: "up" | "down") {
   return unwrap(
-    await client().POST("/api/itinerary_entries/{entry_id}/move", {
+    await createBrowserClient().POST("/api/itinerary_entries/{entry_id}/move", {
       params: { path: { entry_id: id } },
       body: { direction },
     }),
@@ -81,25 +71,25 @@ export async function moveEntry(id: string, direction: "up" | "down") {
 }
 export async function deleteEntry(id: string) {
   expectOk(
-    await client().DELETE("/api/itinerary_entries/{entry_id}", {
+    await createBrowserClient().DELETE("/api/itinerary_entries/{entry_id}", {
       params: { path: { entry_id: id } },
     }),
   );
 }
 export async function saveDay(id: string, date: string, body: DayInput) {
   return unwrap(
-    await client().PUT("/api/trips/{trip_id}/itinerary/days/{date}", {
+    await createBrowserClient().PUT("/api/trips/{trip_id}/itinerary/days/{date}", {
       params: { path: { trip_id: id, date } },
       body,
     }),
   );
 }
 export async function getNotes(id: string) {
-  return unwrap(await client().GET("/api/trips/{trip_id}/notes", tripPath(id)));
+  return unwrap(await createBrowserClient().GET("/api/trips/{trip_id}/notes", tripPath(id)));
 }
 export async function addNote(id: string, body: NoteCreate) {
   return unwrap(
-    await client().POST("/api/trips/{trip_id}/notes", {
+    await createBrowserClient().POST("/api/trips/{trip_id}/notes", {
       ...tripPath(id),
       body,
     }),
@@ -107,7 +97,7 @@ export async function addNote(id: string, body: NoteCreate) {
 }
 export async function updateNote(id: string, body: NotePatch) {
   return unwrap(
-    await client().PATCH("/api/notes/{note_id}", {
+    await createBrowserClient().PATCH("/api/notes/{note_id}", {
       params: { path: { note_id: id } },
       body,
     }),
@@ -115,7 +105,7 @@ export async function updateNote(id: string, body: NotePatch) {
 }
 export async function deleteNote(id: string) {
   expectOk(
-    await client().DELETE("/api/notes/{note_id}", {
+    await createBrowserClient().DELETE("/api/notes/{note_id}", {
       params: { path: { note_id: id } },
     }),
   );
@@ -126,7 +116,7 @@ export async function getToday(
   previous?: { data: Today; etag: string | null },
   signal?: AbortSignal,
 ) {
-  const result = await client().GET("/api/trips/{trip_id}/today", {
+  const result = await createBrowserClient().GET("/api/trips/{trip_id}/today", {
     ...tripPath(id),
     headers: previous?.etag ? { "If-None-Match": previous.etag } : undefined,
     signal,

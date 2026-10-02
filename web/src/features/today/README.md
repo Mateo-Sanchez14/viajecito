@@ -11,7 +11,7 @@ M5 HTTP contract and shared query key. These components mount only when their mo
 No direct cross-feature persistence access is used. Notes poll every 20 seconds and initially fall back
 to the Today snapshot's pinned/recent notes while the dedicated list loads.
 
-At integration replace the temporary `Document` declaration in `api/external.ts` with the real
-M3 generated endpoint response type and its raw list fetch with the shared typed client. M5 already
-uses generated types. E2E `e2e/today.spec.ts` self-seeds a trip using shared authentication; it never
-requests another OTP or clears the global fake Gowa ledger. Execute against the actual merged API.
+Document and ski response types are derived from the real shared generated contract. Their reads use
+the shared typed browser client; document requests preserve cancellation signals and error codes.
+E2E `e2e/today.spec.ts` self-seeds a trip using shared authentication; it never requests another OTP or
+clears the global fake Gowa ledger. Execute against the actual merged API.
