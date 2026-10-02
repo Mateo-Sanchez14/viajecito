@@ -37,3 +37,20 @@ Installable PWA with countdown and offline cache of Today and documents list, We
 | A1 | **done** (verifier REQUEST CHANGES → corrected; 701 tests; merged) | writer: notifications 122 passed; full suite 666 + 1 core test fixed on main (209110c, reminders.isolated()); ruff/lint-imports clean; export idempotent |
 | A2 | writer running (sonnet, launched 2026-10-01 after M-core bc1bece) | — |
 | A3 | pending | — |
+
+## Map continuation — 2026-10-01
+- M1 delivered main ec96636; created feat/m6-map worktree ~/Development/viajecito-worktrees/m6-map. Prior full observation2708 is stale for already integrated PWA/push; actual document/core state preserved.
+- [ ] **M1 map** — delegated web writer (2+non-trivial files), strict TDD from AGENTS `pnpm test`; contract m6-pwa.md/README addenda, reads M1 endpoint through paths types. Independent verifier, one correction round, parent spot/checks, regenerate/smoke/push.
+- Forecast >400 authored lines allowed via user direct-main exception-ok delivery; coherent work-unit commits, no code golf. RDD off clone_local disabled/unmanaged. No remote operations, dependency APIs/version evidence via Context7 before pinning.
+- Map insertion into core overview/routes only through orchestrator request; writer owns contract files/appends and must not write others. New work starts after mapping, no unsafe draft contracts.
+
+- Map writer may edit package.json and lockfile for Leaflet/react-leaflet/types as explicit contract exception; confirm versions/APIs via Context7 before pinning. Own map static route + overview card module=proposals/order11; no new nav module. Estimate400–800 authored lines direct-main exception-ok.
+
+### Map dispatch — parallel acceleration
+- M1 map writer m4_web_writer launched in m6-map after completing M4web7891dea. Ownership remains map-only/static route/map copy/tests and allowed registry appends; explicit package/lock dependency exception approved. Different independent map verifier required (author cannot self-verify).
+- Strict TDD ON from AGENTS with pnpm test, Context7 dependency evidence, full web checks; no Docker/push/remote/subagents. Reads existing real M1 paths; no feature-local draft needed.
+- Global premium/fun visual foundation is a separate workstream; map uses shared primitives and does not edit them.
+
+### Final map correction — 2026-10-02
+- Independent map review8a751c5 reproduced two P2 gaps: nested main/secondh1 under trip shell and Leaflet popup-close24px instead of44px. Full582 tests/build pass; actual mocked-tile browser proof in /tmp/m6-map-verifier.
+- Same author m4_web_writer receives its ONE correction round, scoped map source/tests only. RED/GREEN plus integrated landmark/touch measurements, independent corrected-diff recheck/parent spot then merge required.

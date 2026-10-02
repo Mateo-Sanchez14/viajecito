@@ -1,0 +1,18 @@
+"""Rioplatense Spanish copy for itinerary replies and reminders."""
+
+HOY_HEADER = "☀️ Hoy {weekday} {day} en {trip}:"
+ENTRY_LINE = "{time} {marker}{title}{location}"
+MEETING_POINT_LINE = "📍 Punto de encuentro: {title} a las {time}{location}"
+NO_PLAN = "Hoy no hay nada armado. Sumalo en {url}"
+HOY_BEFORE = "Faltan {days} días para {trip} ✈️"
+HOY_AFTER = "{trip} ya terminó. ¡Qué viajecito!"
+HOY_UNDATED = "{trip} todavía no tiene fechas."
+DIGEST_TITLE = "El plan de hoy"
+DIGEST_TOMORROW = "Mañana arrancamos {trip} 🎒"
+PINNED_HEADER = "📌 Para tener en cuenta:"
+LINK_LINE = "👉 {url}"
+HELP_HOY = "/viaje hoy — el plan de hoy"
+NO_TRIP = "Todavía no hay un viaje elegido. Armalo en {url}"
+UNTIMED = "Sin hora"
+LOCATION = " @ {label}"
+WEEKDAYS = ("lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo")

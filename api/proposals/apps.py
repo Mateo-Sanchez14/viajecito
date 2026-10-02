@@ -9,12 +9,15 @@ class ProposalsConfig(AppConfig):
         """Register everything this app contributes through the core registries."""
         from messaging import reminders, router
         from messaging.handlers import commands
+        from proposals import ports
+        from proposals.adapters.django_store import DjangoProposalStore
         from proposals.adapters.preview_events import on_preview_fetched
         from proposals.adapters.rules import majority_rule
         from proposals.bot import link_capture, quoted_card, subcommands
         from proposals.copy import es_ar
         from shared import events
 
+        ports.set_default_store(DjangoProposalStore)
         router.register_handler(20, quoted_card.handle)
         router.register_handler(30, link_capture.handle)
         commands.register_subcommand(
