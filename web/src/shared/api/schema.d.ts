@@ -1288,7 +1288,7 @@ export interface components {
              * Type
              * @default generic
              */
-            type: string;
+            type?: string;
             /** Start On */
             start_on?: string | null;
             /** End On */
@@ -1297,12 +1297,12 @@ export interface components {
              * Destination Label
              * @default
              */
-            destination_label: string;
+            destination_label?: string;
             /**
              * Currency
              * @default USD
              */
-            currency: string;
+            currency?: string;
         };
         /**
          * TripPatchIn
@@ -1346,12 +1346,12 @@ export interface components {
              * Include Discarded
              * @default false
              */
-            include_discarded: boolean;
+            include_discarded?: boolean;
             /**
              * Sort
              * @default recent
              */
-            sort: string;
+            sort?: string;
         };
         /** LinkPreviewOut */
         LinkPreviewOut: {
@@ -1896,7 +1896,7 @@ export interface components {
              * User Agent
              * @default
              */
-            user_agent: string;
+            user_agent?: string;
         };
         /** SubscriptionKeysIn */
         SubscriptionKeysIn: {
@@ -2168,7 +2168,7 @@ export interface components {
              * Status Text
              * @default
              */
-            status_text: string;
+            status_text?: string;
         };
         /** PassIn */
         PassIn: {
@@ -2178,7 +2178,7 @@ export interface components {
              * Product
              * @default
              */
-            product: string;
+            product?: string;
             /** Days */
             days?: number | null;
             /**
@@ -2216,7 +2216,7 @@ export interface components {
              * Note
              * @default
              */
-            note: string;
+            note?: string;
         };
         /** SkiProfileOut */
         SkiProfileOut: {
@@ -2248,18 +2248,18 @@ export interface components {
              * @default ski
              * @enum {string}
              */
-            discipline: "ski" | "snowboard" | "both";
+            discipline?: "ski" | "snowboard" | "both";
             /**
              * Level
              * @default beginner
              * @enum {string}
              */
-            level: "first_time" | "beginner" | "intermediate" | "advanced" | "expert";
+            level?: "first_time" | "beginner" | "intermediate" | "advanced" | "expert";
             /**
              * Owns Gear
              * @default false
              */
-            owns_gear: boolean;
+            owns_gear?: boolean;
             /** Boot Size Eu */
             boot_size_eu?: number | string | null;
             /** Height Cm */
@@ -2270,7 +2270,7 @@ export interface components {
              * Share Sizes With Trip
              * @default false
              */
-            share_sizes_with_trip: boolean;
+            share_sizes_with_trip?: boolean;
         };
         /** TaskOut */
         TaskOut: {
@@ -2337,14 +2337,14 @@ export interface components {
              * @default todo
              * @enum {string}
              */
-            kind: "todo" | "bring" | "booking";
+            kind?: "todo" | "bring" | "booking";
             /** Title */
             title: string;
             /**
              * Notes
              * @default
              */
-            notes: string;
+            notes?: string;
             /** Owner Id */
             owner_id?: string | null;
             /** Due On */
@@ -2441,7 +2441,7 @@ export interface components {
              * Section
              * @default custom
              */
-            section: string;
+            section?: string;
             /** Quantity */
             quantity?: number | null;
         };
@@ -2455,12 +2455,12 @@ export interface components {
              * Packed
              * @default false
              */
-            packed: boolean;
+            packed?: boolean;
             /**
              * Position
              * @default 0
              */
-            position: number;
+            position?: number;
         };
         /** PackingSummaryOut */
         PackingSummaryOut: {
@@ -2708,12 +2708,12 @@ export interface components {
              * Title
              * @default
              */
-            title: string;
+            title?: string;
             /**
              * Notes
              * @default
              */
-            notes: string;
+            notes?: string;
         };
         /** EntryIn */
         EntryIn: {
@@ -2724,7 +2724,7 @@ export interface components {
              * @default activity
              * @enum {string}
              */
-            kind: "activity" | "transport" | "lodging" | "meal" | "meeting" | "ski" | "other";
+            kind?: "activity" | "transport" | "lodging" | "meal" | "meeting" | "ski" | "other";
             /** Day Date */
             day_date?: string | null;
             /** Start Time */
@@ -2735,7 +2735,7 @@ export interface components {
              * Location Label
              * @default
              */
-            location_label: string;
+            location_label?: string;
             /** Lat */
             lat?: number | null;
             /** Lng */
@@ -2744,12 +2744,12 @@ export interface components {
              * Is Meeting Point
              * @default false
              */
-            is_meeting_point: boolean;
+            is_meeting_point?: boolean;
             /**
              * Notes
              * @default
              */
-            notes: string;
+            notes?: string;
         };
         /** EntryPatchIn */
         EntryPatchIn: {
@@ -2810,7 +2810,7 @@ export interface components {
              * Pinned
              * @default false
              */
-            pinned: boolean;
+            pinned?: boolean;
         };
         /** NotePatchIn */
         NotePatchIn: {
