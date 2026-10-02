@@ -77,12 +77,14 @@ export function ProposalFilters({ filters, onChange }: ProposalFiltersProps) {
       </div>
       <div className="flex flex-wrap items-center gap-4">
         <label className="flex min-h-11 items-center gap-2 text-sm">
-          <input
-            type="checkbox"
-            checked={filters.includeDiscarded}
-            onChange={(e) => onChange({ ...filters, includeDiscarded: e.target.checked })}
-            className="size-5"
-          />
+          <span className="proposal-checkbox-target">
+            <input
+              type="checkbox"
+              checked={filters.includeDiscarded}
+              onChange={(e) => onChange({ ...filters, includeDiscarded: e.target.checked })}
+              className="size-5"
+            />
+          </span>
           {t("filters.showDiscarded")}
         </label>
         <div className="flex items-center gap-2">

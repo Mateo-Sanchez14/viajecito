@@ -18,7 +18,7 @@ export function ProposalsOverviewCard({ tripId, crewId }: ProposalsOverviewCardP
   return (
     <Card as="section" className="flex h-full flex-col gap-3">
       <h3 className="text-base font-semibold">
-        <Link href={proposalsPath(crewId, tripId)} className="underline-offset-2 hover:underline">
+        <Link href={proposalsPath(crewId, tripId)} className="proposal-overview-link underline-offset-2 hover:underline">
           {t("overview.title")}
         </Link>
       </h3>
@@ -38,10 +38,10 @@ export function ProposalsOverviewCard({ tripId, crewId }: ProposalsOverviewCardP
           {data.top.length > 0 && (
             <ul aria-label={t("overview.topLabel")} className="flex flex-col gap-1">
               {data.top.map((proposal) => (
-                <li key={proposal.id} className="flex items-baseline justify-between gap-3 text-sm">
+                <li key={proposal.id} className="flex items-center justify-between gap-3 text-sm">
                   <Link
                     href={proposalPath(crewId, tripId, proposal.id)}
-                    className="min-w-0 truncate font-medium underline-offset-2 hover:underline"
+                    className="proposal-overview-link min-w-0 truncate font-medium underline-offset-2 hover:underline"
                   >
                     {proposal.title}
                   </Link>

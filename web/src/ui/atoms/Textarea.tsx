@@ -7,7 +7,7 @@ export function Textarea({ invalid = false, className = "", ...props }: Textarea
     <textarea
       aria-invalid={invalid || undefined}
       rows={4}
-      className={`w-full rounded-xl border bg-surface px-4 py-3 text-base outline-none focus:ring-2 focus:ring-foreground/30 ${
+      className={`ui-input w-full rounded-xl border bg-surface px-4 py-3 text-base outline-none focus:ring-2 focus:ring-foreground/30 ${
         invalid ? "border-warn" : "border-border"
       } ${className}`}
       {...props}
