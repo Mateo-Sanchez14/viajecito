@@ -66,7 +66,7 @@ def out(row, person_id):
         "owner": ref(row.owner_id),
         "uploader": ref(row.uploader_id),
         "download_path": f"/api/documents/{row.pk}/file",
-        "can_delete": person_id in (row.owner_id, row.uploader_id),
+        "can_delete": str(person_id) in (str(row.owner_id), str(row.uploader_id)),
     }
 
 
