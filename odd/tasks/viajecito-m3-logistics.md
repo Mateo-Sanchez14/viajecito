@@ -22,7 +22,7 @@ Tasks with owners and due dates (todo / bring / booking), packing templates per 
 ## Tasks
 - [x] **B0 proposals bridge** — delegated orchestrator-owned prerequisite: pure store-free get_proposal_snapshot/list_trip_proposals returning existing ProposalRecord, default store configured in proposals AppConfig. Strict RED/GREEN, independent verifier, parent spot/export/pytest before merge.
 - [x] **B1 api** — delegated (writer sonnet; verifier opus).
-- [ ] **B2 web** — delegated (writer sonnet; verifier opus). Builds against the contract's API table with a draft
+- [x] **B2 web** — delegated (writer sonnet; verifier opus). Builds against the contract's API table with a draft
   added to `contracts/openapi.json` (orchestrator regenerates from the real api at integration).
 - [ ] **B3 integrate** — inline: merge api then web, regenerate contract/types, env parsing for the contract's
   settings, full checks, `make e2e` + `make bot-smoke`, merge to `main`, push.
@@ -36,7 +36,7 @@ Tasks with owners and due dates (todo / bring / booking), packing templates per 
 | Task | Status | Evidence |
 |---|---|---|
 | B1 | integrated | Corrected48261d9, parent298c8f0, fullAPI1906 then2004 aftercore |
-| B2 | corrected; final checks/review | a98685e; actualsharedtypes/client C2 finishing after fixed05a41ee |
+| B2 | integrated | Final95dcf7c independently665tests/9hydratedviews → parent3e98bf9 after2004API/665web/fullchecks |
 | B3 | main integration in progress | Core86cf620/platformfb8e1d8/generator05a41ee/CIffcf36b; finalM3web/e2e/prod/push pending |
 
 ## Codex resumption — 2026-10-01
@@ -91,7 +91,7 @@ Tasks with owners and due dates (todo / bring / booking), packing templates per 
 - API corrected48261d9 merged298c8f0 after parent export/1906 full tests/imports/Ruff/migrations. Combined with M4:1980 full tests green. Core C0 and web/integration still pending.
 
 - [x] **C1 platform integration** — env examples and CI browser provisioning; mechanical workflow candidate6653428 has RED absence/GREEN ordering evidence, awaiting independent diff/merge. Platform env examples append-only, preserve Pi raw-value conventions.
-- [ ] **C2 web integration** — delegated actual shared paths/client replacement and removal of owned draft files after independent web reports; functional checks and independent final review required.
+- [x] **C2 web integration** — delegated actual shared paths/client replacement and removal of owned draft files after independent web reports; functional checks and independent final review required.
 
 ### Independent web correction and actual-contract integration
 - Candidate7f43ede independently reproduced601 tests/lint/types/build. Two P2: nestedmain/duplicateh1 in logistics/budget/documents under trip shell; packing quantity hidden on reload and lacks edit. Same author wave_b_mapping gets ONE correction round with integrated semantic/quantity regressions (proof Engram2872).
@@ -114,3 +114,9 @@ Tasks with owners and due dates (todo / bring / booking), packing templates per 
 - C3c5e5817 independently603tests/8focused/generation audit approved; parent05a41ee after2004API/export and629combinedweb/type/lint/drift/build. C4c9963ed independently5offline regressions approved; mainffcf36b after2004API and5focusedtests. Initial parent focusedtest wrongfilename failedimport; corrected exacttest passed beforecommit.
 - Bot-smoke sample-only API-identical750df78 PASS: pong replies exact message, duplicate replay, tick0errors; fullteardown. Todaye2e oldh1 expectation actualRED8pass1fail, parenttest-only1926ff5 observedGREEN9pass2production-onlyskips and independentlyapproved; main4c6b3e9 after2004API gate. No productionpagechange.
 - M3web ingested fixed05a41ee as5e642e4 AFTER export/full2004pytest, appended cards union, restored exactownedstash; finalC2cleanSHA checks/review next. Overflow productdecision remains unanswered/unchanged safe failure; not silently accepted.
+
+### Final source integration checkpoint
+- B2/C2 final95dcf7c independently APPROVED:36focused/665full127suites/fullwebchecks; ninehydrated320/390/1440 logistics/budget/documents views axe0/nooverflow/1main/1h1; actualquantity-only PATCH edit/reload/clear/32767bound retainedpackedstate. Author correctiona98685e and realcontract95dcf7c; no drafts/casts/stalefields.
+- Parent merged3e98bf9 after frozenAPI/export2004pytest/Ruff587/import14/migrationcheck and frozenweb/regeneratedtypes/type/lint665tests/drift/build. Allsource mainclean.
+- Exact3e98bf9 sample-only deliveryworktree delegated finalexclusive runtime window: makee2e, bot-smoke, actualproductionSW/offlineToday+seededticket/doclist/no implicitfilecache; no rootambientenv/realprovider/Pi/remote. B3 remains open until proof and observedpush.
+- [ ] **P1 oversized nag decision** — awaiting explicit product acceptance of fallback when all tasks cannot fit4000chars. Current safe failure/IDs preserved; no fallback silentlyaccepted. Does not block safe sourceintegration/checks/delivery.
