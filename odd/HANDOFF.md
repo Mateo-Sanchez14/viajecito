@@ -6,17 +6,17 @@ Read this first, then `AGENTS.md`, then the ODD feature documents in `odd/tasks/
 
 ## Current checkpoint — 2026-10-02
 
-M1 is already delivered at ec96636; do not remerge it. M3/M4 API then web, the M6 map and premium UI are integrated, independently reviewed and corrected on local main. Final source is f863d22; concurrent runtime fix5b1bc71 is preserved. Authoritative progress is in the four feature task documents below; older sections are historical, not the next instruction.
+M1 is already delivered at ec96636; do not remerge it. M3/M4 API then web, the M6 map and premium UI are integrated, independently reviewed and corrected and pushed to origin/main at d66c8534dc3629aaf7bbf1bab69d7c9f2b995633. Final source is f863d22; concurrent runtime fix5b1bc71 is preserved. Authoritative progress is in the four feature task documents below; older sections are historical, not the next instruction.
 
 ### Delivery verification checkpoint — 2026-10-02
 - Final source: `f863d22`; final permission fix `b969336` independently approved and merged only after export + 2,010 API tests passed. Frozen dependencies, Ruff/587 formatted files, 14 import contracts and migration drift passed. Regenerated contract/types unchanged; 665 web tests, typecheck, lint, drift and production build passed.
 - Native isolated final runtime: full Playwright 10 passed / 2 production-only skips; those two passed separately against the production build. Actual cached ticket remains listed offline; its unsaved file is unavailable. Fresh isolated bot database passed exact pong/reply, duplicate replay and tick with zero errors. Six mobile views had unique landmarks and no overflow. Actual upload and packing quantity edits persisted after reload.
 - Final C5 proof on f863d22: three browser uploads plus a forced-private ID upload returned consistent can_delete=true for the uploader; another member cannot delete a crew document and receives 404 for private metadata/files. Own runtime processes stopped, local ports closed, tracked checkout and sample env unchanged.
 - Docker final make e2e failed before browser tests because daemon storage became read-only/containerd metadata I/O failed. Scoped cleanup could not be confirmed. Final Docker bot/production targets were not run. Earlier Docker e2e (9 passed / 2 production skips) and bot smoke passed before final source integration. Native proof does not turn this failed Docker gate green; no daemon restart or unrelated service changes were attempted.
-- Authorized source push is next. Docker recovery/reverification remains open; Pi/T11 deployment, real provider captures, VAPID/production vault keys and backup/restore remain owner actions, not completed here.
+- Source push verified at `d66c8534dc3629aaf7bbf1bab69d7c9f2b995633`. Docker recovery/reverification remains open; Pi/T11 deployment, real provider captures, VAPID/production vault keys and backup/restore remain owner actions, not completed here.
 
 ### Remaining work
-1. Push the already verified source to origin/main without force; fetch first and preserve any concurrent changes. Record the observed delivery SHA.
+1. Repository source delivery is complete: non-force push d66c853 and identical remote SHA observed. Any later receipt commit is documentation-only. Do not repeat source writers or old merges.
 2. Restore Docker only with explicit permission because other projects use it; rerun final make e2e, make bot-smoke and provider-neutral production offline checks, confirming scoped teardown. Do not call native checks a Docker pass.
 3. Resolve M3 oversized-nag product decision: one message cannot list arbitrarily many tasks within 4000 chars. Existing safe failure remains; last-resort owner/unowned counts plus board link and all exact IDs is NOT accepted yet.
 4. T11 Pi go-live remains owner/remote-authorized work under deploy/README.md and current WAHA contract. No Pi services, real credentials or existing WAHA session were touched.
@@ -128,3 +128,7 @@ M1 is already delivered at ec96636; do not remerge it. M3/M4 API then web, the M
 - M6 map writer now m4_web_writer in m6-map (M4web candidate7891dea completed594 tests, awaiting separateverification/integration). Map package/lock exception approved; other core presentation excluded.
 - M3 API candidate d363ed4(1900tests), web7f43ede(601tests); M4 API a2d90c1(1907tests). Independent API verifiers swapped authors (no self-verification). M4 review requested2 corrections: after/undated bot should omit pinned notes; inclusive date.max planner overflow. M3 verifier reporting owner-reset/stale-membership mentions/superscript command edge cases; exact final report pending. Same authors receive at most one correction round.
 - M3 core settings/subject-id/global import-linter integration remains queued. Nag>4000 product clarification still unanswered; do not assume latest visual request accepts fallback. No new milestone merge/push after M1ec96636 yet; clean-main/export+pytest protocol unchanged.
+
+### Observed source delivery
+- Non-force push of `d66c8534dc3629aaf7bbf1bab69d7c9f2b995633` to `origin/main` succeeded; remote refs/heads/main independently read back with the same full SHA. Fresh fetch showed no remote-only commits, concurrent5b1bc71 retained, root main clean. Source remains f863d22; later receipt commits are documentation only.
+- Source implementation, independent reviews, corrections, static checks and native functional verification are complete. Final Docker verification/cleanup remains explicitly open on infrastructure failure; do not repeat writer work or claim Docker passed. No Pi deployment or real provider operations performed.

@@ -14,9 +14,10 @@
 - Status checkpoint (2026-10-02): requested repository source work is integrated on main
   (f863d22), including M3/M4, the M6 map and premium UI. Integration checks: 2,010 API tests,
   665 web tests, contracts/types, lint and production build passed.
-- Native browser/bot/offline runtime verification passed; authorized push is next. Final Docker
-  verification failed on local storage infrastructure, not an app test; recovery/reverification
-  remains open. Pi go-live is separate, not completed here.
+- Native browser/bot/offline runtime verification passed; source pushed to origin/main at
+  `d66c853` with identical remote SHA observed. Final Docker verification failed on local storage
+  infrastructure, not an app test; recovery/reverification remains open. Pi go-live is separate,
+  not completed here.
 
 ## Decisions (closed with the user)
 

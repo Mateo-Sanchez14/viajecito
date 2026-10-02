@@ -41,7 +41,7 @@ RDD clone-local OFF: disabled/unmanaged, ordinary independent verification. Esti
 
 ## Progress / next step
 - V0/V1/V2 source and independent visual checks completed; polished UI merged78e2c7a.
-- Final combined native runtime passed on3e98bf9; metadata-only C5 fix verified onf863d22. Source push is next. V3 remains open for the failed Docker gate; no visual implementation actor is outstanding.
+- Final combined native runtime passed on3e98bf9; metadata-only C5 fix verified onf863d22. Source push verified at d66c853. V3 remains open for the failed Docker gate; no visual implementation actor is outstanding.
 
 ### Writer dispatch
 - V1/V2 writer wave_b_mapping launched in premium-trip-ui at8c03445 after read-only audit closure. Parent reconciled full mirror2817; separate DIFFERENT verifier required. Source implementation and browser checks pending; no premium result claimed yet.
@@ -61,4 +61,8 @@ RDD clone-local OFF: disabled/unmanaged, ordinary independent verification. Esti
 - Native isolated final runtime: full Playwright 10 passed / 2 production-only skips; those two passed separately against the production build. Actual cached ticket remains listed offline; its unsaved file is unavailable. Fresh isolated bot database passed exact pong/reply, duplicate replay and tick with zero errors. Six mobile views had unique landmarks and no overflow. Actual upload and packing quantity edits persisted after reload.
 - Final C5 proof on f863d22: three browser uploads plus a forced-private ID upload returned consistent can_delete=true for the uploader; another member cannot delete a crew document and receives 404 for private metadata/files. Own runtime processes stopped, local ports closed, tracked checkout and sample env unchanged.
 - Docker final make e2e failed before browser tests because daemon storage became read-only/containerd metadata I/O failed. Scoped cleanup could not be confirmed. Final Docker bot/production targets were not run. Earlier Docker e2e (9 passed / 2 production skips) and bot smoke passed before final source integration. Native proof does not turn this failed Docker gate green; no daemon restart or unrelated service changes were attempted.
-- Authorized source push is next. Docker recovery/reverification remains open; Pi/T11 deployment, real provider captures, VAPID/production vault keys and backup/restore remain owner actions, not completed here.
+- Source push verified at `d66c8534dc3629aaf7bbf1bab69d7c9f2b995633`. Docker recovery/reverification remains open; Pi/T11 deployment, real provider captures, VAPID/production vault keys and backup/restore remain owner actions, not completed here.
+
+### Observed source delivery
+- Non-force push of `d66c8534dc3629aaf7bbf1bab69d7c9f2b995633` to `origin/main` succeeded; remote refs/heads/main independently read back with the same full SHA. Fresh fetch showed no remote-only commits, concurrent5b1bc71 retained, root main clean. Source remains f863d22; later receipt commits are documentation only.
+- Source implementation, independent reviews, corrections, static checks and native functional verification are complete. Final Docker verification/cleanup remains explicitly open on infrastructure failure; do not repeat writer work or claim Docker passed. No Pi deployment or real provider operations performed.
