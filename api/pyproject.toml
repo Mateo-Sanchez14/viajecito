@@ -14,6 +14,7 @@ dependencies = [
     "selectolax>=0.3",
     "pillow>=11",
     "pywebpush>=2.5.0",
+    "cryptography>=50.0.2,<51",
 ]
 
 [dependency-groups]
@@ -48,6 +49,9 @@ testpaths = [
     "ski",
     "linkpreview",
     "proposals",
+    "logistics",
+    "documents",
+    "budget",
 ]
 python_files = ["test_*.py"]
 
@@ -76,6 +80,9 @@ known-first-party = [
     "ski",
     "linkpreview",
     "proposals",
+    "logistics",
+    "documents",
+    "budget",
 ]
 
 [tool.importlinter]
@@ -95,6 +102,9 @@ root_packages = [
     "ski",
     "linkpreview",
     "proposals",
+    "logistics",
+    "documents",
+    "budget",
 ]
 
 include_external_packages = true
@@ -107,6 +117,9 @@ forbidden_modules = [
     "config", "ops", "identity", "crews", "messaging", "trips", "decisions", "notifications", "ski",
     "linkpreview",
     "proposals",
+    "logistics",
+    "documents",
+    "budget",
 ]
 
 [[tool.importlinter.contracts]]
@@ -127,6 +140,10 @@ source_modules = [
     "notifications.domain",
     "notifications.use_cases",
     "notifications.ports",
+    "logistics.domain", "logistics.use_cases", "logistics.ports",
+    "logistics.domain_nag",
+    "documents.domain", "documents.use_cases", "documents.ports",
+    "budget.domain", "budget.use_cases",
     "ski.domain",
     "ski.use_cases",
     "ski.ports",
