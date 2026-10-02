@@ -35,8 +35,8 @@ export function TodayView({ tripId }: { tripId: string; crewId: string }) {
       ]
     : [];
   return (
-    <main className="min-w-0 space-y-5">
-      <h1 className="text-2xl font-semibold">{t("title")}</h1>
+    <div className="min-w-0 space-y-5">
+      <h2 className="text-2xl font-semibold">{t("title")}</h2>
       {!online && (
         <p role="status" aria-live="polite">
           {t("offline")}
@@ -71,6 +71,6 @@ export function TodayView({ tripId }: { tripId: string; crewId: string }) {
           <QuickNotes tripId={tripId} initialNotes={initialNotes} />
         </>
       )}
-    </main>
+    </div>
   );
 }

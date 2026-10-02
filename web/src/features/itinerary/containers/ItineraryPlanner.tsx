@@ -52,9 +52,9 @@ export function ItineraryPlanner({ tripId }: { tripId: string }) {
     );
   }
   return (
-    <main className="min-w-0 space-y-5">
+    <div className="min-w-0 space-y-5">
       <header className="flex items-center justify-between gap-3">
-        <h1 className="text-2xl font-semibold">{t("title")}</h1>
+        <h2 className="text-2xl font-semibold">{t("title")}</h2>
         <button
           className="min-h-11 rounded border border-border px-4"
           onClick={() => setEditing("new")}
@@ -109,6 +109,6 @@ export function ItineraryPlanner({ tripId }: { tripId: string }) {
             !data.out_of_range.length && <p>{t("empty")}</p>}
         </>
       )}
-    </main>
+    </div>
   );
 }
