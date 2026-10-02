@@ -36,7 +36,7 @@ Day-by-day itinerary with an unscheduled tray, meeting points and quick notes; t
 |---|---|---|
 | B1 | integrated | Corrected78ceef6 → mainb44754f after1980API |
 | B2 | integrated | Corrected174a84f independently597tests+6hydratedviewports, maine33ce43 after2004API/621web/fullchecks |
-| B3 | final delivery checks | Main4c6b3e9 includescore/generator/Todaye2efix; productionSW/combinede2e/push pending |
+| B3 | source integrated; native runtime verified | f863d22; native E2E10 plus production offline2 passed; Docker infrastructure gate remains failed; push next |
 
 ## Codex resumption — 2026-10-01
 - Baseline ec96636, M1 fully integrated/pushed; API1816 tests, web571, e2e8passed/2production-only skips, bot smoke passed. Current docs reconciled against full Engram wave-b observation2712 (stale pre-M1 status).
@@ -79,3 +79,10 @@ Day-by-day itinerary with an unscheduled tray, meeting points and quick notes; t
 - Final corrected174a84f independentAPPROVE:597web/26focused/fullchecks; actualhydrated320/390/1440 itinerary+Today main1/h1one/nooverflow/noJSerrors. Actual sharedpaths/client-only,20s/ETag304/CSRF/auth kept, all drafts removed.
 - Parentmaine33ce43 after2004API/export and621web/types/lint/drift/build. Generator C3 later05a41ee passed629combinedweb unchangedresponses.
 - Actualsample-onlymakee2e exposed test-only oldTodayh1selector (8pass1fail/2production skips); correction1926ff5 h2+1main/1h1 observedGREEN9pass/2production-onlyskips. Different independent spotapproved; parentmerge4c6b3e9 after2004API/export. Productionserviceworker/offlineToday/documents checks and finalcombineddelivery/push remain.
+
+### Delivery verification checkpoint — 2026-10-02
+- Final source: `f863d22`; final permission fix `b969336` independently approved and merged only after export + 2,010 API tests passed. Frozen dependencies, Ruff/587 formatted files, 14 import contracts and migration drift passed. Regenerated contract/types unchanged; 665 web tests, typecheck, lint, drift and production build passed.
+- Native isolated final runtime: full Playwright 10 passed / 2 production-only skips; those two passed separately against the production build. Actual cached ticket remains listed offline; its unsaved file is unavailable. Fresh isolated bot database passed exact pong/reply, duplicate replay and tick with zero errors. Six mobile views had unique landmarks and no overflow. Actual upload and packing quantity edits persisted after reload.
+- Final C5 proof on f863d22: three browser uploads plus a forced-private ID upload returned consistent can_delete=true for the uploader; another member cannot delete a crew document and receives 404 for private metadata/files. Own runtime processes stopped, local ports closed, tracked checkout and sample env unchanged.
+- Docker final make e2e failed before browser tests because daemon storage became read-only/containerd metadata I/O failed. Scoped cleanup could not be confirmed. Final Docker bot/production targets were not run. Earlier Docker e2e (9 passed / 2 production skips) and bot smoke passed before final source integration. Native proof does not turn this failed Docker gate green; no daemon restart or unrelated service changes were attempted.
+- Authorized source push is next. Docker recovery/reverification remains open; Pi/T11 deployment, real provider captures, VAPID/production vault keys and backup/restore remain owner actions, not completed here.

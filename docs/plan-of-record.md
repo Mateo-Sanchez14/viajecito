@@ -11,8 +11,12 @@
 - Goal: the best trip app for this friend group. Plan trips together (mostly ski, but generic):
   proposals from links, decisions that actually close, logistics with owners, a live "today" view.
   The bar is "epic".
-- Status: discovery done (8 decisions below), architecture designed, ready to implement.
-  Empty repo at `~/Development/viajecito` (not yet a git repo).
+- Status checkpoint (2026-10-02): requested repository source work is integrated on main
+  (f863d22), including M3/M4, the M6 map and premium UI. Integration checks: 2,010 API tests,
+  665 web tests, contracts/types, lint and production build passed.
+- Native browser/bot/offline runtime verification passed; authorized push is next. Final Docker
+  verification failed on local storage infrastructure, not an app test; recovery/reverification
+  remains open. Pi go-live is separate, not completed here.
 
 ## Decisions (closed with the user)
 
@@ -37,6 +41,19 @@
 - Assumptions (not asked, override anytime): gastito integration is a deep link only; roles are
   flat in the MVP (any member edits; admins link the group / delete trips); FX rates are manual per
   trip in the MVP; documents (including IDs) are allowed, stored encrypted at rest on the Pi.
+
+### Accepted provider amendment — 2026-10-01
+
+Production uses the existing Pi WAHA service with a dedicated bot number. This supersedes D5
+and the original gastito/Gowa droplet go-live assumptions; Gowa remains the dev/e2e adapter.
+Configure the WAHA session webhook at `http://viajecito-api:8000/hooks/waha/`, preserving existing
+session settings and other webhooks. No gastito skip PR or droplet webhook change is required
+for production. `AGENTS.md` and `deploy/README.md` define the current contract and runbook.
+
+Repository integration does not complete T11: owner configuration, real WAHA captures/smoke,
+and backup/restore verification remain separate. This checkpoint claims no Pi deployment and
+grants no remote-execution authorization. The oversized-nag product decision remains pending;
+existing safe-failure behavior is unchanged.
 
 ## Verified technical facts
 
@@ -339,9 +356,9 @@ viajecito/
 - **Pi smoke** (`deploy/scripts/smoke.sh`): `/api/health` (DB write in WAL, media writable, last
   tick age, Gowa reachable) → signed payload from a fake chat → 200 + "ignored" row → `/viaje ping`
   in the real group → real OTP login → `systemctl list-timers` + `restic snapshots`.
-- **Deploy/backup**: `make deploy` = `pull && up -d` + migrate + smoke. Nightly timer: `sqlite3
-  .backup` + `restic backup` (DB snapshot + media) to R2/B2 or rsync over Tailscale; `restic forget
-  --keep-daily 7 --keep-weekly 4 --prune`; healthchecks.io ping; `restore.sh` rehearsed in M6.
+- **Deploy/backup**: `make deploy` prints the deployment runbook. Deployment, backup and restore
+  are owner actions performed on the Pi following `deploy/README.md`; no completed restore
+  rehearsal is claimed without recorded evidence.
 
 ## Execution protocol (ODD)
 
@@ -357,6 +374,9 @@ viajecito/
   Rioplatense Spanish (voseo).
 
 ## Risks
+
+R1, R3 and R4 describe the original Gowa/shared-number plan. The accepted WAHA amendment
+supersedes those production assumptions; retain them as historical/provider-specific context.
 
 - **R1 gastito overlap (confirmed)**: gastito's bot reacts 👂 and runs the LLM on every linked-group
   message. Before viajecito's webhook goes live, a small gastito PR must skip messages starting with

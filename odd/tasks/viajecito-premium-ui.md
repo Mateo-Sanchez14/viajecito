@@ -40,9 +40,8 @@ RDD clone-local OFF: disabled/unmanaged, ordinary independent verification. Esti
 - Parent integration: clean main, no-ff/no-commit; export+pytest before merge commit per handoff; regenerate types if needed; web checks and applicable e2e/smoke. Report failed/skipped/pending checks honestly.
 
 ## Progress / next step
-- V0 source audit complete. No source implementation yet; no browser appearance verified.
-- Main concurrently coordinates M3/M4 independent API verification and M6 map writer. Visual writer will work in isolated premium-trip-ui subtree ownership above.
-- Next: launch V1/V2 writer, then independent verifier when candidate ready. Record exact commits and observed checks before checking tasks off.
+- V0/V1/V2 source and independent visual checks completed; polished UI merged78e2c7a.
+- Final combined native runtime passed on3e98bf9; metadata-only C5 fix verified onf863d22. Source push is next. V3 remains open for the failed Docker gate; no visual implementation actor is outstanding.
 
 ### Writer dispatch
 - V1/V2 writer wave_b_mapping launched in premium-trip-ui at8c03445 after read-only audit closure. Parent reconciled full mirror2817; separate DIFFERENT verifier required. Source implementation and browser checks pending; no premium result claimed yet.
@@ -56,3 +55,10 @@ RDD clone-local OFF: disabled/unmanaged, ordinary independent verification. Esti
 - Final polish1d41a4a independently approved:582 tests/full checks and12 actual320/390/1440 light/dark views, axe zero, no horizontal overflow, native checkbox corner toggles, aligned1120px shell and44px links.
 - Parent merged78e2c7a after API export1980pytest and frozen web install/generated actual Wave B schema/typecheck/lint582tests/drift/build green. Chromium CI provision merged27ffb0a after full API gate.
 - Visual implementation/review/integration complete; V3 remains open only for final combined e2e/bot-smoke and push, not agent work.
+
+### Delivery verification checkpoint — 2026-10-02
+- Final source: `f863d22`; final permission fix `b969336` independently approved and merged only after export + 2,010 API tests passed. Frozen dependencies, Ruff/587 formatted files, 14 import contracts and migration drift passed. Regenerated contract/types unchanged; 665 web tests, typecheck, lint, drift and production build passed.
+- Native isolated final runtime: full Playwright 10 passed / 2 production-only skips; those two passed separately against the production build. Actual cached ticket remains listed offline; its unsaved file is unavailable. Fresh isolated bot database passed exact pong/reply, duplicate replay and tick with zero errors. Six mobile views had unique landmarks and no overflow. Actual upload and packing quantity edits persisted after reload.
+- Final C5 proof on f863d22: three browser uploads plus a forced-private ID upload returned consistent can_delete=true for the uploader; another member cannot delete a crew document and receives 404 for private metadata/files. Own runtime processes stopped, local ports closed, tracked checkout and sample env unchanged.
+- Docker final make e2e failed before browser tests because daemon storage became read-only/containerd metadata I/O failed. Scoped cleanup could not be confirmed. Final Docker bot/production targets were not run. Earlier Docker e2e (9 passed / 2 production skips) and bot smoke passed before final source integration. Native proof does not turn this failed Docker gate green; no daemon restart or unrelated service changes were attempted.
+- Authorized source push is next. Docker recovery/reverification remains open; Pi/T11 deployment, real provider captures, VAPID/production vault keys and backup/restore remain owner actions, not completed here.

@@ -4,7 +4,24 @@ Read this first, then `AGENTS.md`, then the ODD feature documents in `odd/tasks/
 `docs/plan-of-record.md`. Persistent memory (Engram) has everything under project `viajecito`
 (`mem_search viajecito`, topics `odd/<feature>/tasks`, `product/decisions`).
 
-## 1. Where the code is
+## Current checkpoint — 2026-10-02
+
+M1 is already delivered at ec96636; do not remerge it. M3/M4 API then web, the M6 map and premium UI are integrated, independently reviewed and corrected on local main. Final source is f863d22; concurrent runtime fix5b1bc71 is preserved. Authoritative progress is in the four feature task documents below; older sections are historical, not the next instruction.
+
+### Delivery verification checkpoint — 2026-10-02
+- Final source: `f863d22`; final permission fix `b969336` independently approved and merged only after export + 2,010 API tests passed. Frozen dependencies, Ruff/587 formatted files, 14 import contracts and migration drift passed. Regenerated contract/types unchanged; 665 web tests, typecheck, lint, drift and production build passed.
+- Native isolated final runtime: full Playwright 10 passed / 2 production-only skips; those two passed separately against the production build. Actual cached ticket remains listed offline; its unsaved file is unavailable. Fresh isolated bot database passed exact pong/reply, duplicate replay and tick with zero errors. Six mobile views had unique landmarks and no overflow. Actual upload and packing quantity edits persisted after reload.
+- Final C5 proof on f863d22: three browser uploads plus a forced-private ID upload returned consistent can_delete=true for the uploader; another member cannot delete a crew document and receives 404 for private metadata/files. Own runtime processes stopped, local ports closed, tracked checkout and sample env unchanged.
+- Docker final make e2e failed before browser tests because daemon storage became read-only/containerd metadata I/O failed. Scoped cleanup could not be confirmed. Final Docker bot/production targets were not run. Earlier Docker e2e (9 passed / 2 production skips) and bot smoke passed before final source integration. Native proof does not turn this failed Docker gate green; no daemon restart or unrelated service changes were attempted.
+- Authorized source push is next. Docker recovery/reverification remains open; Pi/T11 deployment, real provider captures, VAPID/production vault keys and backup/restore remain owner actions, not completed here.
+
+### Remaining work
+1. Push the already verified source to origin/main without force; fetch first and preserve any concurrent changes. Record the observed delivery SHA.
+2. Restore Docker only with explicit permission because other projects use it; rerun final make e2e, make bot-smoke and provider-neutral production offline checks, confirming scoped teardown. Do not call native checks a Docker pass.
+3. Resolve M3 oversized-nag product decision: one message cannot list arbitrarily many tasks within 4000 chars. Existing safe failure remains; last-resort owner/unowned counts plus board link and all exact IDs is NOT accepted yet.
+4. T11 Pi go-live remains owner/remote-authorized work under deploy/README.md and current WAHA contract. No Pi services, real credentials or existing WAHA session were touched.
+
+## 1. Historical starting state — 2026-10-01
 
 - `origin/main` = `29b7615`: M0 (foundation), M-core, **M2** (decisions/dates), **M5** (ski), **M6**
   (notifications + PWA/push, map still pending) and the **WAHA provider** feature from a second session
@@ -21,7 +38,7 @@ Read this first, then `AGENTS.md`, then the ODD feature documents in `odd/tasks/
 - Worktrees under `~/Development/viajecito-worktrees/` (one per branch; `m0*`, `mcore*`, `m2-*`, `m5-*`,
   `m6-*`, `waha-*`, `docs-contracts` are merged and can be removed with `git worktree remove`).
 
-## 2. Next steps, in order
+## 2. Original ordered execution plan — completed source work; see current checkpoint
 
 1. **Integrate M1** (`odd/tasks/viajecito-m1-proposals.md`):
    - `git merge --no-ff feat/m1-api`; conflicts expected in `api/config/settings/apps.py` and
@@ -98,7 +115,7 @@ Read this first, then `AGENTS.md`, then the ODD feature documents in `odd/tasks/
 - See `odd/tasks/viajecito-m1-proposals.md` for evidence/commits. Push pending immediately after this documentation commit; then §2 step2 (Wave B + M6 map). Do not remerge M1.
 - RDD confirmed off clone-local. Source/functional checks green; production-only service worker/offline tests remain pending. Shared main remains no-FF/clean-only, export+pytest before merge commits.
 
-## Current Codex state — clarification boundary
+## Historical Codex state — clarification boundary
 - M1 successfully pushed ec96636 (after preserving concurrent5b1bc71); final1816API/571web, e2e8pass2production-onlyskip, bot-smoke green.
 - Local main source now328a784 (unpublished Wave B proposal/trip/packing pure seams) + orchestration docs; fullAPI1840/exportgreen. See M3/M4/M6 task docs/mirrors for active work.
 - Active isolated writers: m3_api_writer(m3-api), wave_b_mapping now M3web writer(m3-web), m4_api_writer(m4-api), m4_web_writer(m4-web). M6map queued (4child concurrent slots). Parent orchestrator must continue independent verification/one correction/spot and API-before-web integration.
@@ -106,7 +123,7 @@ Read this first, then `AGENTS.md`, then the ODD feature documents in `odd/tasks/
 - Pending core API integration writer: widen outbound.subject_id metadata + migration/regression, vault env parsing/stable keys/requiredprod/limits. Parent owns core; no milestone writer bypass.
 
 
-## Parallel visual work — 2026-10-01
+## Historical parallel visual work — 2026-10-01
 - User explicitly requested faster parallel progress and premium/fun styling. Source audit complete; isolated sole writer wave_b_mapping owns codex/premium-trip-ui worktree and exact presentation exception in odd/tasks/viajecito-premium-ui.md (mirror2817). Warm-paper/evergreen/terracotta travel-club direction, existing Geist, no business/auth/route changes. Screenshots/functional checks/independent verifier still pending.
 - M6 map writer now m4_web_writer in m6-map (M4web candidate7891dea completed594 tests, awaiting separateverification/integration). Map package/lock exception approved; other core presentation excluded.
 - M3 API candidate d363ed4(1900tests), web7f43ede(601tests); M4 API a2d90c1(1907tests). Independent API verifiers swapped authors (no self-verification). M4 review requested2 corrections: after/undated bot should omit pinned notes; inclusive date.max planner overflow. M3 verifier reporting owner-reset/stale-membership mentions/superscript command edge cases; exact final report pending. Same authors receive at most one correction round.
