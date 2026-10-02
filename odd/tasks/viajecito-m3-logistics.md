@@ -92,3 +92,7 @@ Tasks with owners and due dates (todo / bring / booking), packing templates per 
 
 - [ ] **C1 platform integration** — env examples and CI browser provisioning; mechanical workflow candidate6653428 has RED absence/GREEN ordering evidence, awaiting independent diff/merge. Platform env examples append-only, preserve Pi raw-value conventions.
 - [ ] **C2 web integration** — delegated actual shared paths/client replacement and removal of owned draft files after independent web reports; functional checks and independent final review required.
+
+### Independent web correction and actual-contract integration
+- Candidate7f43ede independently reproduced601 tests/lint/types/build. Two P2: nestedmain/duplicateh1 in logistics/budget/documents under trip shell; packing quantity hidden on reload and lacks edit. Same author wave_b_mapping gets ONE correction round with integrated semantic/quantity regressions (proof Engram2872).
+- Parent C2 integration delegation approved to same writer: ingest fixed parent27ffb0a on clean branch with no-ff/no-commit, export+pytest before merge commit; regenerate shared actual types, swap local draft paths/client to shared createBrowserClient, remove draft files. No manual schemas/guessed names. Any genuine actual-contract mismatch gets RED/GREEN in this integration unit. Core/API sources not edited beyond fixed parent ingestion. Independent final review required.
