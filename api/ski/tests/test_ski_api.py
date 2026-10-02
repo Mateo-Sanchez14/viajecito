@@ -6,6 +6,8 @@ from decimal import Decimal
 import pytest
 import time_machine
 
+from crews.models import CrewMembership
+from identity.models import Person
 from ski.models import GearPlan, LiftPass, Resort, SkiProfile, SnowReport, TripResort
 from ski.tests.conftest import send
 from ski.tests.factories import make_person, make_resort, make_trip, rsvp
@@ -494,7 +496,13 @@ def test_overview_lists_who_still_needs_a_pass(as_person, ana, beto, trip, cated
     assert [r["status"] for r in body["passes"]["rows"]] == ["bought"]
 
 
-def test_overview_never_leaks_sizes_without_consent(as_person, ana, beto, trip):
+def test_overview_never_leaks_sizes_without_consent(as_person, ana, crew, trip):
+    beto = Person.objects.create_user(
+        "+5491155512345",
+        id=uuid.UUID("94dfc43c-a181-4a6e-a69e-8062bf67d823"),
+        display_name="Beto",
+    )
+    CrewMembership.objects.create(crew=crew, person=beto, role="member", source="bootstrap")
     rsvp(trip, ana, "in")
     rsvp(trip, beto, "in")
     send(
@@ -510,7 +518,9 @@ def test_overview_never_leaks_sizes_without_consent(as_person, ana, beto, trip):
     assert body["gear"]["rent_counts"] == {"skis": 1}
     assert body["gear"]["sizes"] == [] and body["gear"]["sizes_hidden"] == 1
     raw = json.dumps(body)
-    assert "181" not in raw and "boot_size_eu" not in raw and "weight_kg" not in raw
+    # Identifiers may contain the same digits as a private measurement.
+    for field in ("boot_size_eu", "height_cm", "weight_kg"):
+        assert f'"{field}"' not in raw
     assert body["levels"] == [
         {
             "discipline": "ski",
