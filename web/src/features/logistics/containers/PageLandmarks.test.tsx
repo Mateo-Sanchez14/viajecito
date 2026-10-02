@@ -21,7 +21,15 @@ it.each([
     http.get("*/api/trips/:id/documents", () => HttpResponse.json([])),
   );
   const { container } = renderWithProviders(
-    <MeProvider me={makeMe()}><TripProvider trip={makeTrip()}><main><TripShell title="Trip" subtitle="" navLabel="Trip" navItems={[]}>{child}</TripShell></main></TripProvider></MeProvider>,
+    <MeProvider me={makeMe()}>
+      <TripProvider trip={makeTrip()}>
+        <main>
+          <TripShell title="Trip" subtitle="" navLabel="Trip" navItems={[]}>
+            {child}
+          </TripShell>
+        </main>
+      </TripProvider>
+    </MeProvider>,
   );
   expect(container.querySelectorAll("main")).toHaveLength(1);
   expect(container.querySelectorAll("h1")).toHaveLength(1);

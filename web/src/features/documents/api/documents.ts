@@ -1,10 +1,10 @@
+import { createBrowserClient } from "@/shared/api/client";
 import {
-  client,
   unwrap,
   expectOk,
   type JsonRequest,
-} from "@/features/logistics/api/client";
-import type { paths } from "@/features/logistics/api/draft-schema";
+} from "@/features/logistics/api/responses";
+import type { paths } from "@/shared/api/schema";
 import { getCsrfToken } from "@/shared/api/csrf";
 import { ApiError } from "@/shared/api/errors";
 export type Document =
@@ -19,14 +19,14 @@ export const documentKeys = {
 };
 export async function listDocuments(tripId: string, kind?: string) {
   return unwrap(
-    await client().GET("/api/trips/{trip_id}/documents", {
+    await createBrowserClient().GET("/api/trips/{trip_id}/documents", {
       params: { path: { trip_id: tripId }, query: { kind } },
     }),
   );
 }
 export async function updateDocument(id: string, body: DocumentPatch) {
   return unwrap(
-    await client().PATCH("/api/documents/{document_id}", {
+    await createBrowserClient().PATCH("/api/documents/{document_id}", {
       params: { path: { document_id: id } },
       body,
     }),
@@ -34,7 +34,7 @@ export async function updateDocument(id: string, body: DocumentPatch) {
 }
 export async function deleteDocument(id: string) {
   expectOk(
-    await client().DELETE("/api/documents/{document_id}", {
+    await createBrowserClient().DELETE("/api/documents/{document_id}", {
       params: { path: { document_id: id } },
     }),
   );

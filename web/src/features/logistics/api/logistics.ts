@@ -1,5 +1,6 @@
-import { client, unwrap, expectOk, type JsonRequest } from "./client";
-import type { paths } from "./draft-schema";
+import { createBrowserClient } from "@/shared/api/client";
+import { unwrap, expectOk, type JsonRequest } from "./responses";
+import type { paths } from "@/shared/api/schema";
 export type Task =
   paths["/api/trips/{trip_id}/tasks"]["get"]["responses"][200]["content"]["application/json"][number];
 export type TaskCreate = JsonRequest<"/api/trips/{trip_id}/tasks", "post">;
@@ -21,14 +22,14 @@ export const logisticsKeys = {
 };
 export async function listTasks(tripId: string, filters: TaskFilters = {}) {
   return unwrap(
-    await client().GET("/api/trips/{trip_id}/tasks", {
+    await createBrowserClient().GET("/api/trips/{trip_id}/tasks", {
       params: { path: { trip_id: tripId }, query: filters },
     }),
   );
 }
 export async function createTask(tripId: string, body: TaskCreate) {
   return unwrap(
-    await client().POST("/api/trips/{trip_id}/tasks", {
+    await createBrowserClient().POST("/api/trips/{trip_id}/tasks", {
       params: { path: { trip_id: tripId } },
       body,
     }),
@@ -36,7 +37,7 @@ export async function createTask(tripId: string, body: TaskCreate) {
 }
 export async function updateTask(id: string, body: TaskPatch) {
   return unwrap(
-    await client().PATCH("/api/tasks/{task_id}", {
+    await createBrowserClient().PATCH("/api/tasks/{task_id}", {
       params: { path: { task_id: id } },
       body,
     }),
@@ -44,21 +45,21 @@ export async function updateTask(id: string, body: TaskPatch) {
 }
 export async function deleteTask(id: string) {
   expectOk(
-    await client().DELETE("/api/tasks/{task_id}", {
+    await createBrowserClient().DELETE("/api/tasks/{task_id}", {
       params: { path: { task_id: id } },
     }),
   );
 }
 export async function getPacking(tripId: string) {
   return unwrap(
-    await client().GET("/api/trips/{trip_id}/packing/me", {
+    await createBrowserClient().GET("/api/trips/{trip_id}/packing/me", {
       params: { path: { trip_id: tripId } },
     }),
   );
 }
 export async function applyTemplate(tripId: string, template_key: string) {
   return unwrap(
-    await client().POST("/api/trips/{trip_id}/packing/me/apply", {
+    await createBrowserClient().POST("/api/trips/{trip_id}/packing/me/apply", {
       params: { path: { trip_id: tripId } },
       body: { template_key },
     }),
@@ -69,7 +70,7 @@ export async function addPackingEntry(
   body: JsonRequest<"/api/trips/{trip_id}/packing/me/entries", "post">,
 ) {
   return unwrap(
-    await client().POST("/api/trips/{trip_id}/packing/me/entries", {
+    await createBrowserClient().POST("/api/trips/{trip_id}/packing/me/entries", {
       params: { path: { trip_id: tripId } },
       body,
     }),
@@ -77,7 +78,7 @@ export async function addPackingEntry(
 }
 export async function updatePackingEntry(id: string, body: PackingPatch) {
   return unwrap(
-    await client().PATCH("/api/packing_entries/{entry_id}", {
+    await createBrowserClient().PATCH("/api/packing_entries/{entry_id}", {
       params: { path: { entry_id: id } },
       body,
     }),
@@ -85,14 +86,14 @@ export async function updatePackingEntry(id: string, body: PackingPatch) {
 }
 export async function deletePackingEntry(id: string) {
   expectOk(
-    await client().DELETE("/api/packing_entries/{entry_id}", {
+    await createBrowserClient().DELETE("/api/packing_entries/{entry_id}", {
       params: { path: { entry_id: id } },
     }),
   );
 }
 export async function packingSummary(tripId: string) {
   return unwrap(
-    await client().GET("/api/trips/{trip_id}/packing/summary", {
+    await createBrowserClient().GET("/api/trips/{trip_id}/packing/summary", {
       params: { path: { trip_id: tripId } },
     }),
   );

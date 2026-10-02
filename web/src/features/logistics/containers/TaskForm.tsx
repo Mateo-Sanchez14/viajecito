@@ -132,11 +132,13 @@ export function TaskForm({
             value={status}
             onChange={(e) => setStatus(e.target.value as Task["status"])}
           >
-            {(["open", "blocked", "done"] as const).map((v) => (
-              <option key={v} value={v}>
-                {t(`task.status.${v}`)}
-              </option>
-            ))}
+            {(["open", "blocked", "done"] as const)
+              .filter((value) => task.status !== "done" || value !== "blocked")
+              .map((value) => (
+                <option key={value} value={value}>
+                  {t(`task.status.${value}`)}
+                </option>
+              ))}
           </select>
         </label>
       )}

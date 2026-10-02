@@ -1,17 +1,6 @@
-import createClient from "openapi-fetch";
-import { csrfMiddleware } from "@/shared/api/csrf";
 import { toApiError } from "@/shared/api/errors";
-import type { paths } from "./draft-schema";
+import type { paths } from "@/shared/api/schema";
 
-/** Contract-local client until the orchestrator integrates the real M3 API. */
-export function client() {
-  const instance = createClient<paths>({
-    baseUrl: globalThis.location?.origin ?? "/",
-    credentials: "same-origin",
-  });
-  instance.use(csrfMiddleware);
-  return instance;
-}
 export function unwrap<T>(result: {
   data?: T;
   error?: unknown;

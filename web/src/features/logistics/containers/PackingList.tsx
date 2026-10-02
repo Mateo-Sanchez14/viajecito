@@ -120,6 +120,7 @@ export function PackingList({ tripId }: { tripId: string }) {
                         key={`${entry.id}:quantity:${entry.quantity}`}
                         type="number"
                         min={1}
+                        max={32767}
                         step={1}
                         aria-label={t("packing.quantity", { item: entry.label })}
                         defaultValue={entry.quantity ?? ""}
