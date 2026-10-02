@@ -5,6 +5,7 @@ import { InstallCard } from "@/features/pwa/containers/InstallCard";
 import { CountdownCard } from "@/features/pwa/containers/CountdownCard";
 import { OfflineDocumentsCard } from "@/features/pwa/containers/OfflineDocumentsCard";
 import { PushOptInCard } from "@/features/push/containers/PushOptInCard";
+import { MapOverviewCard } from "@/features/map/containers/MapOverviewCard";
 import type { TripCard } from "./types";
 
 export type { TripCard } from "./types";
@@ -16,6 +17,7 @@ export type { TripCard } from "./types";
  * Modules enabled on a trip without an entry here get a core placeholder card.
  */
 export const tripCards: TripCard[] = [
+  { key: "map", module: "proposals", order: 11, Component: MapOverviewCard },
   { key: "proposals", module: "proposals", order: 10, Component: ProposalsOverviewCard },
   { key: "dates", module: "dates", order: 20, Component: DatesOverviewCard },
   { key: "ski", module: "ski", order: 15, Component: SkiOverviewCard },
