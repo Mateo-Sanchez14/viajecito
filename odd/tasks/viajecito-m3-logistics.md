@@ -84,13 +84,13 @@ Tasks with owners and due dates (todo / bring / booking), packing templates per 
 
 ### Delivery resumed — 2026-10-02
 - User explicitly requested completing all previously authorized work and continuing execution. API48261d9 correction independently approved1906 full tests. Web7f43ede independent verification and real-schema cleanup remain required. No new product acceptance inferred.
-- [ ] **C0 integration core** — delegated writer (2+ nontrivial files): Outbound.subject_id TextField with migration/regression; vault env parsing, stable dev/test keys, required/validated prod rotation keys, MIME/limits, API env example/docs; global import-linter contracts for logistics/budget/documents/itinerary. Different verifier and one correction/spot required.
+- [x] **C0 integration core** — delegated writer (2+ nontrivial files): Outbound.subject_id TextField with migration/regression; vault env parsing, stable dev/test keys, required/validated prod rotation keys, MIME/limits, API env example/docs; global import-linter contracts for logistics/budget/documents/itinerary. Different verifier and one correction/spot required.
 - Platform env examples/Chromium CI owned separately; API writer must not edit them. Strict TDD uv run pytest, RDD off, direct-main exception-ok remains. Nag overflow question still unanswered; unchanged behavior remains pending clarification.
 
 ### Observed API integration
 - API corrected48261d9 merged298c8f0 after parent export/1906 full tests/imports/Ruff/migrations. Combined with M4:1980 full tests green. Core C0 and web/integration still pending.
 
-- [ ] **C1 platform integration** — env examples and CI browser provisioning; mechanical workflow candidate6653428 has RED absence/GREEN ordering evidence, awaiting independent diff/merge. Platform env examples append-only, preserve Pi raw-value conventions.
+- [x] **C1 platform integration** — env examples and CI browser provisioning; mechanical workflow candidate6653428 has RED absence/GREEN ordering evidence, awaiting independent diff/merge. Platform env examples append-only, preserve Pi raw-value conventions.
 - [ ] **C2 web integration** — delegated actual shared paths/client replacement and removal of owned draft files after independent web reports; functional checks and independent final review required.
 
 ### Independent web correction and actual-contract integration
@@ -99,3 +99,9 @@ Tasks with owners and due dates (todo / bring / booking), packing templates per 
 
 ### Platform C1 dispatch scope
 - Bounded platform writer owns root .env.example, deploy/env/api.env.example, associated deploy/helper tests/docs only. Append all M3settings with stable dev key sample vs empty requiredprodkey placeholder; preserve existing entries/provider env. Confirm Pi raw-value validation supports ordered rotation keys safely; comma-MIME defaults may remain comment-only if validation forbids lists. No weakening shell/env parsing or secret separation. StrictRED/GREEN, independent verifier, one correction/spot; no API/web/odd/AGENTS changes.
+
+### Observed core/platform integration and real generator seam — 2026-10-02
+- C0e506211 independently APPROVED2004tests/14importcontracts/frozen/Ruff/migrations/export; parent merged86cf620 after same complete API gate. C1662b249 independently APPROVED7envtests/33shell assertions/unchanged literal parser; parent mergedfb8e1d8 after2004API/export and focused tests.
+- Test-only deterministic ski privacy correction0b984cc: actual UUID contains181, reproducedRED then exact private-field assertions GREEN/full1980; main mergeb64f4f8 after2004pytest. No production privacy code changed.
+- [ ] **C3 generated request defaults** — delegated bounded web toolchain writer (nontrivial regression plus shared config), isolated codex/openapi-request-defaults fromb64f4f8. Exact upstream pinned openapi-typescript7.13 defaultNonNullable=true incorrectly promotes optional defaulted referenced request fields: API PackingPatchIn has no required list and supports partial PATCH. Set --default-non-nullable false in BOTH api:types and drift script, regenerate only shared schema, compile-test four single-field path-derived PATCH bodies and assert shipped-body only given field. No API behavior/schema changes, no stale packed/position sends, no type casts. Independent verifier and parent regression/fullweb/API merge gate required. TDD strict pnpm test/typecheck; RDD off/direct-main exception-ok.
+- Current B2 correctiona98685e plus real-parent ingestion68aeb9a passed1980API beforecommit and606webtests; waits C3 shared generator seam.
