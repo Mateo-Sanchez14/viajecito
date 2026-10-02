@@ -1,0 +1,37 @@
+{
+  "budget": {
+    "title": "Presupuesto",
+    "loading": "Cargando…",
+    "loadFailed": "No pudimos cargar el presupuesto",
+    "perPersonSuffix": "por persona",
+    "participants": "Somos {n}",
+    "participantsAssumed": "El cálculo usa participantes posibles o un mínimo de una persona",
+    "committed": "Reservado",
+    "expected": "Elegido, falta reservar",
+    "total": "Total",
+    "remainderPrefix": "Diferencia del redondeo:",
+    "unconverted": "Falta la cotización de {currency}",
+    "missingPrice": "Sin precio: {titles}",
+    "empty": "Cuando elijan propuestas con precio, acá ves cuánto sale",
+    "gastito": "Cargá los gastos en gastito",
+    "nightsAssumed": "Se asumió una noche",
+    "fx": {
+      "title": "Cotizaciones",
+      "help": "¿Cuántos {currency} es 1 {tripCurrency}?",
+      "currency": "Moneda",
+      "rate": "Cotización",
+      "save": "Guardar cotización",
+      "saved": "Cotización guardada",
+      "invalid": "Revisá la moneda y la cotización: tiene que ser mayor a cero"
+    },
+    "category": {
+      "lodging": "Alojamiento",
+      "transport": "Traslado",
+      "food": "Comida",
+      "activity": "Actividad",
+      "gear": "Equipo",
+      "destination": "Destino",
+      "other": "Otro"
+    }
+  }
+}
