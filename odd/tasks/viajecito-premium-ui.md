@@ -27,8 +27,8 @@ RDD clone-local OFF: disabled/unmanaged, ordinary independent verification. Esti
 
 ## Tasks
 - [x] V0 — delegated read-only audit. Source evidence returned by wave_b_mapping; no screenshots/servers/source changes. Chosen bounded ownership above.
-- [ ] V1 — delegated visual foundation: tokens, shared primitives, focus/pressed states, 44px touch targets, reduced-motion-safe skeleton/motion. RED/GREEN evidence, functional checks and Conventional Commit.
-- [ ] V2 — delegated product composition: shell/login/home/trip overview/proposal surfaces with real data and unchanged behavior; mobile/desktop review, screenshots, tests/docs and Conventional Commit.
+- [x] V1 — delegated visual foundation: tokens, shared primitives, focus/pressed states, 44px touch targets, reduced-motion-safe skeleton/motion. RED/GREEN evidence, functional checks and Conventional Commit.
+- [x] V2 — delegated product composition: shell/login/home/trip overview/proposal surfaces with real data and unchanged behavior; mobile/desktop review, screenshots, tests/docs and Conventional Commit.
 - [ ] V3 — independent read-only verification, one correction, parent spot, merge and final functional/visual checks. Do not complete until observed outcomes.
 
 ## Acceptance and checks
@@ -46,3 +46,8 @@ RDD clone-local OFF: disabled/unmanaged, ordinary independent verification. Esti
 
 ### Writer dispatch
 - V1/V2 writer wave_b_mapping launched in premium-trip-ui at8c03445 after read-only audit closure. Parent reconciled full mirror2817; separate DIFFERENT verifier required. Source implementation and browser checks pending; no premium result claimed yet.
+
+### Final polish and platform seam — 2026-10-02
+- V1/V2 candidate559b20b+b050650 independently approved owned scope578 tests/16 real mobile-desktop light-dark views; auth/create/RSVP/loading/errors checked. V1/V2 checkboxes represent observed author and independent outcomes; V3 integration remains open.
+- Approved bounded presentation-only extension: existing features/auth/containers/ShellHeader.tsx notification wrapper/link, plus existing proposals overview links/checkbox styles. Align shell and provide44px targets without auth/push/business changes; exact existing owner paths to be reported, no new subtree invention. Same visual author one polish/correction round with RED browser regressions; different independent corrected-diff review.
+- Parent/platform must provision Chromium before web CI unit tests; independently reproduced missing executable in clean CI. Writer may not edit .github.

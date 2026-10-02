@@ -64,3 +64,6 @@ Day-by-day itinerary with an unscheduled tray, meeting points and quick notes; t
 - Parent-owned integration request: extend global import-linter contracts to itinerary and new M3 apps; milestone writers only appended allowed app lists.
 - B2 writer m4_web_writer candidate7891dea:23 focused tests, typecheck/lint/build/drift green; final full checks pending. Runtime browser e2e deferred until integrated API/exclusive compose window.
 - User authorized faster parallel progress and separate premium/fun visual redesign; audit underway without touching itinerary/Today ownership.
+
+### Delivery resumed — 2026-10-02
+- API78ceef6 independently approved1910 full/74 focused after its one correction. Parent spot and clean-main merge next. Web7891dea independent verification/actual generated paths-client cleanup still pending. No new milestone delivered yet.

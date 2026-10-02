@@ -50,3 +50,7 @@ Installable PWA with countdown and offline cache of Today and documents list, We
 - M1 map writer m4_web_writer launched in m6-map after completing M4web7891dea. Ownership remains map-only/static route/map copy/tests and allowed registry appends; explicit package/lock dependency exception approved. Different independent map verifier required (author cannot self-verify).
 - Strict TDD ON from AGENTS with pnpm test, Context7 dependency evidence, full web checks; no Docker/push/remote/subagents. Reads existing real M1 paths; no feature-local draft needed.
 - Global premium/fun visual foundation is a separate workstream; map uses shared primitives and does not edit them.
+
+### Final map correction — 2026-10-02
+- Independent map review8a751c5 reproduced two P2 gaps: nested main/secondh1 under trip shell and Leaflet popup-close24px instead of44px. Full582 tests/build pass; actual mocked-tile browser proof in /tmp/m6-map-verifier.
+- Same author m4_web_writer receives its ONE correction round, scoped map source/tests only. RED/GREEN plus integrated landmark/touch measurements, independent corrected-diff recheck/parent spot then merge required.

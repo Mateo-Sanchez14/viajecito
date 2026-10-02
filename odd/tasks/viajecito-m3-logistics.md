@@ -81,3 +81,8 @@ Tasks with owners and due dates (todo / bring / booking), packing templates per 
 - B1 candidate feat/m3-api d363ed4 clean:1900 API tests, Ruff/imports10/export/migration checks; RED evidence per work unit. Independent verifier is former M4 author m4_api_writer (did not author M3). Pending one correction/parent spot/integration; not completed yet.
 - B2 candidate feat/m3-web7f43ede clean:601 tests, frozen install/lint/typecheck/drift/build; draft schema/client cleanup remains parent integration. Independent verification/e2e not yet run.
 - User requested faster parallel work and premium/fun visual redesign. UI audit runs separately; M3/M4 feature ownership stays exclusive. No changes to pending nag overflow product decision.
+
+### Delivery resumed — 2026-10-02
+- User explicitly requested completing all previously authorized work and continuing execution. API48261d9 correction independently approved1906 full tests. Web7f43ede independent verification and real-schema cleanup remain required. No new product acceptance inferred.
+- [ ] **C0 integration core** — delegated writer (2+ nontrivial files): Outbound.subject_id TextField with migration/regression; vault env parsing, stable dev/test keys, required/validated prod rotation keys, MIME/limits, API env example/docs; global import-linter contracts for logistics/budget/documents/itinerary. Different verifier and one correction/spot required.
+- Platform env examples/Chromium CI owned separately; API writer must not edit them. Strict TDD uv run pytest, RDD off, direct-main exception-ok remains. Nag overflow question still unanswered; unchanged behavior remains pending clarification.
