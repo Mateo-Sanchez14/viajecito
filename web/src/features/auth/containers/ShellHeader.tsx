@@ -43,8 +43,8 @@ export function ShellHeader() {
         logoutPending={pending}
         errorMessage={failed ? t("auth.errors.unknown") : undefined}
       />
-      <nav aria-label={t("push.nav")} className="mx-auto flex w-full max-w-3xl justify-end px-6 pt-2">
-        <Link href="/me/notifications" className="inline-flex min-h-11 items-center text-sm text-muted underline underline-offset-2">
+      <nav aria-label={t("push.nav")} className="shell-notifications mx-auto flex w-full justify-end px-6 pt-2">
+        <Link href="/me/notifications" className="shell-notifications-link inline-flex min-h-11 items-center text-sm text-muted underline underline-offset-2">
           {t("push.nav")}
         </Link>
       </nav>
