@@ -29,12 +29,12 @@ export function ProposalsMap({
     ...new Set(places.map((place) => place.proposal.category)),
   ];
   return (
-    <main className="min-w-0 space-y-7">
+    <div className="min-w-0 space-y-7">
       <header className="space-y-2">
         <p className="text-xs font-medium tracking-[0.14em] text-muted uppercase">
           {t("eyebrow")}
         </p>
-        <h1 className="text-3xl font-semibold tracking-tight">{t("title")}</h1>
+        <h2 className="text-3xl font-semibold tracking-tight">{t("title")}</h2>
         <p className="max-w-lg text-sm leading-relaxed text-muted">
           {t("body")}
         </p>
@@ -101,6 +101,6 @@ export function ProposalsMap({
           )}
         </>
       )}
-    </main>
+    </div>
   );
 }

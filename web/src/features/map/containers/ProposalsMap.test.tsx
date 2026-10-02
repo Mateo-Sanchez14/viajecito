@@ -8,6 +8,7 @@ import { renderWithProviders } from "@/test/render";
 import { server } from "@/test/server";
 import { CREW_ID, TRIP_ID } from "@/features/trips/fixtures";
 import { mapProposalsHandler } from "../test/handlers";
+import { TripShell } from "@/ui/organisms/TripShell";
 import { ProposalsMap } from "./ProposalsMap";
 const map = vi.hoisted(() => ({ fitBounds: vi.fn(), setView: vi.fn() }));
 vi.mock("next/dynamic", async () => {
@@ -179,4 +180,19 @@ it("preserves map exploration when polling returns unchanged coordinates", async
   expect(map.fitBounds.mock.calls.length).toBe(before);
   unmount();
   cache.clear();
+});
+
+it("fits the trip shell without duplicating the page landmark or primary heading", async () => {
+  server.use(mapProposalsHandler([]));
+  renderWithProviders(
+    <main>
+      <TripShell title="Winter trip" subtitle="" navLabel="Sections" navItems={[]}>
+        <ProposalsMap tripId={TRIP_ID} crewId={CREW_ID} />
+      </TripShell>
+    </main>,
+  );
+  await screen.findByText("Los lugares que propongan van a aparecer acá");
+  expect(screen.getAllByRole("main")).toHaveLength(1);
+  expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
+  expect(screen.getByRole("heading", { name: "Mapa", level: 2 })).toBeVisible();
 });
