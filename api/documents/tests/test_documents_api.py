@@ -145,3 +145,40 @@ def test_quota_recovery_counts_existing_documents(trip, ana, as_person, settings
     VaultQuota.objects.all().delete()
     settings.DOCUMENTS_TRIP_QUOTA_BYTES = len(PDF)
     assert upload(client, trip).status_code == 507
+
+
+@pytest.mark.parametrize("fields", [{}, {"visibility": "owner_only"}, {"kind": "id"}])
+def test_upload_delete_permission_matches_detail_and_list(trip, beto, as_person, fields):
+    client = as_person(beto)
+    response = upload(client, trip, **fields)
+    assert response.status_code == 201
+    created = response.json()
+    assert created["can_delete"] is True
+    assert created["owner"]["person_id"] == str(beto.pk)
+    assert created["uploader"]["person_id"] == str(beto.pk)
+    url = f"/api/documents/{created['id']}"
+    assert client.get(url).json()["can_delete"] is True
+    assert client.get(f"/api/trips/{trip.pk}/documents").json()[0]["can_delete"] is True
+    assert send(client, "delete", url).status_code == 204
+
+
+@pytest.mark.parametrize("actor_name,can_delete", [("beto", True), ("cleo", True), ("ana", False)])
+def test_distinct_owner_uploader_and_admin_permissions(
+    trip, ana, beto, cleo, as_person, actor_name, can_delete
+):
+    from documents.models import Document
+
+    # Upload assigns the uploader as owner; an existing document can have a distinct owner.
+    created = upload(as_person(cleo), trip).json()
+    Document.objects.filter(pk=created["id"]).update(owner=beto)
+    actor = {"ana": ana, "beto": beto, "cleo": cleo}[actor_name]
+    client = as_person(actor)
+    url = f"/api/documents/{created['id']}"
+    assert client.get(url).json()["can_delete"] is can_delete
+    assert client.get(f"/api/trips/{trip.pk}/documents").json()[0]["can_delete"] is can_delete
+    edited = send(client, "patch", url, {"title": "Updated ticket"})
+    assert edited.status_code == 200
+    assert edited.json()["can_delete"] is can_delete
+    visibility = send(client, "patch", url, {"visibility": "crew"})
+    assert visibility.status_code == (200 if actor_name == "beto" else 403)
+    assert send(client, "delete", url).status_code == (204 if can_delete else 403)
