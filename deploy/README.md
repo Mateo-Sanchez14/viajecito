@@ -58,6 +58,8 @@ Two env files keep secrets scoped: only the api container reads `api.env` (Djang
 receives only `TUNNEL_TOKEN` from `pi.env`; the restic password never enters a container. Both files are
 plain `KEY=value` lines with **unquoted** values limited to `[A-Za-z0-9._~+/=:-]`: compose reads them with
 `format: raw` and the scripts parse them literally (`lib.sh`), never with shell `source`.
+The sole list exception documented here is `DOCUMENTS_FERNET_KEYS`: ordered base64url keys separated
+by commas, with no spaces or quotes. This does not expand the general env-value alphabet.
 
 Check the WAHA network name with `docker network ls` and set `WAHA_NETWORK` in `pi.env` if it is not
 `waha_default`. Create the tunnel and public hostname first: [`cloudflared/README.md`](cloudflared/README.md);
@@ -224,4 +226,38 @@ Offline platform configuration checks (no containers started):
 ```sh
 python3 -m unittest deploy/scripts/tests/test_wave_a_config.py
 bash deploy/scripts/tests/test_lib.sh
+```
+
+## Wave B vault settings and key rotation
+
+`env/api.env.example` adds the task nag lead time (3 days), maximum document size (15 MiB),
+per-trip vault quota (1 GiB), and Django memory thresholds (2.5 MiB). The six allowed MIME defaults
+are documented as a comment; leave `DOCUMENTS_ALLOWED_MIME` unset to use those defaults. Changing
+that allowlist does not add new supported file signatures.
+
+The development example contains a public, stable sample key for **development only**. Production
+`DOCUMENTS_FERNET_KEYS` is deliberately empty and must be filled before starting the api. Generate
+an independent 32-byte base64url key locally (not a shell-quoted string in the env file):
+
+```sh
+python3 -c 'import base64,secrets; print(base64.urlsafe_b64encode(secrets.token_bytes(32)).decode())'
+```
+
+Keep `api.env` mode 600 and back up its encryption keys separately from the encrypted vault. Losing
+all keys makes the stored documents and their backups unreadable. Never use the public development
+sample in production, put secrets in command-line arguments, or commit real keys.
+
+For rotation, prepend the fresh key to the retained keys: `DOCUMENTS_FERNET_KEYS=new,old` (replace
+both labels with generated keys). The first key encrypts new uploads; every configured key may decrypt
+existing files. Use no spaces or quotes. This comma separator is a narrow exception for this setting;
+the existing literal parser remains unchanged and never executes or expands env contents. Restart the
+api after updating its env file. Rotation does **not** re-encrypt old documents automatically: retain
+old keys while any current files or retained backups need them. Do not remove an old key until those
+files have been safely re-encrypted or deleted and the corresponding backups have expired.
+
+Offline Wave B configuration regressions (no Docker, containers, or network), using the API's
+locked `cryptography` dependency to validate the development key:
+
+```sh
+uv run --project api python -m unittest deploy/scripts/tests/test_wave_b_config.py
 ```
