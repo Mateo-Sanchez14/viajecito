@@ -4,7 +4,7 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 from environs import Env
-from marshmallow.validate import OneOf
+from marshmallow.validate import OneOf, Range
 
 from config.settings.apps import PROJECT_APPS
 
@@ -193,3 +193,36 @@ PROPOSALS_LLM_CLASSIFIER_ENABLED = env.bool("PROPOSALS_LLM_CLASSIFIER_ENABLED", 
 PROPOSALS_LLM_BASE_URL = env.str("PROPOSALS_LLM_BASE_URL", "")
 PROPOSALS_LLM_API_KEY = env.str("PROPOSALS_LLM_API_KEY", "")
 PROPOSALS_LLM_MODEL = env.str("PROPOSALS_LLM_MODEL", "")
+
+
+# Wave B logistics and encrypted vault. The ordered key ring is empty outside local settings
+# unless explicitly configured; production validates every entry before accepting requests.
+LOGISTICS_NAG_LEAD_DAYS = env.int("LOGISTICS_NAG_LEAD_DAYS", 3, validate=Range(min=0))
+DOCUMENTS_MAX_UPLOAD_BYTES = env.int(
+    "DOCUMENTS_MAX_UPLOAD_BYTES", 15 * 1024 * 1024, validate=Range(min=1)
+)
+DOCUMENTS_TRIP_QUOTA_BYTES = env.int(
+    "DOCUMENTS_TRIP_QUOTA_BYTES", 1024 * 1024 * 1024, validate=Range(min=1)
+)
+DOCUMENTS_ALLOWED_MIME = tuple(
+    item.strip()
+    for item in env.list(
+        "DOCUMENTS_ALLOWED_MIME",
+        [
+            "application/pdf",
+            "image/jpeg",
+            "image/png",
+            "image/webp",
+            "image/heic",
+            "image/heif",
+        ],
+    )
+)
+_document_keys = env.str("DOCUMENTS_FERNET_KEYS", "")
+DOCUMENTS_FERNET_KEYS = (
+    tuple(key.strip() for key in _document_keys.split(",")) if _document_keys.strip() else ()
+)
+# Multipart file bytes do not count against Django's separate non-file metadata budget.
+# Files above the memory threshold spool to disk; the vault enforces its own file-size cap.
+FILE_UPLOAD_MAX_MEMORY_SIZE = 2_621_440
+DATA_UPLOAD_MAX_MEMORY_SIZE = 2_621_440

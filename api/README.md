@@ -343,3 +343,32 @@ The optional classifier remains off unless `PROPOSALS_LLM_CLASSIFIER_ENABLED=1`;
 
 Milestone schemas import/re-export `shared.schemas.PersonRefOut` rather than declaring duplicate
 components with the same OpenAPI name. Its fields are `person_id` (UUID) and `display_name` (string).
+
+## Wave B vault configuration
+
+`DOCUMENTS_FERNET_KEYS` is an ordered comma-separated key ring: the first key encrypts,
+all keys decrypt. Production refuses to start if it is missing or **any** entry is invalid;
+startup diagnostics never include key material. Dev/test have a public, stable local-only
+fallback so restart does not corrupt access to existing uploads. Never use that fallback
+for real/private documents or production.
+
+Generate a new key with:
+
+```sh
+uv run python -c 'from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())'
+```
+
+Keep keys in private environment files (permissions `0600`), outside version control, and
+back them up securely alongside the encrypted vault. Losing a key makes files encrypted by
+it unreadable. To rotate, prepend the new key while retaining old keys. New uploads use the
+new key; existing files are **not** automatically re-encrypted. Do not remove an old key
+until all files and retained backups using it have been re-encrypted or deliberately retired.
+No automatic re-encryption command is provided yet.
+
+Defaults: `DOCUMENTS_MAX_UPLOAD_BYTES=15728640` (15 MiB),
+`DOCUMENTS_TRIP_QUOTA_BYTES=1073741824` (1 GiB), and `LOGISTICS_NAG_LEAD_DAYS=3`.
+`DOCUMENTS_ALLOWED_MIME` is comma-separated PDF/JPEG/PNG/WebP/HEIC/HEIF MIME types;
+see `.env.example` for exact values. Upload/quota limits must be positive; reminder lead
+must be nonnegative. Django spools multipart files above `FILE_UPLOAD_MAX_MEMORY_SIZE`
+(2,621,440 bytes) to disk; `DATA_UPLOAD_MAX_MEMORY_SIZE` separately bounds non-file multipart
+metadata to that size, rather than reducing the vault's 15 MiB file limit.
