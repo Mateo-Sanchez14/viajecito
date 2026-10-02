@@ -33,9 +33,9 @@ export function TripOverview({ cards = tripCards }: { cards?: TripCard[] }) {
   const entries = [...visible].sort((a, b) => a.order - b.order);
 
   return (
-    <div className="flex flex-col gap-6">
-      <Card as="section" className="flex flex-col gap-4">
-        <dl className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+    <div className="trip-overview">
+      <Card as="section" className="overview-summary flex flex-col gap-5">
+        <dl className="overview-facts grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
             <dt className="text-sm text-muted">{t("overview.dates")}</dt>
             <dd className="font-medium">{dateRange(trip.start_on, trip.end_on)}</dd>
@@ -52,7 +52,7 @@ export function TripOverview({ cards = tripCards }: { cards?: TripCard[] }) {
         <RsvpControl />
       </Card>
 
-      <section className="flex flex-col gap-3">
+      <section className="overview-crew flex min-w-0 flex-col gap-3">
         <h2 className="text-lg font-semibold">{t("overview.participants")}</h2>
         {participants.length === 0 ? (
           <p className="text-sm text-muted">{t("overview.noParticipants")}</p>
@@ -61,11 +61,11 @@ export function TripOverview({ cards = tripCards }: { cards?: TripCard[] }) {
             {participants.map((p) => (
               <li
                 key={p.person_id}
-                className="flex items-center justify-between gap-3 rounded-xl border border-border bg-surface px-4 py-2"
+                className="participant-row flex items-center justify-between gap-3 border-b border-border px-1 py-3"
               >
-                <span className="flex items-center gap-3">
+                <span className="flex min-w-0 items-center gap-3">
                   <Avatar name={p.display_name} />
-                  <span className="font-medium">{p.display_name}</span>
+                  <span className="break-words font-medium">{p.display_name}</span>
                 </span>
                 <Badge variant={RSVP_VARIANT[p.rsvp]}>{t(`rsvp.${p.rsvp}`)}</Badge>
               </li>
@@ -74,9 +74,9 @@ export function TripOverview({ cards = tripCards }: { cards?: TripCard[] }) {
         )}
       </section>
 
-      <section className="flex flex-col gap-3">
+      <section className="overview-modules flex min-w-0 flex-col gap-4">
         <h2 className="text-lg font-semibold">{t("overview.modules")}</h2>
-        <ul aria-label={t("overview.modules")} className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <ul aria-label={t("overview.modules")} className="overview-module-grid grid grid-cols-1 gap-3 sm:grid-cols-2">
           {entries.map(({ key, Component }) => (
             <li key={key} className="empty:hidden">
               <Component tripId={trip.id} crewId={trip.crew_id} />

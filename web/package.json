@@ -11,17 +11,19 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
-    "api:types": "openapi-typescript ../contracts/openapi.json -o src/shared/api/schema.d.ts",
-    "api:types:check": "openapi-typescript ../contracts/openapi.json -o \"${TMPDIR:-/tmp}/viajecito-schema.d.ts\" && diff -u src/shared/api/schema.d.ts \"${TMPDIR:-/tmp}/viajecito-schema.d.ts\""
+    "api:types": "openapi-typescript ../contracts/openapi.json --default-non-nullable false -o src/shared/api/schema.d.ts",
+    "api:types:check": "openapi-typescript ../contracts/openapi.json --default-non-nullable false -o \"${TMPDIR:-/tmp}/viajecito-schema.d.ts\" && diff -u src/shared/api/schema.d.ts \"${TMPDIR:-/tmp}/viajecito-schema.d.ts\""
   },
   "dependencies": {
     "@serwist/next": "^9.5.12",
     "@tanstack/react-query": "^5.104.0",
+    "leaflet": "1.9.4",
     "next": "16.3.8",
     "next-intl": "^4.14.8",
     "openapi-fetch": "^0.17.0",
     "react": "19.2.8",
     "react-dom": "19.2.8",
+    "react-leaflet": "5.0.0",
     "server-only": "^0.0.1",
     "serwist": "^9.5.12"
   },
@@ -32,6 +34,7 @@
     "@testing-library/dom": "^10.4.2",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.3",
+    "@types/leaflet": "1.9.22",
     "@types/node": "^24.19.0",
     "@types/react": "^19",
     "@types/react-dom": "^19",

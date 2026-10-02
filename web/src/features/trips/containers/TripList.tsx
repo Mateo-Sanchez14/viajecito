@@ -26,7 +26,7 @@ export function TripList({ crewId }: { crewId: string }) {
 
   if (isPending) {
     return (
-      <div role="status" aria-label={t("list.loading")} className="flex flex-col gap-2">
+      <div role="status" aria-label={t("list.loading")} className="trip-list flex flex-col gap-3">
         <Skeleton className="h-16" />
         <Skeleton className="h-16" />
       </div>
@@ -36,15 +36,15 @@ export function TripList({ crewId }: { crewId: string }) {
   if (data.length === 0) return <EmptyState title={t("list.empty")} />;
 
   return (
-    <ul className="flex flex-col gap-2">
+    <ul className="trip-list flex flex-col gap-3">
       {data.map((trip) => (
         <li key={trip.id}>
           <Link
             href={tripPath(crewId, trip.id)}
-            className="flex items-center justify-between gap-3 rounded-xl border border-border bg-surface px-4 py-3 hover:border-foreground/40"
+            className="trip-ticket flex min-w-0 items-center justify-between gap-4 border border-border bg-surface px-5 py-5"
           >
             <span className="flex min-w-0 flex-col">
-              <span className="truncate font-medium">{trip.name}</span>
+              <span className="trip-ticket-title font-semibold">{trip.name}</span>
               <span className="text-sm text-muted">{dateRange(trip.start_on, trip.end_on)}</span>
             </span>
             <Badge variant={STATUS_VARIANT[trip.status]}>{t(`status.${trip.status}`)}</Badge>

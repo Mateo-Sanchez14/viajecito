@@ -7,6 +7,7 @@ from django.conf import settings
 @pytest.fixture(autouse=True)
 def _restore_base_settings(monkeypatch):
     """Reload base with the pristine environment after each test that mutated it."""
+    monkeypatch.setenv("DOCUMENTS_FERNET_KEYS", "MDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDA=")
     yield monkeypatch
     monkeypatch.undo()
     import config.settings.base as base

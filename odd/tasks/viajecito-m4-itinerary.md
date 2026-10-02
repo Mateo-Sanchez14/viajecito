@@ -70,3 +70,7 @@ Day-by-day itinerary with an unscheduled tray, meeting points and quick notes; t
 
 ### Observed API integration
 - API corrected78ceef6 mergedb44754f after union app/TOML lists, regenerated export and parent1980 tests/imports/Ruff/migrations. Web/integration still pending.
+
+### Independent web correction and real-contract integration
+- Web7891dea independently reproduced594 tests/focused23/lint/types/build. One P2: ItineraryPlanner/TodayView main+h1 duplicate parent appmain/tripheaderh1; external integrated regressions reproduced2/2. Same author m4_web_writer receives ONE correction, wrapperssection/div andh2 with meaningful RED/GREEN.
+- Approved C2 integration scope: clean fixed parent27ffb0a ingestion --no-ff/no-commit with export+pytest before mergecommit, regenerate actual sharedtypes/client, delete itinerary draftgenerator/JSON/schema and replace temporary Todaydocumenttypes/rawfetch with sharedgeneratedpaths/client. Preserve20s/ETag304, permissions/localtime/order behavior. Different independent final review required; no API/core edits beyond controlled parent ingestion.

@@ -1,3 +1,4 @@
+from cryptography.fernet import Fernet
 from django.core.exceptions import ImproperlyConfigured
 
 from .base import *  # noqa: F403
@@ -27,3 +28,16 @@ else:
     GOWA_WEBHOOK_SECRET = env.str("GOWA_WEBHOOK_SECRET")  # noqa: F405
     if not GOWA_WEBHOOK_SECRET:
         raise ImproperlyConfigured("GOWA_WEBHOOK_SECRET must not be empty in production")
+
+
+# Validate all rotation keys, not just the primary encryption key. Never echo configured secrets
+# (including chained decoder errors) in startup diagnostics.
+_document_keys = env.str("DOCUMENTS_FERNET_KEYS", "")  # noqa: F405
+DOCUMENTS_FERNET_KEYS = tuple(key.strip() for key in _document_keys.split(","))
+try:
+    for _key in DOCUMENTS_FERNET_KEYS:
+        Fernet(_key.encode("ascii"))
+except (ValueError, TypeError, UnicodeError):
+    raise ImproperlyConfigured(
+        "DOCUMENTS_FERNET_KEYS must contain valid Fernet rotation keys in production"
+    ) from None

@@ -1,0 +1,40 @@
+{
+  "map": {
+    "title": "Mapa",
+    "eyebrow": "El viaje, en el mapa",
+    "body": "Ubicá lo que quieren hacer y descubrí qué queda cerca",
+    "open": "Ver en el mapa",
+    "openProposal": "Ver propuesta",
+    "listFallback": "Lista de lugares",
+    "noCoordinates": "{n, plural, one {# propuesta sin ubicación} other {# propuestas sin ubicación}}",
+    "missingLocation": "Todavía sin ubicación",
+    "located": "{n, plural, one {# lugar en el mapa} other {# lugares en el mapa}}",
+    "legend": "Tipos de lugares",
+    "loading": "Ubicando los lugares…",
+    "error": "No pudimos cargar los lugares",
+    "refreshError": "No pudimos actualizar. Seguís viendo lo último que cargamos",
+    "mapUnavailable": "No pudimos abrir el mapa. Todos los lugares están en la lista",
+    "empty": "Los lugares que propongan van a aparecer acá",
+    "emptyTitle": "El mapa empieza con una idea",
+    "noLocated": "Todavía no hay lugares con ubicación",
+    "noLocatedHelp": "Mientras tanto, podés abrir todas las propuestas desde la lista",
+    "attribution": "© OpenStreetMap contributors",
+    "jumpToList": "Ir a la lista de lugares",
+    "category": {
+      "lodging": "Alojamiento",
+      "transport": "Traslado",
+      "activity": "Actividad",
+      "food": "Comida",
+      "gear": "Equipo",
+      "destination": "Destino",
+      "other": "Otro"
+    },
+    "status": {
+      "proposed": "Propuesta",
+      "discussing": "En charla",
+      "chosen": "Elegida",
+      "booked": "Reservada",
+      "discarded": "Descartada"
+    }
+  }
+}

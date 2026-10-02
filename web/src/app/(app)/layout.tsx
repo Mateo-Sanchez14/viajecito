@@ -10,7 +10,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
   return (
     <MeProvider me={me}>
       <ShellHeader />
-      <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-8 p-6">
+      <main className="app-canvas mx-auto flex w-full flex-1 flex-col gap-8">
         {children}
       </main>
     </MeProvider>

@@ -15,6 +15,9 @@ import push from "./push.json";
 import pwa from "./pwa.json";
 import ski from "./ski.json";
 import trips from "./trips.json";
+import map from "./map.json";
+import itinerary from "./itinerary.json";
+import today from "./today.json";
 
 export default mergeMessages(
   logistics,
@@ -31,4 +34,7 @@ export default mergeMessages(
   pwa,
   ski,
   trips,
+  map,
+  itinerary,
+  today,
 );

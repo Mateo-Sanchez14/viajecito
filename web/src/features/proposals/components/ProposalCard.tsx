@@ -30,13 +30,13 @@ export function ProposalCard({ proposal, href, voteSlot }: ProposalCardProps) {
     <Card
       as="article"
       aria-labelledby={titleId}
-      className={`flex flex-col gap-3 ${discarded ? "opacity-60" : ""}`}
+      className={`proposal-card flex flex-col gap-4 ${discarded ? "opacity-60" : ""}`}
     >
-      <div className="flex gap-3">
+      <div className="proposal-card-heading flex gap-4">
         <ProposalThumbnail proposalId={proposal.id} preview={preview} />
         <div className="flex min-w-0 flex-1 flex-col gap-1">
-          <h3 id={titleId} className={`text-base font-semibold ${discarded ? "line-through" : ""}`}>
-            <Link href={href} className="underline-offset-2 hover:underline">
+          <h3 id={titleId} className={`text-lg font-semibold ${discarded ? "line-through" : ""}`}>
+            <Link href={href} className="proposal-title-link underline-offset-4 hover:underline">
               {proposal.title}
             </Link>
           </h3>
@@ -58,7 +58,7 @@ export function ProposalCard({ proposal, href, voteSlot }: ProposalCardProps) {
           )}
         </div>
       </div>
-      <p className="flex flex-wrap gap-x-3 text-sm text-muted">
+      <p className="proposal-meta flex flex-wrap gap-x-4 gap-y-1 border-t border-border pt-3 text-xs text-muted">
         <span>{t("card.by", { author: proposal.author.display_name })}</span>
         <span>{t("vote.count", { up: proposal.tally.up, down: proposal.tally.down })}</span>
         <span>{t("card.comments", { count: proposal.comment_count })}</span>

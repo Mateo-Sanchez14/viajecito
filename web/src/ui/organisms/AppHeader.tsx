@@ -19,11 +19,11 @@ export function AppHeader({
   errorMessage,
 }: AppHeaderProps) {
   return (
-    <header className="border-b border-border bg-surface">
-      <div className="mx-auto flex w-full max-w-3xl items-center justify-between gap-4 px-6 py-3">
-        <span className="text-lg font-semibold tracking-tight">{appName}</span>
-        <div className="flex items-center gap-4">
-          <span className="text-sm text-muted">{greeting}</span>
+    <header className="app-header border border-border bg-surface">
+      <div className="app-header-inner flex w-full items-center justify-between gap-4 px-5 py-3">
+        <span className="app-wordmark text-xl font-semibold tracking-tight">{appName}</span>
+        <div className="app-account flex min-w-0 items-center gap-3">
+          <span className="app-greeting text-sm text-muted">{greeting}</span>
           <Button variant="link" onClick={onLogout} disabled={logoutPending}>
             {logoutLabel}
           </Button>
