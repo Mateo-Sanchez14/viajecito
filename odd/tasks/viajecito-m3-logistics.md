@@ -21,7 +21,7 @@ Tasks with owners and due dates (todo / bring / booking), packing templates per 
 
 ## Tasks
 - [x] **B0 proposals bridge** — delegated orchestrator-owned prerequisite: pure store-free get_proposal_snapshot/list_trip_proposals returning existing ProposalRecord, default store configured in proposals AppConfig. Strict RED/GREEN, independent verifier, parent spot/export/pytest before merge.
-- [ ] **B1 api** — delegated (writer sonnet; verifier opus).
+- [x] **B1 api** — delegated (writer sonnet; verifier opus).
 - [ ] **B2 web** — delegated (writer sonnet; verifier opus). Builds against the contract's API table with a draft
   added to `contracts/openapi.json` (orchestrator regenerates from the real api at integration).
 - [ ] **B3 integrate** — inline: merge api then web, regenerate contract/types, env parsing for the contract's
@@ -86,3 +86,9 @@ Tasks with owners and due dates (todo / bring / booking), packing templates per 
 - User explicitly requested completing all previously authorized work and continuing execution. API48261d9 correction independently approved1906 full tests. Web7f43ede independent verification and real-schema cleanup remain required. No new product acceptance inferred.
 - [ ] **C0 integration core** — delegated writer (2+ nontrivial files): Outbound.subject_id TextField with migration/regression; vault env parsing, stable dev/test keys, required/validated prod rotation keys, MIME/limits, API env example/docs; global import-linter contracts for logistics/budget/documents/itinerary. Different verifier and one correction/spot required.
 - Platform env examples/Chromium CI owned separately; API writer must not edit them. Strict TDD uv run pytest, RDD off, direct-main exception-ok remains. Nag overflow question still unanswered; unchanged behavior remains pending clarification.
+
+### Observed API integration
+- API corrected48261d9 merged298c8f0 after parent export/1906 full tests/imports/Ruff/migrations. Combined with M4:1980 full tests green. Core C0 and web/integration still pending.
+
+- [ ] **C1 platform integration** — env examples and CI browser provisioning; mechanical workflow candidate6653428 has RED absence/GREEN ordering evidence, awaiting independent diff/merge. Platform env examples append-only, preserve Pi raw-value conventions.
+- [ ] **C2 web integration** — delegated actual shared paths/client replacement and removal of owned draft files after independent web reports; functional checks and independent final review required.

@@ -20,7 +20,7 @@ Day-by-day itinerary with an unscheduled tray, meeting points and quick notes; t
 - Models: writers sonnet, verifiers opus (one correction round). Delivery: merge to `main` + push per milestone.
 
 ## Tasks
-- [ ] **B1 api** — delegated (writer sonnet; verifier opus).
+- [x] **B1 api** — delegated (writer sonnet; verifier opus).
 - [ ] **B2 web** — delegated (writer sonnet; verifier opus). Builds against the contract's API table with a draft
   added to `contracts/openapi.json` (orchestrator regenerates from the real api at integration).
 - [ ] **B3 integrate** — inline: merge api then web, regenerate contract/types, env parsing for the contract's
@@ -67,3 +67,6 @@ Day-by-day itinerary with an unscheduled tray, meeting points and quick notes; t
 
 ### Delivery resumed — 2026-10-02
 - API78ceef6 independently approved1910 full/74 focused after its one correction. Parent spot and clean-main merge next. Web7891dea independent verification/actual generated paths-client cleanup still pending. No new milestone delivered yet.
+
+### Observed API integration
+- API corrected78ceef6 mergedb44754f after union app/TOML lists, regenerated export and parent1980 tests/imports/Ruff/migrations. Web/integration still pending.
