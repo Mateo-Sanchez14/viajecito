@@ -14,7 +14,7 @@ export function applyMyPass(overview: SkiOverview, me: PersonRef, pass: PassIn):
   const row: PassRow = {
     person: me,
     resort_id: resortId,
-    product: pass.product,
+    product: pass.product ?? "",
     days: pass.days ?? previous?.days ?? null,
     status: pass.status,
     price: pass.price != null ? String(pass.price) : (previous?.price ?? null),
