@@ -372,3 +372,8 @@ see `.env.example` for exact values. Upload/quota limits must be positive; remin
 must be nonnegative. Django spools multipart files above `FILE_UPLOAD_MAX_MEMORY_SIZE`
 (2,621,440 bytes) to disk; `DATA_UPLOAD_MAX_MEMORY_SIZE` separately bounds non-file multipart
 metadata to that size, rather than reducing the vault's 15 MiB file limit.
+
+Batch reminder `OutboundMessage.subject_id` is unindexed text, not a 255-character field:
+it preserves all comma-separated task UUIDs even when a batch contains more than six tasks.
+This does not change the independent 4,000-character message-body contract or choose an
+overflow presentation policy.
