@@ -46,7 +46,8 @@
       "noParticipants": "Todavía no hay nadie anotado",
       "modules": "Secciones",
       "openSection": "Ir a {section}",
-      "currency": "Moneda"
+      "currency": "Moneda",
+      "crew": "Quiénes van"
     },
     "rsvp": {
       "label": "¿Venís?",
@@ -80,6 +81,53 @@
       "budget": "Plata",
       "documents": "Documentos",
       "ski": "Ski"
+    },
+    "hero": {
+      "countdown": {
+        "upcomingUnit": "{days, plural, one {día} other {días}}",
+        "upcomingCaption": "para salir",
+        "tomorrow": "Mañana",
+        "tomorrowCaption": "arrancamos",
+        "today": "Hoy",
+        "todayCaption": "salimos",
+        "ongoing": "Día {day}",
+        "ongoingUnit": "de {total}",
+        "ongoingCaption": "de viaje",
+        "done": "Volvimos",
+        "doneCaption": "el viaje ya terminó",
+        "undated": "Sin fecha",
+        "undatedCaption": "Definan cuándo viajan",
+        "setDates": "Definir fechas"
+      },
+      "facts": {
+        "dates": "Fechas",
+        "destination": "Destino",
+        "currency": "Moneda"
+      }
+    },
+    "stats": {
+      "label": "Cómo viene el viaje",
+      "people": {
+        "label": "van",
+        "detail": "de {total}",
+        "progress": "Gente que confirmó"
+      },
+      "proposals": {
+        "label": "{count, plural, one {propuesta decidida} other {propuestas decididas}}",
+        "detail": "{open, plural, =0 {ninguna abierta} one {# abierta} other {# abiertas}}",
+        "progress": "Propuestas decididas"
+      },
+      "tasks": {
+        "label": "{count, plural, one {tarea hecha} other {tareas hechas}}",
+        "detail": "de {total}",
+        "overdue": "{count, plural, one {# vencida} other {# vencidas}}",
+        "progress": "Tareas hechas"
+      },
+      "packing": {
+        "label": "en tu valija",
+        "detail": "de {total}",
+        "progress": "Tu valija armada"
+      }
     }
   }
 }

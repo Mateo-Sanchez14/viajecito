@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { daysUntil } from "./countdown";
+import { daysUntil } from "./daysUntil";
 
 const BA = "America/Argentina/Buenos_Aires"; // UTC-3, no DST
 const SYDNEY = "Australia/Sydney"; // UTC+10/+11

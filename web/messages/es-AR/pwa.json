@@ -13,12 +13,6 @@
       },
       "dismiss": "Ahora no"
     },
-    "countdown": {
-      "title": "Cuenta regresiva",
-      "days": "Faltan {days} días",
-      "tomorrow": "¡Mañana arrancamos!",
-      "today": "¡Hoy arranca el viaje!"
-    },
     "offline": {
       "banner": "Sin conexión: mostrando lo último que bajamos",
       "page": {

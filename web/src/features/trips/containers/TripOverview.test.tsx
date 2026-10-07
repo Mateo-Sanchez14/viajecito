@@ -1,5 +1,6 @@
 import { screen, within } from "@testing-library/react";
 import type { TripCard } from "../cards/types";
+import type { TripStat } from "../stats/types";
 import { describe, expect, it } from "vitest";
 import { MeProvider } from "@/features/auth/MeProvider";
 import { renderWithProviders } from "@/test/render";
@@ -8,18 +9,18 @@ import { TripProvider } from "../TripProvider";
 import { CREW_ID, TRIP_ID, formatDay, makeMe, makeTrip } from "../fixtures";
 import { TripOverview } from "./TripOverview";
 
-function setup(trip = makeTrip(), cards: TripCard[] = []) {
+function setup(trip = makeTrip(), cards: TripCard[] = [], stats: TripStat[] = []) {
   return renderWithProviders(
     <MeProvider me={makeMe()}>
       <TripProvider trip={trip}>
-        <TripOverview cards={cards} />
+        <TripOverview cards={cards} stats={stats} />
       </TripProvider>
     </MeProvider>,
   );
 }
 
 describe("TripOverview", () => {
-  it("shows dates and destination", () => {
+  it("shows dates and destination exactly once", () => {
     setup();
 
     expect(
@@ -116,5 +117,41 @@ describe("TripOverview", () => {
     setup();
 
     expect(screen.getByRole("button", { name: messages.trips.rsvp.in })).toBeInTheDocument();
+  });
+
+  it("hosts the RSVP control in the crew section that the stats link to", () => {
+    setup();
+
+    const crew = screen.getByRole("heading", { name: messages.trips.overview.participants }).closest("section");
+    expect(crew).toHaveAttribute("id", "rsvp");
+    expect(within(crew as HTMLElement).getByRole("button", { name: messages.trips.rsvp.in })).toBeInTheDocument();
+  });
+
+  it("renders the hero with the dates, destination and currency as facts", () => {
+    setup();
+
+    const facts = screen.getByText(messages.trips.hero.facts.destination).closest("dl") as HTMLElement;
+    expect(within(facts).getByText("Bariloche")).toBeInTheDocument();
+    expect(within(facts).getByText("USD")).toBeInTheDocument();
+    expect(within(facts).getByText(messages.trips.hero.facts.dates)).toBeInTheDocument();
+  });
+
+  it("renders registered stats", () => {
+    setup(makeTrip(), [], [{ key: "x", order: 1, Component: () => <p>stat x</p> }]);
+
+    expect(screen.getByText("stat x")).toBeInTheDocument();
+  });
+
+  it("adds no navigation link named after the overview section", () => {
+    setup();
+
+    expect(screen.queryByRole("link", { name: messages.trips.modules.overview })).not.toBeInTheDocument();
+  });
+
+  it("renders no modules section when there is nothing to list", () => {
+    setup(makeTrip({ modules: [] }), []);
+
+    expect(screen.queryByRole("heading", { name: messages.trips.overview.modules })).not.toBeInTheDocument();
+    expect(screen.queryByRole("list", { name: messages.trips.overview.modules })).not.toBeInTheDocument();
   });
 });

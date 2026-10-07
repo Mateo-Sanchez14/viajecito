@@ -4,14 +4,15 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { Avatar } from "@/ui/atoms/Avatar";
 import { Badge, type BadgeVariant } from "@/ui/atoms/Badge";
-import { Card } from "@/ui/atoms/Card";
 import type { Rsvp } from "../api/trips";
 import { tripCards, type TripCard } from "../cards";
 import { sectionPath } from "../lib/paths";
-import { useDateRange } from "../lib/useDateRange";
 import { useSectionLabel } from "../lib/useSectionLabel";
 import { useTripContext } from "../TripProvider";
+import { tripStats, type TripStat } from "../stats";
 import { RsvpControl } from "./RsvpControl";
+import { TripHero } from "./TripHero";
+import { TripStats } from "./TripStats";
 
 const RSVP_VARIANT: Record<Rsvp, BadgeVariant> = {
   in: "ok",
@@ -20,10 +21,15 @@ const RSVP_VARIANT: Record<Rsvp, BadgeVariant> = {
   pending: "neutral",
 };
 
-/** Container: trip summary, my RSVP, who is going and a card per module. */
-export function TripOverview({ cards = tripCards }: { cards?: TripCard[] }) {
+/** Container: hero, readiness stats, who is going (with my RSVP) and a card per module. */
+export function TripOverview({
+  cards = tripCards,
+  stats = tripStats,
+}: {
+  cards?: TripCard[];
+  stats?: TripStat[];
+}) {
   const t = useTranslations("trips");
-  const dateRange = useDateRange();
   const sectionLabel = useSectionLabel();
   const { trip, modules, participants } = useTripContext();
 
@@ -34,30 +40,18 @@ export function TripOverview({ cards = tripCards }: { cards?: TripCard[] }) {
 
   return (
     <div className="trip-overview">
-      <Card as="section" className="overview-summary flex flex-col gap-5">
-        <dl className="overview-facts grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <div>
-            <dt className="text-sm text-muted">{t("overview.dates")}</dt>
-            <dd className="font-medium">{dateRange(trip.start_on, trip.end_on)}</dd>
-          </div>
-          <div>
-            <dt className="text-sm text-muted">{t("overview.destination")}</dt>
-            <dd className="font-medium">{trip.destination_label || t("overview.noDestination")}</dd>
-          </div>
-          <div>
-            <dt className="text-sm text-muted">{t("overview.currency")}</dt>
-            <dd className="font-medium">{trip.currency}</dd>
-          </div>
-        </dl>
-        <RsvpControl />
-      </Card>
+      <TripHero />
+      <TripStats stats={stats} />
 
-      <section className="overview-crew flex min-w-0 flex-col gap-3">
-        <h2 className="text-lg font-semibold">{t("overview.participants")}</h2>
+      <section id="rsvp" aria-labelledby="overview-crew-title" className="overview-crew flex min-w-0 flex-col gap-4">
+        <h2 id="overview-crew-title" className="text-lg font-semibold">
+          {t("overview.participants")}
+        </h2>
+        <RsvpControl />
         {participants.length === 0 ? (
           <p className="text-sm text-muted">{t("overview.noParticipants")}</p>
         ) : (
-          <ul aria-label={t("overview.participants")} className="flex flex-col gap-2">
+          <ul aria-label={t("overview.participants")} className="overview-crew-list flex flex-col gap-2">
             {participants.map((p) => (
               <li
                 key={p.person_id}
@@ -74,26 +68,28 @@ export function TripOverview({ cards = tripCards }: { cards?: TripCard[] }) {
         )}
       </section>
 
-      <section className="overview-modules flex min-w-0 flex-col gap-4">
-        <h2 className="text-lg font-semibold">{t("overview.modules")}</h2>
-        <ul aria-label={t("overview.modules")} className="overview-module-grid grid grid-cols-1 gap-3 sm:grid-cols-2">
-          {entries.map(({ key, Component }) => (
-            <li key={key} className="empty:hidden">
-              <Component tripId={trip.id} crewId={trip.crew_id} />
-            </li>
-          ))}
-          {placeholders.map((key) => (
-            <li key={`placeholder-${key}`}>
-              <Link
-                href={sectionPath(trip.crew_id, trip.id, key)}
-                className="flex h-full items-center rounded-xl border border-border bg-surface px-4 py-4 font-medium hover:border-foreground/40"
-              >
-                {sectionLabel(key)}
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </section>
+      {entries.length + placeholders.length > 0 && (
+        <section className="overview-modules flex min-w-0 flex-col gap-4">
+          <h2 className="text-lg font-semibold">{t("overview.modules")}</h2>
+          <ul aria-label={t("overview.modules")} className="overview-module-grid grid grid-cols-1 gap-3 sm:grid-cols-2">
+            {entries.map(({ key, Component }) => (
+              <li key={key} className="empty:hidden">
+                <Component tripId={trip.id} crewId={trip.crew_id} />
+              </li>
+            ))}
+            {placeholders.map((key) => (
+              <li key={`placeholder-${key}`}>
+                <Link
+                  href={sectionPath(trip.crew_id, trip.id, key)}
+                  className="flex h-full items-center rounded-xl border border-border bg-surface px-4 py-4 font-medium hover:border-foreground/40"
+                >
+                  {sectionLabel(key)}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
     </div>
   );
 }
