@@ -1,0 +1,15 @@
+[Unit]
+Description=viajecito automatic test-gated main deployment
+Wants=network-online.target
+After=network-online.target docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=/srv/viajecito
+ExecStart=/usr/bin/python3 /srv/viajecito/autodeploy.py
+TimeoutStartSec=20min
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6

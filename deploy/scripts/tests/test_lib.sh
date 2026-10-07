@@ -79,4 +79,9 @@ assert_eq "waha payload is a non-group message" "message|c.us|False" "$(printf '
 assert_eq "waha payload id" "smoke-123" "$(printf '%s' "$waha_payload" | python3 -c 'import json,sys; print(json.load(sys.stdin)["payload"]["id"])')"
 assert_eq "gowa payload id" "smoke-123" "$(webhook_payload gowa 123 | python3 -c 'import json,sys; print(json.load(sys.stdin)["payload"]["id"])')"
 
+# Release overrides survive pi.env loading and are shared by deploy and smoke.
+docker() { printf '%s|%s' "${IMAGE_TAG:-}" "$*"; }
+export IMAGE_TAG=old DEPLOY_IMAGE_TAG=release VIAJECITO_COMPOSE_FILE=/release/compose.pi.yml
+assert_eq "release compose overrides" "release|compose --env-file $PI_ENV_FILE --project-directory $VIAJECITO_ROOT -f /release/compose.pi.yml config -q" "$(dc config -q)"
+
 exit "$fails"
