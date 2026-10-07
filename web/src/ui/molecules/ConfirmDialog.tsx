@@ -14,8 +14,9 @@ type ConfirmDialogProps = {
 };
 
 /**
- * Native modal <dialog>. Focus lands on the safe (cancel) action when it opens, the
- * browser traps focus and restores it on close, and Escape counts as cancelling.
+ * Native modal <dialog> sharing the sheet panel styles, centered at every width. Focus lands on
+ * the safe (cancel) action when it opens, the browser traps focus and restores it on close, and
+ * Escape counts as cancelling.
  */
 export function ConfirmDialog({
   open,
@@ -51,10 +52,10 @@ export function ConfirmDialog({
         event.preventDefault();
         onCancel();
       }}
-      className="m-auto w-[min(92vw,26rem)] rounded-2xl border border-border bg-surface p-6 text-foreground backdrop:bg-black/50"
+      className="ui-sheet ui-sheet-centered"
     >
-      <div className="flex flex-col gap-4">
-        <h2 id={titleId} className="text-lg font-semibold">
+      <div className="ui-sheet-panel">
+        <h2 id={titleId} className="ui-sheet-title">
           {title}
         </h2>
         {description && (

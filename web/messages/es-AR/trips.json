@@ -57,7 +57,10 @@
       "failed": "No pudimos guardar tu respuesta, probá de nuevo"
     },
     "nav": {
-      "label": "Secciones del viaje"
+      "label": "Secciones del viaje",
+      "mobileLabel": "Menú del viaje",
+      "more": "Más",
+      "moreTitle": "Más secciones"
     },
     "comingSoon": {
       "title": "Próximamente",

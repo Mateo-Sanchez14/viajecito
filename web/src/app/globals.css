@@ -344,7 +344,7 @@ html:has(dialog[open]) {
 }
 
 .ui-section-nav {
-  border-radius: 20px;
+  border-radius: var(--radius-card);
   padding: 6px;
   background: color-mix(in srgb, var(--foreground) 5%, var(--background));
 }
@@ -363,10 +363,12 @@ html:has(dialog[open]) {
   display: flex;
   min-height: 44px;
   align-items: center;
+  gap: 8px;
   padding: 10px 16px;
   border: 0;
-  border-radius: 14px;
+  border-radius: var(--radius-control);
   text-decoration: none;
+  transition: background-color var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
 }
 
 .ui-section-nav a[aria-current="page"] {
@@ -720,6 +722,250 @@ html:has(dialog[open]) {
 }
 @media (max-width: 480px) {
   .shell-notifications { padding-inline: 20px; }
+}
+
+/* Sheet: bottom sheet on phones, centered panel from md up. Native <dialog>, CSS-only motion. */
+.ui-sheet {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: none;
+  max-height: 85dvh;
+  margin: auto 0 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-panel) var(--radius-panel) 0 0;
+  background: var(--surface);
+  color: var(--foreground);
+  box-shadow: var(--elev-3);
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(24px);
+  transition:
+    opacity var(--dur-base) var(--ease-out),
+    transform var(--dur-base) var(--ease-out),
+    overlay var(--dur-base) allow-discrete,
+    display var(--dur-base) allow-discrete;
+}
+
+.ui-sheet[open] {
+  opacity: 1;
+  transform: none;
+}
+
+@starting-style {
+  .ui-sheet[open] {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+}
+
+.ui-sheet::backdrop {
+  background: rgb(10 22 18 / 0.45);
+  opacity: 0;
+  transition:
+    opacity var(--dur-base) var(--ease-out),
+    overlay var(--dur-base) allow-discrete,
+    display var(--dur-base) allow-discrete;
+}
+
+.ui-sheet[open]::backdrop {
+  opacity: 1;
+}
+
+@starting-style {
+  .ui-sheet[open]::backdrop {
+    opacity: 0;
+  }
+}
+
+.ui-sheet-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  box-sizing: border-box;
+  max-height: 85dvh;
+  overflow-y: auto;
+  padding: 8px 16px calc(16px + var(--safe-bottom));
+}
+
+.ui-sheet-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.ui-sheet-title {
+  min-width: 0;
+  margin: 0;
+  font-size: var(--type-lg);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.ui-sheet-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+@media (min-width: 768px) {
+  .ui-sheet {
+    width: min(92vw, 30rem);
+    margin: auto;
+    border-radius: var(--radius-panel);
+  }
+  .ui-sheet-panel {
+    padding: 12px 20px 20px;
+  }
+}
+
+/* Centered at every width: confirmations never dock to the screen edge. */
+.ui-sheet-centered {
+  width: min(92vw, 26rem);
+  margin: auto;
+  border-radius: var(--radius-panel);
+}
+
+.ui-sheet-centered .ui-sheet-panel {
+  gap: 16px;
+  padding: 24px;
+}
+
+/* Bottom navigation (below md). The wide section nav takes over from md. */
+.bottom-nav {
+  position: fixed;
+  left: max(8px, env(safe-area-inset-left, 0px));
+  right: max(8px, env(safe-area-inset-right, 0px));
+  bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+  z-index: var(--z-nav);
+  border: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+  border-radius: var(--radius-panel);
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  backdrop-filter: blur(12px);
+  box-shadow: var(--elev-2);
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .bottom-nav {
+    background: var(--surface);
+    backdrop-filter: none;
+  }
+}
+
+.bottom-nav > ul {
+  display: grid;
+  grid-template-columns: repeat(var(--items, 5), minmax(0, 1fr));
+  gap: 0;
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+}
+
+.bottom-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 44px;
+  min-height: 56px;
+  padding: 4px 0;
+  border: 0;
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  text-decoration: none;
+  cursor: pointer;
+  transition: color var(--dur-fast) var(--ease-out), transform var(--dur-press) var(--ease-out);
+}
+
+.bottom-nav-item > span {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bottom-nav-item > svg {
+  box-sizing: content-box;
+  padding: 3px 14px;
+  border-radius: var(--radius-pill);
+  transition: background-color var(--dur-fast) var(--ease-out);
+}
+
+.bottom-nav-item:active {
+  transform: scale(0.96);
+}
+
+.bottom-nav-item[aria-current="page"],
+.bottom-nav-item[data-active] {
+  color: var(--foreground);
+}
+
+.bottom-nav-item[aria-current="page"] > svg,
+.bottom-nav-item[data-active] > svg {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+@media (min-width: 768px) {
+  .bottom-nav {
+    display: none;
+  }
+}
+
+.bottom-nav-sheet-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bottom-nav-sheet-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-sizing: border-box;
+  min-height: 56px;
+  padding: 8px 12px;
+  border-radius: var(--radius-control);
+  color: var(--foreground);
+  text-decoration: none;
+}
+
+.bottom-nav-sheet-link:hover {
+  background: var(--surface-sunken);
+}
+
+.bottom-nav-sheet-link[aria-current="page"] {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.bottom-nav-sheet-link > svg:last-child {
+  margin-left: auto;
+  color: var(--muted);
+}
+
+/* The wide section nav only shows from md; below that the bottom nav replaces it. */
+.trip-nav-wide {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .trip-nav-wide {
+    display: block;
+  }
 }
 
 /* Stays last: it must beat every transition and animation declared above. */

@@ -7,15 +7,19 @@ type TripShellProps = {
   subtitle?: string;
   navLabel: string;
   navItems: SectionNavItem[];
+  /** Phone navigation. When given, the wide section nav only shows from md up. */
+  mobileNav?: ReactNode;
   children: ReactNode;
 };
 
 /** Presentational frame of every trip page: header, section navigation, then the page. */
-export function TripShell({ title, subtitle, navLabel, navItems, children }: TripShellProps) {
+export function TripShell({ title, subtitle, navLabel, navItems, mobileNav, children }: TripShellProps) {
+  const sectionNav = <SectionNav label={navLabel} items={navItems} />;
   return (
     <div className="trip-shell flex min-w-0 flex-col gap-7">
       <PageHeader title={title} subtitle={subtitle} />
-      <SectionNav label={navLabel} items={navItems} />
+      {mobileNav ? <div className="trip-nav-wide">{sectionNav}</div> : sectionNav}
+      {mobileNav}
       {children}
     </div>
   );
