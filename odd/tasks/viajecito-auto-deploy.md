@@ -24,7 +24,7 @@ Fail closed on missing/failed checks or malformed archives. No automatic migrati
 - Branch: `feat/pi-autodeploy`. Main merge and non-force push explicitly authorized; no PR.
 
 ## Tasks
-- [ ] T1: Implement exact-SHA gated updater, all-main workflow triggers, shared Compose overrides,
+- [x] T1: Implement exact-SHA gated updater, all-main workflow triggers, shared Compose overrides,
   timer/service, documentation and behavior-first tests. Route delegated (platform writer).
   Acceptance: five exact workflow paths must succeed for push/main and same SHA; reruns use
   latest attempt, idempotent state, exclusive lock, safe archive extraction, exact tag/Compose,
@@ -41,7 +41,7 @@ Fail closed on missing/failed checks or malformed archives. No automatic migrati
 - T1 implementation and RED/GREEN observed by delegated author. Parent reproduced 14 updater
   tests and 34 lib assertions; author also observed roster 5, Wave A 3, Wave B 4 and Ruff green.
   Actual authored count is 533 (ODD excluded); no code compressed or tests omitted.
-- Delivery gate: pending explicit oversized single-delivery exception/publication approval.
+- Historical delivery gate: publication/exception was pending on 2026-10-02, now granted 2026-10-06.
   A trigger-only slice is small, but leaves the updater/tests/docs coherent unit above 400;
   do not artificially split its behavior just to reach the advisory threshold.
 - T2 operational progress: installed updater and new systemd units; systemd verify passed,
@@ -66,3 +66,21 @@ Fail closed on missing/failed checks or malformed archives. No automatic migrati
   publish eligible immutable SHA after all CI/images succeed, then health/smoke and running image
   identity. No gate bypass, real bot messages, WAHA/notify mutation or unrelated credentials.
 - Current live state is unverified; 2026-10-02 activation evidence is historical, not a new claim.
+
+### Observed source closure and production preflight
+- T1 work-unit commit `1a8aa4b`: independent read-only APPROVE; exact workflow/SHA/main/push/latest
+  attempts, archive safety, stable env/Compose overrides and atomic state verified. Parent repeated
+  updater14 tests, shared lib34 assertions, roster/Wave A/Wave B12 tests and Ruff; syntax/ShellCheck
+  and Python3.11 grammar independently passed. Prior author RED/GREEN retained. RDD off clone_local
+  reconfirmed, disabled/unmanaged. No production source correction was necessary.
+- Fresh fetch shows no remote-only changes against base4cd3e51. Clean-main no-ff/no-commit merge,
+  frozen API export/fullpytest and applicable web checks must pass before merge commit/publication.
+- Authorized sshpi preflight: host raspberrypi/aarch64, autodeploy/tick/backup timers active;
+  current api/web latest healthy, updater exit0 waits for checks. No deployed-sha marker yet.
+- [ ] T3: Complete required vault configuration before release. Route inline single-host operations:
+  existing api.env600 has no nonempty DOCUMENTS_FERNET_KEYS; old deployed DB has no documents table.
+  Verify no orphan encrypted vault files, guard against any existing key/data, generate random32-byte
+  key ON Pi, preserve all existing config/ownership and atomic mode600 write, restricted local backup.
+  No key printed/transferred to repository; optional VAPID remains disabled/unmodified. Independent
+  read-only storage/guard challenge pending. Observe config RED missing → GREEN valid before deploy.
+- T2 actual release still pending; source push and all5successful exact-SHA CI/images required.
