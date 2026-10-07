@@ -81,7 +81,7 @@ it("stacks the picture and the pass below 900px and sits them side by side from 
   await page.setViewportSize({ width: 899, height: 900 });
   const stacked = await boxes();
   expect(stacked.pass.top).toBeLessThan(stacked.media.bottom); // overlaps the picture
-  expect(stacked.pass.left).toBeGreaterThan(stacked.media.left);
+  expect(stacked.pass.left).toBeGreaterThanOrEqual(stacked.media.left);
 
   await page.setViewportSize({ width: 1280, height: 900 });
   const wide = await boxes();
@@ -89,8 +89,11 @@ it("stacks the picture and the pass below 900px and sits them side by side from 
 });
 
 it("lays the stat cards out as 2 columns on phones and 4 from 900px", async () => {
+  // Columns as the cards lie, not as the track list reads: auto-fit keeps collapsed tracks in the computed value.
   const columns = () =>
-    page.evaluate(() => getComputedStyle(document.querySelector(".trip-stats")!).gridTemplateColumns.split(" ").length);
+    page.evaluate(
+      () => new Set([...document.querySelectorAll(".trip-stats > li")].map((item) => Math.round(item.getBoundingClientRect().left))).size,
+    );
 
   await page.setViewportSize({ width: 390, height: 900 });
   expect(await columns()).toBe(2);
@@ -138,4 +141,48 @@ it("keeps stat card text at WCAG AA in both themes", async () => {
     expect(await textContrast(page, ".stat-card-detail", ".stat-card"), `${scheme} detail`).toBeGreaterThanOrEqual(4.5);
     expect(await textContrast(page, ".stat-card-icon", ".stat-card-icon"), `${scheme} icon`).toBeGreaterThanOrEqual(4.5);
   }
+});
+
+it("clips the art cleanly: stacked, the pass is as wide as the picture and the picture has no bottom corners to peek out", async () => {
+  await page.setViewportSize({ width: 390, height: 900 });
+  // The contrast tests above hide the scene and recolor the frame.
+  await page.locator(".trip-hero-media").evaluate((element) => {
+    (element as HTMLElement).style.background = "";
+    element.querySelector("svg")!.style.display = "";
+  });
+  const stacked = await page.evaluate(() => {
+    const media = document.querySelector(".trip-hero-media")!;
+    const mediaBox = media.getBoundingClientRect();
+    const passBox = document.querySelector(".trip-pass")!.getBoundingClientRect();
+    const style = getComputedStyle(media);
+    return {
+      strips: { left: passBox.left - mediaBox.left, right: mediaBox.right - passBox.right },
+      overlap: mediaBox.bottom - passBox.top,
+      radii: [style.borderTopLeftRadius, style.borderTopRightRadius, style.borderBottomRightRadius, style.borderBottomLeftRadius],
+      overflow: style.overflow,
+    };
+  });
+
+  expect(stacked.strips.left).toBeLessThanOrEqual(0.5);
+  expect(stacked.strips.right).toBeLessThanOrEqual(0.5);
+  expect(stacked.overlap).toBeGreaterThan(0);
+  expect(stacked.radii.slice(0, 2).every((radius) => parseFloat(radius) > 0)).toBe(true);
+  expect(stacked.radii.slice(2)).toEqual(["0px", "0px"]);
+  expect(stacked.overflow).toBe("hidden");
+
+  // The scene runs past the clipped bottom edge, so the wedges the pass corners reveal are never the road band.
+  const overrun = await page.evaluate(() => {
+    const art = document.querySelector(".trip-hero-media > .trip-cover-art")!.getBoundingClientRect();
+    return art.bottom - document.querySelector(".trip-hero-media")!.getBoundingClientRect().bottom;
+  });
+  expect(overrun).toBeGreaterThanOrEqual(36);
+
+  await page.setViewportSize({ width: 1280, height: 900 });
+  const wide = await page.evaluate(() => {
+    const media = document.querySelector(".trip-hero-media")!;
+    const art = document.querySelector(".trip-hero-media > .trip-cover-art")!.getBoundingClientRect();
+    return { radius: getComputedStyle(media).borderBottomLeftRadius, overrun: art.bottom - media.getBoundingClientRect().bottom };
+  });
+  expect(parseFloat(wide.radius)).toBeGreaterThan(0);
+  expect(Math.abs(wide.overrun)).toBeLessThanOrEqual(0.5);
 });

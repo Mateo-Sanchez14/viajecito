@@ -134,7 +134,7 @@ for (const name of Object.keys(screens)) {
 it.each(["budget", "documents", "tasks", "packing"])("%s keeps every button, link and field at least 44px tall", async (name) => {
   await show(name, 320);
   const small = await page.evaluate(() =>
-    [...document.querySelectorAll<HTMLElement>("main button, main a, main select, main input:not([type=checkbox]):not([type=hidden])")]
+    [...document.querySelectorAll<HTMLElement>("main button, main a, main select, main input:not([type=checkbox]):not([type=hidden]):not(.ui-file-input)")]
       .filter((element) => {
         const bounds = element.getBoundingClientRect();
         return bounds.width > 0 && bounds.height > 0 && bounds.height < 44;

@@ -3,7 +3,6 @@
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
-import Link from "next/link";
 import { PushSubscriptionSync } from "@/features/push/containers/PushSubscriptionSync";
 import { dropThisDeviceSubscription } from "@/features/push/lib/device";
 import { AppHeader } from "@/ui/organisms/AppHeader";
@@ -32,22 +31,21 @@ export function ShellHeader() {
     }
   }
 
+  // No dangling "Hola," for a person who has no display name yet.
+  const name = person.display_name.trim();
+
   return (
     <>
       <PushSubscriptionSync />
       <AppHeader
         appName={t("app.name")}
-        greeting={t("home.greeting", { name: person.display_name })}
+        greeting={name ? t("home.greeting", { name }) : t("home.greetingAnonymous")}
+        notifications={{ href: "/me/notifications", label: t("push.nav") }}
         logoutLabel={t("auth.logout")}
         onLogout={handleLogout}
         logoutPending={pending}
         errorMessage={failed ? t("auth.errors.unknown") : undefined}
       />
-      <nav aria-label={t("push.nav")} className="shell-notifications mx-auto flex w-full justify-end px-6 pt-2">
-        <Link href="/me/notifications" className="shell-notifications-link inline-flex min-h-11 items-center text-sm text-muted underline underline-offset-2">
-          {t("push.nav")}
-        </Link>
-      </nav>
     </>
   );
 }

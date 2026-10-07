@@ -27,11 +27,7 @@ import {
   updateDocument,
   type Document,
 } from "../api/documents";
-import {
-  DOCUMENT_FILE_INPUT_ID,
-  UploadDocumentForm,
-  documentKinds,
-} from "./UploadDocumentForm";
+import { UploadDocumentForm, documentKinds } from "./UploadDocumentForm";
 
 const KIND_ICON = {
   reservation: BedIcon,
@@ -192,17 +188,6 @@ export function DocumentVault({
           art={<EmptyArt scene="ticket" />}
           title={t("emptyTitle")}
           description={t("empty")}
-          action={
-            <Button
-              variant="secondary"
-              className="ui-button-auto"
-              onClick={() =>
-                window.document.getElementById(DOCUMENT_FILE_INPUT_ID)?.focus()
-              }
-            >
-              {t("emptyCta")}
-            </Button>
-          }
         />
       )}
       {documentKinds.map((category) => {

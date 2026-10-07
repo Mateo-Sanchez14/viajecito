@@ -142,7 +142,10 @@
         "label": "{count, plural, one {tarea hecha} other {tareas hechas}}",
         "detail": "de {total}",
         "overdue": "{count, plural, one {# vencida} other {# vencidas}}",
-        "progress": "Tareas hechas"
+        "progress": "Tareas hechas",
+        "emptyValue": "—",
+        "emptyLabel": "Sin tareas todavía",
+        "emptyDetail": "Anotá la primera"
       },
       "packing": {
         "label": "en tu valija",

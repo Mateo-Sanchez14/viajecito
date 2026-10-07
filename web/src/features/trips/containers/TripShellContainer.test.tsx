@@ -33,11 +33,20 @@ describe("TripShellContainer", () => {
     pathname = base;
   });
 
-  it("shows the trip name, its dates and the children", () => {
+  it("shows the trip name, its dates and the children on a section page", () => {
+    pathname = `${base}/budget`;
     setup();
 
     expect(screen.getByRole("heading", { level: 1, name: "Bariloche 2027" })).toBeInTheDocument();
     expect(screen.getByText(new RegExp(formatDay("2027-07-01")))).toBeInTheDocument();
+    expect(screen.getByText("contenido")).toBeInTheDocument();
+  });
+
+  it("leaves the dates to the overview hero instead of repeating them under the title", () => {
+    setup();
+
+    expect(screen.getByRole("heading", { level: 1, name: "Bariloche 2027" })).toBeInTheDocument();
+    expect(screen.queryByText(new RegExp(formatDay("2027-07-01")))).not.toBeInTheDocument();
     expect(screen.getByText("contenido")).toBeInTheDocument();
   });
 

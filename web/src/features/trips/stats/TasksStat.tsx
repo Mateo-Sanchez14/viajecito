@@ -18,6 +18,18 @@ export const TasksStat: TripStat["Component"] = ({ tripId, crewId }) => {
   if (isPending) return <StatCard icon={icon} value="" label="" loading />;
 
   const { value, total, overdue, progress } = tasksStat(data);
+  // "0 tareas hechas de 0" with an empty bar reads as a failure: say there is nothing to do yet.
+  if (total === 0) {
+    return (
+      <StatCard
+        icon={icon}
+        value={t("emptyValue")}
+        label={t("emptyLabel")}
+        detail={t("emptyDetail")}
+        href={sectionPath(crewId, tripId, "logistics")}
+      />
+    );
+  }
   return (
     <StatCard
       icon={icon}

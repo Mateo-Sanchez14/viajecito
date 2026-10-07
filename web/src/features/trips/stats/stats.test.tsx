@@ -109,6 +109,18 @@ describe("TasksStat", () => {
     );
   });
 
+  it("says there are no tasks yet, without a zero-of-zero meter", async () => {
+    server.use(http.get("*/api/trips/:id/tasks", () => HttpResponse.json([])));
+    setup(<TasksStat tripId={TRIP_ID} crewId={CREW_ID} />);
+
+    const link = await screen.findByRole("link");
+    expect(link).toHaveAttribute("href", `${base}/logistics`);
+    expect(link).toHaveTextContent(messages.trips.stats.tasks.emptyLabel);
+    expect(link).not.toHaveTextContent("de 0");
+    expect(link).not.toHaveTextContent("tareas hechas");
+    expect(screen.queryByRole("progressbar")).not.toBeInTheDocument();
+  });
+
   it("falls back to the total when nothing is overdue", async () => {
     server.use(
       http.get("*/api/trips/:id/tasks", () =>

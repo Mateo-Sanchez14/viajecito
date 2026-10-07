@@ -6,7 +6,7 @@ import { ApiError } from "@/shared/api/errors";
 import { Button } from "@/ui/atoms/Button";
 import { Input } from "@/ui/atoms/Input";
 import { Select } from "@/ui/atoms/Select";
-import { WarningCircleIcon } from "@/ui/icons";
+import { FileTextIcon, WarningCircleIcon } from "@/ui/icons";
 import {
   uploadDocument,
   validateUpload,
@@ -20,7 +20,7 @@ export const documentKinds = [
   "photo",
   "other",
 ] as const;
-/** The file input's id: the empty state points its call to action here. */
+/** The file input's id; its visible label-button points here. */
 export const DOCUMENT_FILE_INPUT_ID = "document-file";
 export function UploadDocumentForm({ tripId }: { tripId: string }) {
   const t = useTranslations("documents");
@@ -77,21 +77,33 @@ export function UploadDocumentForm({ tripId }: { tripId: string }) {
       }}
     >
       <h3 className="ui-form-title">{t("upload")}</h3>
-      <label className="ui-field">
-        {t("file")}
-        <Input
-          id={DOCUMENT_FILE_INPUT_ID}
-          type="file"
-          accept=".pdf,.jpg,.jpeg,.png,.webp,.heic,.heif"
-          aria-describedby={error ? "upload-error" : undefined}
-          onChange={(e) => {
-            const chosen = e.target.files?.[0] ?? null;
-            setFile(chosen);
-            setValidation(chosen ? validateUpload(chosen) : null);
-            upload.reset();
-          }}
-        />
-      </label>
+      <div className="ui-field">
+        <span id="document-file-label">{t("file")}</span>
+        <div className="ui-file">
+          {/* Visually hidden, never display:none: it stays focusable and reachable by keyboard and screen reader. */}
+          <input
+            id={DOCUMENT_FILE_INPUT_ID}
+            type="file"
+            className="ui-file-input"
+            accept=".pdf,.jpg,.jpeg,.png,.webp,.heic,.heif"
+            aria-labelledby="document-file-label"
+            aria-describedby={error ? "upload-error" : undefined}
+            onChange={(e) => {
+              const chosen = e.target.files?.[0] ?? null;
+              setFile(chosen);
+              setValidation(chosen ? validateUpload(chosen) : null);
+              upload.reset();
+            }}
+          />
+          <label htmlFor={DOCUMENT_FILE_INPUT_ID} className="ui-button ui-button-secondary ui-button-auto ui-file-trigger">
+            <FileTextIcon size={20} aria-hidden="true" />
+            {file ? t("changeFile") : t("chooseFile")}
+          </label>
+          <span className="ui-file-name" aria-live="polite">
+            {file ? file.name : t("noFile")}
+          </span>
+        </div>
+      </div>
       <div className="ui-field-grid">
         <label className="ui-field">
           {t("name")}

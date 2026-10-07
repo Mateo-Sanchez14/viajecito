@@ -40,9 +40,16 @@ beforeAll(async () => {
 });
 afterAll(async () => { await browser?.close(); });
 
-it("aligns the notifications wrapper with the 1120px product canvas", async () => {
-  const bounds = await page.getByRole("navigation", { name: "Notificaciones" }).boundingBox();
-  expect(bounds?.width).toBe(1120);
+it("puts the notifications icon button in the 1120px header, 44px square, with no loose link below it", async () => {
+  const link = page.getByRole("link", { name: "Notificaciones" });
+  const bounds = await link.boundingBox();
+  const header = await page.locator("header").first().boundingBox();
+  expect(bounds?.width).toBeGreaterThanOrEqual(44);
+  expect(bounds?.height).toBeGreaterThanOrEqual(44);
+  expect(bounds!.y).toBeGreaterThanOrEqual(header!.y);
+  expect(bounds!.y + bounds!.height).toBeLessThanOrEqual(header!.y + header!.height);
+  expect(header?.width).toBe(1120);
+  expect(await page.getByRole("navigation", { name: "Notificaciones" }).count()).toBe(0);
 });
 it("provides 44px overview links and a checkbox click wrapper", async () => {
   for (const name of ["Propuestas", "Lake hotel"]) {

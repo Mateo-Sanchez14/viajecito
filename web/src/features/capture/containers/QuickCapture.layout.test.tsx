@@ -165,16 +165,89 @@ it("sits near the corner on home, where there is no bottom nav", async () => {
   expect(844 - trigger.bottom).toBe(16);
 });
 
-it("shows only the icon below md and an extended pill with its name from md", async () => {
+it("shows only the icon until the gutter fits the pill, then an extended pill with its name", async () => {
   await show(pages.trip, 390);
   expect((await box(".quick-capture-fab")).width).toBe(56);
   expect((await box(".quick-capture-label")).width).toBeLessThanOrEqual(1);
 
   await show(pages.trip, 1280, 900);
+  expect((await box(".quick-capture-fab")).width).toBe(56);
+  expect(await page.getByRole("button", { name: "Agregar rápido" }).count()).toBe(1);
+
+  await show(pages.trip, 1600, 900);
   const pill = await box(".quick-capture-fab");
   expect(pill.width).toBeGreaterThan(56);
   expect((await box(".quick-capture-label")).width).toBeGreaterThan(40);
   expect(await page.getByRole("button", { name: "Agregar rápido" }).count()).toBe(1);
+});
+
+/** A page whose rows end in edit/delete-style buttons flush with the right edge of the content column. */
+const rowsPage = (rows = 30) =>
+  tripPage(
+    <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
+      {Array.from({ length: rows }, (_, index) => (
+        <li key={index} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, minHeight: 64 }}>
+          <a href={`/t/${index}`}>Tarea {index}</a>
+          <span style={{ display: "flex", gap: 8 }}>
+            <button type="button" style={{ width: 44, height: 44 }}>
+              Editar
+            </button>
+            <button type="button" style={{ width: 44, height: 44 }}>
+              Borrar
+            </button>
+          </span>
+        </li>
+      ))}
+    </ul>,
+  );
+
+/** Interactive controls of the page content that the trigger covers at the current scroll position. */
+const coveredControls = () =>
+  page.evaluate(() => {
+    const fab = document.querySelector(".quick-capture-fab")!.getBoundingClientRect();
+    return [...document.querySelectorAll<HTMLElement>("main a, main button, main input, main select, main textarea")]
+      .filter((element) => {
+        const bounds = element.getBoundingClientRect();
+        return (
+          bounds.width > 0 &&
+          bounds.left < fab.right &&
+          bounds.right > fab.left &&
+          bounds.top < fab.bottom &&
+          bounds.bottom > fab.top
+        );
+      })
+      .map((element) => `${element.tagName} ${element.textContent}`);
+  });
+
+// Below 1264px there is no gutter: the icon floats over the page edge by design, like any phone FAB.
+it.each([1280, 1440, 1600, 1920])("never covers a control of the content column at %ipx, at any scroll position", async (width) => {
+  await show(rowsPage(), width, 900);
+  const height = await page.evaluate(() => document.documentElement.scrollHeight);
+
+  for (let top = 0; top <= height; top += 150) {
+    await page.evaluate((y) => window.scrollTo(0, y), top);
+    expect(await coveredControls()).toEqual([]);
+  }
+  await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+  expect(await coveredControls()).toEqual([]);
+});
+
+it("keeps the trigger inside the gutter, clear of the 1120px column, at 1280px and 1600px", async () => {
+  for (const width of [1280, 1600]) {
+    await show(pages.trip, width, 900);
+    const trigger = await box(".quick-capture-fab");
+    const canvas = await box(".app-canvas");
+
+    expect(trigger.left).toBeGreaterThanOrEqual(canvas.right);
+    expect(trigger.right).toBeLessThanOrEqual(width);
+  }
+});
+
+it.each([390, 320])("leaves no control under the trigger once the page is scrolled to its end at %ipx", async (width) => {
+  await show(rowsPage(), width);
+  await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+
+  expect(await coveredControls()).toEqual([]);
 });
 
 it("keeps the last interactive element clear of the trigger and the nav below md", async () => {

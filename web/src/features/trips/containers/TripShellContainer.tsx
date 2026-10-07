@@ -44,11 +44,13 @@ export function TripShellContainer({ children }: { children: ReactNode }) {
   }));
 
   const { primary, more } = splitNav(navItems, trip.status);
+  // The overview hero already shows the dates beside the countdown: say them once per screen.
+  const onOverview = pathname === overviewHref;
 
   return (
     <TripShell
       title={trip.name}
-      subtitle={dateRange(trip.start_on, trip.end_on)}
+      subtitle={onOverview ? undefined : dateRange(trip.start_on, trip.end_on)}
       navLabel={t("nav.label")}
       navItems={navItems}
       mobileNav={

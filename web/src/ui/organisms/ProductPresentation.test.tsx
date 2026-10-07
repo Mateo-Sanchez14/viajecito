@@ -24,6 +24,7 @@ beforeAll(async () => {
         greeting="Hello, Alexandria Cassandra Montgomery"
         logoutLabel="Log out"
         onLogout={() => {}}
+        notifications={{ href: "/me/notifications", label: "Notifications" }}
       />
       <TripShell
         title="A very long trip title that still needs to wrap"
@@ -48,6 +49,7 @@ it("frames the product header without losing greeting or logout on small screens
   );
   expect(radius).toBeGreaterThanOrEqual(20);
   expect(await page.getByRole("button", { name: "Log out" }).isVisible()).toBe(true);
+  expect(await page.getByRole("link", { name: "Notifications" }).isVisible()).toBe(true);
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
 });
 
@@ -63,4 +65,21 @@ it("keeps the long-name header inside a 320px viewport and constrains it on desk
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320);
   await page.setViewportSize({ width: 1440, height: 1000 });
   expect((await page.locator("header").first().boundingBox())?.width).toBeLessThanOrEqual(1120);
+});
+
+it("keeps the greeting, the bell and logout on one header at 320px, each touch target at least 44px", async () => {
+  await page.setViewportSize({ width: 320, height: 844 });
+  const targets = await page.evaluate(() =>
+    [...document.querySelectorAll<HTMLElement>("header:first-of-type a, header:first-of-type button")].map((element) => {
+      const bounds = element.getBoundingClientRect();
+      return { name: element.getAttribute("aria-label") ?? element.textContent, width: bounds.width, height: bounds.height, right: bounds.right };
+    }),
+  );
+
+  expect(targets.length).toBeGreaterThanOrEqual(2);
+  for (const target of targets) {
+    expect(target.height).toBeGreaterThanOrEqual(44);
+    expect(target.width).toBeGreaterThanOrEqual(44);
+    expect(target.right).toBeLessThanOrEqual(320);
+  }
 });

@@ -5,6 +5,9 @@
     "loadFailed": "No pudimos cargar los documentos",
     "upload": "Subir documento",
     "file": "Archivo",
+    "chooseFile": "Elegir archivo",
+    "changeFile": "Elegir otro archivo",
+    "noFile": "Ningún archivo elegido",
     "name": "Título",
     "kindLabel": "Tipo de documento",
     "visibilityLabel": "Visibilidad",
@@ -24,7 +27,6 @@
     "validUntil": "Vence el {date}",
     "empty": "Subí reservas, pasajes y seguros para tenerlos a mano en el viaje",
     "emptyTitle": "Todavía no hay documentos",
-    "emptyCta": "Elegir un archivo",
     "kind": {
       "reservation": "Reserva",
       "ticket": "Pasaje",

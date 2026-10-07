@@ -112,7 +112,8 @@ it("makes the photo fill the same frame as the illustration", async () => {
   expect(photo.width).toBe(art.width);
   expect(photo.height).toBe(art.height);
   expect([photoImage.width, photoImage.height]).toEqual([photo.width, photo.height]);
-  expect([artImage.width, artImage.height]).toEqual([art.width, art.height]);
+  // Stacked, the scene runs 40px past the clipped bottom edge (see .trip-hero-media > .trip-cover-art).
+  expect([artImage.width, artImage.height]).toEqual([art.width, art.height + 40]);
 });
 
 it.each(["light", "dark"] as const)("paints the button on an opaque surface that reads over any picture in %s", async (scheme) => {

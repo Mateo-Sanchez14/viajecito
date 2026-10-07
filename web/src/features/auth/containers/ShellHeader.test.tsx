@@ -56,10 +56,16 @@ describe("ShellHeader", () => {
     Reflect.deleteProperty(window.navigator, "serviceWorker");
   });
 
-  it("links to the notification settings", () => {
+  it("links to the notification settings from an icon button inside the header, next to logout", () => {
     renderHeader();
 
-    expect(screen.getByRole("link", { name: messages.push.nav })).toHaveAttribute("href", "/me/notifications");
+    const link = screen.getByRole("link", { name: messages.push.nav });
+    expect(link).toHaveAttribute("href", "/me/notifications");
+    expect(link.closest("header")).toBe(screen.getByRole("banner"));
+    expect(link.querySelector("svg[aria-hidden='true']")).toBeInTheDocument();
+    expect(link).toHaveTextContent("");
+    expect(link.nextElementSibling).toBe(screen.getByRole("button", { name: messages.auth.logout }));
+    expect(screen.queryByRole("navigation", { name: messages.push.nav })).not.toBeInTheDocument();
   });
 
   it("re-sends an existing push subscription so it belongs to whoever is signed in now", async () => {
@@ -131,6 +137,17 @@ describe("ShellHeader", () => {
       screen.getByText(messages.home.greeting.replace("{name}", "Mateo")),
     ).toBeInTheDocument();
     expect(screen.getByText(messages.app.name)).toBeInTheDocument();
+  });
+
+  it("greets with just \"Hola\" when the person has no display name yet", () => {
+    renderWithProviders(
+      <MeProvider me={{ ...me, person: { ...me.person, display_name: "  " } }}>
+        <ShellHeader />
+      </MeProvider>,
+    );
+
+    expect(screen.getByText(messages.home.greetingAnonymous)).toBeInTheDocument();
+    expect(screen.queryByText(/Hola,/)).not.toBeInTheDocument();
   });
 
   it("logs out and replaces the route with /login", async () => {

@@ -3,6 +3,7 @@ import { http, HttpResponse } from "msw";
 import { expect, it } from "vitest";
 import { renderWithProviders } from "@/test/render";
 import { server } from "@/test/server";
+import messages from "../../../../messages/es-AR";
 import { DocumentVault } from "./DocumentVault";
 it("shows private documents with a same-origin download", async () => {
   server.use(
@@ -94,7 +95,7 @@ it("shows a layout-shaped skeleton while loading", () => {
   expect(screen.getByRole("status", { name: "Cargando…" })).toBeInTheDocument();
   expect(container.querySelectorAll(".ui-skeleton").length).toBeGreaterThanOrEqual(3);
 });
-it("shows an illustrated empty state whose call to action focuses the file input", async () => {
+it("shows an illustrated empty state without repeating the upload button", async () => {
   server.use(
     http.get("*/api/trips/:id/documents", () => HttpResponse.json([])),
   );
@@ -109,8 +110,28 @@ it("shows an illustrated empty state whose call to action focuses the file input
       "Subí reservas, pasajes y seguros para tenerlos a mano en el viaje",
     ),
   ).toBeInTheDocument();
-  fireEvent.click(screen.getByRole("button", { name: "Elegir un archivo" }));
-  expect(screen.getByLabelText("Archivo")).toHaveFocus();
+  // One way to pick a file on the screen: the upload card's own button.
+  expect(screen.getAllByText(/elegir (un )?archivo/i)).toHaveLength(1);
+  expect(screen.queryByRole("button", { name: "Elegir un archivo" })).not.toBeInTheDocument();
+});
+it("picks the file through a styled label over a hidden native input and shows its name", async () => {
+  server.use(
+    http.get("*/api/trips/:id/documents", () => HttpResponse.json([])),
+  );
+  renderWithProviders(<DocumentVault tripId="t1" />);
+  const input = screen.getByLabelText("Archivo") as HTMLInputElement;
+  const trigger = screen.getByText(messages.documents.chooseFile).closest("label");
+
+  expect(trigger).toHaveAttribute("for", input.id);
+  expect(input).toHaveClass("ui-file-input");
+  expect(input).not.toHaveAttribute("hidden");
+  expect(screen.getByText(messages.documents.noFile)).toBeInTheDocument();
+
+  fireEvent.change(input, { target: { files: [new File(["x"], "pasaje-ida.pdf", { type: "application/pdf" })] } });
+
+  expect(await screen.findByText("pasaje-ida.pdf")).toBeInTheDocument();
+  expect(screen.queryByText(messages.documents.noFile)).not.toBeInTheDocument();
+  expect(screen.getByText(messages.documents.changeFile)).toBeInTheDocument();
 });
 it("shows an inline error with a retry when the list fails, then recovers", async () => {
   let calls = 0;

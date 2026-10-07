@@ -1,6 +1,7 @@
 {
   "home": {
     "greeting": "Hola, {name}",
+    "greetingAnonymous": "Hola",
     "crews": {
       "empty": "Todavía no estás en ningún grupo"
     }
