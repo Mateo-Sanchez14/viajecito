@@ -1,15 +1,18 @@
 "use client";
 
+import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { ButtonLink } from "@/ui/atoms/ButtonLink";
 import { BoardingPass, type BoardingPassCountdown } from "@/ui/organisms/BoardingPass";
 import { TripCoverArt } from "@/ui/illustrations/TripCoverArt";
 import { useClientNow } from "@/shared/lib/useClientNow";
+import { coverPath } from "../api/cover";
 import { type Countdown, tripCountdown } from "../lib/countdown";
 import { coverScene } from "../lib/coverScene";
 import { sectionPath } from "../lib/paths";
 import { useDateRange } from "../lib/useDateRange";
 import { useTripContext } from "../TripProvider";
+import { CoverControl } from "./CoverControl";
 
 type Translate = (key: string, values?: Record<string, number>) => string;
 
@@ -57,6 +60,10 @@ export function TripHero() {
   const dateRange = useDateRange();
   const now = useClientNow();
   const { trip, modules } = useTripContext();
+  // The photo that failed to load, by version: offline (the service worker keeps /api network-only)
+  // or after the file went missing. A new version gets a fresh try.
+  const [failedVersion, setFailedVersion] = useState<number | null>(null);
+  const showPhoto = trip.has_cover && failedVersion !== trip.cover_version;
 
   // The server has no client clock: render the skeleton there so no day number can mismatch.
   // A finished trip stays finished even when its dates say otherwise.
@@ -69,7 +76,21 @@ export function TripHero() {
 
   return (
     <BoardingPass
-      media={<TripCoverArt scene={coverScene(trip)} />}
+      media={
+        showPhoto ? (
+          // eslint-disable-next-line @next/next/no-img-element -- same-origin, cookie-authorized endpoint: next/image cannot forward the session
+          <img
+            src={coverPath(trip)}
+            alt={t("cover.alt", { name: trip.name })}
+            decoding="async"
+            className="trip-hero-photo"
+            onError={() => setFailedVersion(trip.cover_version)}
+          />
+        ) : (
+          <TripCoverArt scene={coverScene(trip)} />
+        )
+      }
+      mediaAction={<CoverControl />}
       countdown={state && describe(state, (key, values) => countdownCopy(key, values), setDatesHref)}
       facts={[
         { label: t("hero.facts.dates"), value: dateRange(trip.start_on, trip.end_on) },

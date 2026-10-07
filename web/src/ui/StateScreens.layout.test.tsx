@@ -94,6 +94,12 @@ const screens: Record<string, string> = {
       makeSummary({ id: "x", name: "Mendoza", start_on: null, end_on: null, status: "idea" }),
     ]),
   ),
+  tripsWithCover: render(<TripList crewId={CREW_ID} />, (client) =>
+    client.setQueryData(["trips", "crew", CREW_ID], [
+      makeSummary({ name: LONG, has_cover: true, cover_version: 2 }),
+      makeSummary({ id: "x", name: "Mendoza", has_cover: false, status: "idea" }),
+    ]),
+  ),
 };
 
 let browser: Browser;
@@ -153,4 +159,44 @@ it("makes every checkbox sit in a 44px target", async () => {
     expect(width).toBeGreaterThanOrEqual(44);
     expect(height).toBeGreaterThanOrEqual(44);
   }
+});
+
+it.each([320, 390])("keeps the ticket picture a 64px square and the trip name readable at %ipx", async (width) => {
+  await show("tripsWithCover", width);
+
+  const sizes = await page.locator(".trip-ticket-media").evaluateAll((elements) =>
+    elements.map((element) => {
+      const bounds = element.getBoundingClientRect();
+      return [Math.round(bounds.width), Math.round(bounds.height)];
+    }),
+  );
+  expect(sizes).toEqual([
+    [64, 64],
+    [64, 64],
+  ]);
+  const text = await page.locator(".trip-ticket-text").first().evaluate((element) => element.getBoundingClientRect().width);
+  expect(text).toBeGreaterThanOrEqual(150);
+});
+
+it("puts the ticket stub under the trip on phones and beside it from 560px", async () => {
+  const layout = () =>
+    page.evaluate(() => {
+      const main = document.querySelector(".trip-ticket-main")!.getBoundingClientRect();
+      const stub = document.querySelector(".trip-ticket-stub")!.getBoundingClientRect();
+      return { stubBelow: stub.top >= main.bottom - 1, stubBeside: stub.left >= main.right - 1 };
+    });
+
+  await show("tripsWithCover", 390);
+  expect(await layout()).toEqual({ stubBelow: true, stubBeside: false });
+  await show("tripsWithCover", 1280);
+  expect(await layout()).toEqual({ stubBelow: false, stubBeside: true });
+});
+
+it("aligns every ticket stub at the same distance from the edge on wide screens", async () => {
+  await show("tripsWithCover", 1280);
+
+  const lefts = await page.locator(".trip-ticket-stub").evaluateAll((elements) =>
+    elements.map((element) => Math.round(element.getBoundingClientRect().left)),
+  );
+  expect(new Set(lefts).size).toBe(1);
 });

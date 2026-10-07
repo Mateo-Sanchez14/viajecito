@@ -115,3 +115,49 @@ describe("TripList ticket", () => {
     expect(await screen.findByRole("link", { name: /Bariloche 2027/ })).toBeInTheDocument();
   });
 });
+
+describe("TripList ticket media", () => {
+  const OTHER_ID = "44444444-4444-4444-8444-444444444444";
+
+  it("shows a lazy, decorative cover from the versioned private endpoint when the trip has one", async () => {
+    server.use(trips(makeSummary({ has_cover: true, cover_version: 3 })));
+    renderWithProviders(<TripList crewId={CREW_ID} />);
+
+    const link = await screen.findByRole("link", { name: /Bariloche 2027/ });
+    const photo = link.querySelector(".trip-ticket-media img")!;
+    expect(photo).toHaveAttribute("src", `/api/trips/${TRIP_ID}/cover?v=3`);
+    expect(photo).toHaveAttribute("loading", "lazy");
+    expect(photo).toHaveAttribute("alt", "");
+    expect(link.querySelector(".trip-ticket-media svg")).toBeNull();
+    // The picture adds nothing to the link's accessible name.
+    expect(link).toHaveAccessibleName(/^Bariloche 2027/);
+    expect(link.querySelector(".trip-ticket-media")).toHaveAttribute("aria-hidden", "true");
+  });
+
+  it("shows the trip illustration when it has no cover, and requests no image", async () => {
+    server.use(trips(makeSummary({ has_cover: false })));
+    renderWithProviders(<TripList crewId={CREW_ID} />);
+
+    const link = await screen.findByRole("link", { name: /Bariloche 2027/ });
+    expect(link.querySelector(".trip-ticket-media img")).toBeNull();
+    expect(link.querySelector(".trip-ticket-media svg.trip-cover-art")).toHaveAttribute("aria-hidden", "true");
+  });
+
+  it("falls back to the illustration when the cover cannot load, per trip", async () => {
+    server.use(
+      trips(
+        makeSummary({ has_cover: true, cover_version: 1 }),
+        makeSummary({ id: OTHER_ID, name: "Mendoza", has_cover: true, cover_version: 1 }),
+      ),
+    );
+    renderWithProviders(<TripList crewId={CREW_ID} />);
+    const first = await screen.findByRole("link", { name: /Bariloche 2027/ });
+    const second = screen.getByRole("link", { name: /Mendoza/ });
+
+    fireEvent.error(first.querySelector(".trip-ticket-media img")!);
+
+    expect(first.querySelector(".trip-ticket-media img")).toBeNull();
+    expect(first.querySelector(".trip-ticket-media svg.trip-cover-art")).toBeInTheDocument();
+    expect(second.querySelector(".trip-ticket-media img")).toBeInTheDocument();
+  });
+});

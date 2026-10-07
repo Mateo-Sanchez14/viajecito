@@ -112,3 +112,24 @@ describe("cache names", () => {
     expect(PURGE_CACHE_NAMES).toEqual(["today-v1", "documents-list-v1", "documents-files-v1"]);
   });
 });
+
+describe("trip cover images", () => {
+  const cover = `/api/trips/${ID}/cover?v=3`;
+  const request = { destination: "image" };
+
+  it("are network-only: the private cover is never matched by a caching rule", () => {
+    const m = match(cover, request);
+
+    expect(isNetworkOnly(m)).toBe(true);
+    expect(isStaticAsset(m)).toBe(false);
+    expect(isTodayApi(m)).toBe(false);
+    expect(isDocumentsList(m)).toBe(false);
+    expect(isDocumentFile(m)).toBe(false);
+    expect(isMe(m)).toBe(false);
+  });
+
+  it("stay network-only for uploads and removals", () => {
+    expect(isNetworkOnly(match(cover, { method: "POST" }))).toBe(true);
+    expect(isNetworkOnly(match(cover, { method: "DELETE" }))).toBe(true);
+  });
+});

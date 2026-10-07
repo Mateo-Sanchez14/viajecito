@@ -82,6 +82,27 @@
       "documents": "Documentos",
       "ski": "Ski"
     },
+    "cover": {
+      "alt": "Foto de {name}",
+      "add": "Agregar foto del viaje",
+      "change": "Cambiar foto del viaje",
+      "sheetTitle": "Foto del viaje",
+      "choose": "Elegir otra foto",
+      "remove": "Quitar foto",
+      "uploading": "Subiendo la foto",
+      "removing": "Quitando la foto",
+      "confirmTitle": "¿Quitamos la foto?",
+      "confirmDescription": "Vuelve la ilustración y la foto se borra para todo el grupo.",
+      "confirmRemove": "Quitar",
+      "cancel": "Cancelar",
+      "errors": {
+        "file_too_large": "La foto pesa demasiado. Probá con una más liviana.",
+        "image_too_large": "La foto tiene demasiados píxeles. Probá con una más chica.",
+        "unsupported_image": "No pudimos leer esa foto. Probá con una JPG, PNG, WebP o GIF.",
+        "network_error": "No hay conexión. Probá de nuevo cuando vuelvas a estar online.",
+        "failed": "No pudimos guardar la foto. Probá de nuevo."
+      }
+    },
     "hero": {
       "countdown": {
         "upcomingUnit": "{days, plural, one {día} other {días}}",

@@ -1,4 +1,4 @@
-import { screen } from "@testing-library/react";
+import { fireEvent, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { MeProvider } from "@/features/auth/MeProvider";
 import { renderWithProviders } from "@/test/render";
@@ -132,5 +132,58 @@ describe("TripHero facts and media", () => {
 
     const generic = setup(makeTrip({ type: "generic" }));
     expect(generic.container.querySelector("svg.trip-cover-art")).toHaveAttribute("aria-hidden", "true");
+  });
+});
+
+describe("TripHero cover", () => {
+  it("shows the cover photo from the versioned private endpoint, named after the trip", () => {
+    const { container } = setup(makeTrip({ has_cover: true, cover_version: 7 }));
+
+    const photo = screen.getByRole("img", { name: "Foto de Bariloche 2027" });
+    expect(photo).toHaveAttribute("src", `/api/trips/${TRIP_ID}/cover?v=7`);
+    expect(photo).toHaveClass("trip-hero-photo");
+    expect(photo).toHaveAttribute("decoding", "async");
+    expect(container.querySelector("svg.trip-cover-art")).toBeNull();
+  });
+
+  it("requests a new URL when the cover version changes", () => {
+    const first = setup(makeTrip({ has_cover: true, cover_version: 1 }));
+    const before = screen.getByRole("img", { name: /Foto de/ }).getAttribute("src");
+    first.unmount();
+
+    setup(makeTrip({ has_cover: true, cover_version: 2 }));
+
+    expect(screen.getByRole("img", { name: /Foto de/ }).getAttribute("src")).not.toBe(before);
+  });
+
+  it("makes no cover request and shows the illustration when the trip has no cover", () => {
+    const { container } = setup(makeTrip({ has_cover: false }));
+
+    expect(container.querySelector("img")).toBeNull();
+    expect(container.querySelector("svg.trip-cover-art")).toBeInTheDocument();
+  });
+
+  it("falls back to the illustration, in the same media frame, when the photo cannot load (offline)", () => {
+    const { container } = setup(makeTrip({ has_cover: true, cover_version: 1 }));
+    const frame = container.querySelector(".trip-hero-media")!;
+
+    fireEvent.error(screen.getByRole("img", { name: /Foto de/ }));
+
+    expect(screen.queryByRole("img", { name: /Foto de/ })).not.toBeInTheDocument();
+    expect(frame.querySelector("svg.trip-cover-art")).toBeInTheDocument();
+    expect(container.querySelector(".trip-hero-media")).toBe(frame);
+  });
+
+  it("puts the cover control in the media corner", () => {
+    const { container } = setup();
+
+    const action = container.querySelector(".trip-hero-media > .trip-hero-media-action");
+    expect(action).toContainElement(screen.getByRole("button", { name: messages.trips.cover.add }));
+  });
+
+  it("offers to change the photo when there is one", () => {
+    setup(makeTrip({ has_cover: true, cover_version: 1 }));
+
+    expect(screen.getByRole("button", { name: messages.trips.cover.change })).toBeInTheDocument();
   });
 });

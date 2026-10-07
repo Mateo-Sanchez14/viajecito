@@ -18,7 +18,7 @@ export const tripKeys = {
 };
 
 /** Unwraps an openapi-fetch result: the payload on success, an ApiError otherwise. */
-function unwrap<T>(result: { data?: T; error?: unknown; response: Response }): T {
+export function unwrap<T>(result: { data?: T; error?: unknown; response: Response }): T {
   if (result.response.ok && result.data !== undefined) return result.data;
   throw toApiError(result.error, result.response);
 }
