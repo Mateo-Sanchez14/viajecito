@@ -45,9 +45,11 @@ test("task owner receives one reminder and budget shows per-person cost", async 
     .click();
   expect((await saved).status()).toBe(201);
   await expect(page.getByRole("checkbox", { name: title })).toBeVisible();
-  // This test runs only in the parent's exclusive local compose smoke window. Noon avoids quiet hours.
+  // This test runs only in the parent's exclusive local compose smoke window. 15:00 UTC (noon in the
+  // crew timezone) avoids quiet hours. Travel to the NEXT 15:00 UTC: travelling back in time would find
+  // the tick JobLock taken at the real time still held, and the tick would exit silently.
   const script =
-    "import os;os.environ.setdefault('DJANGO_SETTINGS_MODULE','config.settings.dev');import django,time_machine;from datetime import datetime,UTC;django.setup();from django.core.management import call_command;\nwith time_machine.travel(datetime.now(UTC).replace(hour=15,minute=0,second=0),tick=False): call_command('tick')";
+    "import os;os.environ.setdefault('DJANGO_SETTINGS_MODULE','config.settings.dev');import django,time_machine;from datetime import datetime,timedelta,UTC;django.setup();from django.core.management import call_command;\nnow=datetime.now(UTC)\nat=now.replace(hour=15,minute=0,second=0,microsecond=0)\nat=at if at>now else at+timedelta(days=1)\nwith time_machine.travel(at,tick=False): call_command('tick')";
   execFileSync(
     "docker",
     ["compose", "exec", "-T", "api", "python", "-c", script],

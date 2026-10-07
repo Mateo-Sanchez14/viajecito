@@ -41,7 +41,7 @@ setup("sign in once and save the storage state", async ({ page, request }) => {
 
   await page.getByLabel(messages.auth.code.label).fill(code as string);
   await page.getByRole("button", { name: messages.auth.code.submit }).click();
-  await expect(page.getByText(messages.home.greeting.replace("{name}", "").trim())).toBeVisible();
+  await expect(page.getByRole("button", { name: messages.auth.logout, exact: true })).toBeVisible();
 
   await page.context().storageState({ path: authFile });
 });

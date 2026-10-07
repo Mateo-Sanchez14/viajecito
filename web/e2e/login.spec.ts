@@ -58,7 +58,8 @@ test("logs in with the WhatsApp code read from fake gowa", async ({
   await page.getByLabel(messages.auth.code.label).fill(code);
   await page.getByRole("button", { name: messages.auth.code.submit }).click();
 
-  // The greeting copy minus the interpolated name, e.g. "Hola, ".
-  const greeting = messages.home.greeting.replace("{name}", "").trim();
-  await expect(page.getByText(greeting)).toBeVisible();
+  // Signed in: the shell header shows the logout control (the greeting depends on the display name).
+  await expect(
+    page.getByRole("button", { name: messages.auth.logout, exact: true }),
+  ).toBeVisible();
 });
