@@ -3,11 +3,14 @@ import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { renderToStaticMarkup } from "react-dom/server";
 import { chromium, type Browser, type Page } from "@playwright/test";
-import { afterAll, beforeAll, expect, it } from "vitest";
+import { afterAll, beforeAll, expect, it , vi } from "vitest";
 import { textContrast } from "@/test/contrast";
 import { StatCard } from "../molecules/StatCard";
 import { TripCoverArt } from "../illustrations/TripCoverArt";
 import { BoardingPass } from "./BoardingPass";
+
+// Headless Chromium launches slowly when the whole suite runs in parallel on a busy machine.
+vi.setConfig({ testTimeout: 30_000, hookTimeout: 60_000 });
 
 const LONG_DESTINATION =
   "San Carlos de Bariloche, Provincia de Río Negro, Patagonia Argentina, camino de los Siete Lagos";

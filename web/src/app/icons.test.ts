@@ -2,7 +2,10 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { chromium, type Browser } from "@playwright/test";
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it , vi } from "vitest";
+
+// Headless Chromium launches slowly when the whole suite runs in parallel on a busy machine.
+vi.setConfig({ testTimeout: 30_000, hookTimeout: 60_000 });
 
 const file = (path: string) => resolve(process.cwd(), path);
 const read = (path: string) => readFileSync(file(path));

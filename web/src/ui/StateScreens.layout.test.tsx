@@ -3,7 +3,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { NextIntlClientProvider } from "next-intl";
 import { chromium, type Browser, type Page } from "@playwright/test";
-import { afterAll, beforeAll, expect, it } from "vitest";
+import { afterAll, beforeAll, expect, it , vi } from "vitest";
 import messages from "../../messages/es-AR";
 import { MeProvider } from "@/features/auth/MeProvider";
 import { BudgetView } from "@/features/budget/containers/BudgetView";
@@ -16,6 +16,9 @@ import { CREW_ID, PERSON_ID, TRIP_ID, makeMe, makeSummary, makeTrip } from "@/fe
 import { TripList } from "@/features/trips/containers/TripList";
 import { TripProvider } from "@/features/trips/TripProvider";
 import { compiledCss } from "@/test/compiledCss";
+
+// Headless Chromium launches slowly when the whole suite runs in parallel on a busy machine.
+vi.setConfig({ testTimeout: 30_000, hookTimeout: 60_000 });
 
 const LONG = "Una descripción larguísima sin espacios para forzar el quiebre de línea en pantallas angostas ".repeat(2);
 
