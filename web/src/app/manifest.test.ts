@@ -30,3 +30,24 @@ describe("web app manifest", () => {
     expect(icons.every((i) => i.src.startsWith("/icons/"))).toBe(true);
   });
 });
+
+describe("web app manifest palette", () => {
+  const m = manifest();
+
+  it("uses the light --background token for both colors, not the old stone", async () => {
+    const { themeTokens } = await import("@/test/cssTokens");
+    const background = themeTokens("light")["--background"];
+
+    expect(m.background_color).toBe(background);
+    expect(m.theme_color).toBe(background);
+    expect(m.theme_color).not.toBe("#fafaf9");
+  });
+
+  it("lists a maskable 512 icon next to the plain ones", () => {
+    const maskable = (m.icons ?? []).filter((icon) => icon.purpose === "maskable");
+
+    expect(maskable).toEqual([
+      { src: "/icons/icon-maskable-512.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
+    ]);
+  });
+});

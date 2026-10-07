@@ -1,9 +1,9 @@
 import type { MetadataRoute } from "next";
 import messages from "../../messages/es-AR";
 
-// Mirrors the light theme tokens in globals.css (--background).
-const BACKGROUND = "#fafaf9";
-const THEME = "#fafaf9";
+// Mirrors the light theme `--background` token in globals.css (warm paper); layout.tsx uses the same value.
+const BACKGROUND = "#f6f2e9";
+const THEME = "#f6f2e9";
 
 /** Web app manifest (served at /manifest.webmanifest). Copy comes from the i18n messages. */
 export default function manifest(): MetadataRoute.Manifest {
