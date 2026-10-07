@@ -1759,6 +1759,217 @@ html:has(dialog[open]) {
   }
 }
 
+/* Quick capture: one trigger above the page (and above the bottom nav below md), a sheet of forms, a toast. */
+body {
+  --fab-offset: calc(16px + var(--safe-bottom));
+}
+
+@media (max-width: 767px) {
+  body:has(.bottom-nav) {
+    --fab-offset: calc(var(--bottom-nav-height) + 24px + var(--safe-bottom));
+  }
+}
+
+.quick-capture-fab {
+  position: fixed;
+  right: max(16px, env(safe-area-inset-right, 0px));
+  bottom: var(--fab-offset);
+  z-index: var(--z-fab);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-sizing: border-box;
+  min-width: 56px;
+  height: 56px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--accent);
+  color: var(--on-accent);
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
+  box-shadow: var(--elev-2);
+  transition:
+    transform var(--dur-fast) var(--ease-out),
+    box-shadow var(--dur-fast) var(--ease-out);
+}
+
+.quick-capture-fab:hover {
+  box-shadow: var(--elev-3);
+}
+
+.quick-capture-fab:active {
+  transform: scale(0.96);
+}
+
+/* Icon only below md: the name stays for assistive tech. */
+.quick-capture-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+@media (min-width: 768px) {
+  .quick-capture-label {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    clip-path: none;
+  }
+}
+
+.capture-target {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--type-sm);
+  overflow-wrap: anywhere;
+}
+
+.capture-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.capture-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 56px;
+  padding: 10px 14px;
+  border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+  border-radius: var(--radius-control);
+  background: var(--surface);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-out);
+}
+
+.capture-menu-item:hover {
+  background: var(--surface-sunken);
+}
+
+.capture-menu-icon {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-control);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.capture-menu-text {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.capture-menu-title {
+  font-weight: 600;
+}
+
+.capture-menu-hint {
+  color: var(--muted);
+  font-size: var(--type-sm);
+}
+
+.capture-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.capture-price-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+  gap: 12px;
+}
+
+.capture-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.capture-error {
+  margin: 0;
+  color: var(--danger);
+  font-size: var(--type-sm);
+}
+
+.capture-error p {
+  margin: 0;
+}
+
+.capture-error-link {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.capture-toast-region {
+  position: fixed;
+  left: max(16px, env(safe-area-inset-left, 0px));
+  right: max(16px, env(safe-area-inset-right, 0px));
+  bottom: calc(var(--fab-offset) + 68px);
+  z-index: var(--z-toast);
+  display: flex;
+  justify-content: flex-end;
+  pointer-events: none;
+}
+
+.capture-toast {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  box-sizing: border-box;
+  max-width: min(100%, 24rem);
+  padding: 12px 16px;
+  border-radius: var(--radius-card);
+  background: var(--foreground);
+  color: var(--background);
+  box-shadow: var(--elev-3);
+  pointer-events: auto;
+  animation: ui-enter var(--dur-base) var(--ease-out) both;
+}
+
+.capture-toast p {
+  margin: 0;
+  font-weight: 500;
+}
+
+.capture-toast-link {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.capture-toast-link:focus-visible {
+  outline-color: var(--background);
+}
+
 /* Stays last: it must beat every transition and animation declared above. */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

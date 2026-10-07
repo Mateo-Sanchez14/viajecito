@@ -1,0 +1,78 @@
+{
+  "capture": {
+    "trigger": "Agregar rápido",
+    "title": "Agregar al viaje",
+    "target": "En {name}",
+    "chooser": {
+      "label": "¿A qué viaje?",
+      "placeholder": "Elegí el viaje",
+      "option": "{trip} · {crew}"
+    },
+    "menu": {
+      "label": "¿Qué querés sumar?",
+      "link": {
+        "title": "Un link",
+        "hint": "Un hotel, una actividad, lo que sea"
+      },
+      "idea": {
+        "title": "Idea con precio",
+        "hint": "Algo sin link, pero con un número"
+      },
+      "task": {
+        "title": "Una tarea",
+        "hint": "Algo que alguien tiene que hacer"
+      }
+    },
+    "link": {
+      "title": "Sumar un link",
+      "url": "Link",
+      "urlPlaceholder": "https://",
+      "note": "Nota (opcional)",
+      "submit": "Agregar propuesta",
+      "submitting": "Agregando…"
+    },
+    "idea": {
+      "title": "Sumar una idea con precio",
+      "name": "Qué es",
+      "price": "Precio estimado",
+      "currency": "Moneda",
+      "basis": "El precio es",
+      "basisOption": {
+        "total": "en total",
+        "per_person": "por persona",
+        "per_night": "por noche"
+      },
+      "budgetNote": "Cuenta en la plata cuando la marquen como elegida.",
+      "submit": "Agregar idea",
+      "submitting": "Agregando…"
+    },
+    "task": {
+      "title": "Sumar una tarea",
+      "name": "Qué hay que hacer",
+      "kind": "Tipo",
+      "due": "Para cuándo (opcional)",
+      "submit": "Agregar tarea",
+      "submitting": "Agregando…"
+    },
+    "back": "Volver al menú",
+    "errors": {
+      "duplicate": "Ese link ya estaba cargado.",
+      "seeExisting": "Ver la propuesta que ya estaba",
+      "invalidUrl": "Ese link no parece válido",
+      "ignoredUrl": "Ese link no es una propuesta",
+      "invalid": "Algo de lo que mandaste no está bien, revisalo",
+      "failed": "No pudimos guardar, probá de nuevo",
+      "urlRequired": "Pegá un link",
+      "titleRequired": "Escribí un título",
+      "priceInvalid": "Poné un precio mayor a cero, por ejemplo 45000 o 1.500,50",
+      "currencyInvalid": "La moneda tiene que ser un código de 3 letras, por ejemplo USD",
+      "tripRequired": "Elegí primero el viaje"
+    },
+    "toast": {
+      "proposal": "Propuesta agregada",
+      "idea": "Idea agregada",
+      "task": "Tarea agregada",
+      "view": "Ver"
+    }
+  }
+}
