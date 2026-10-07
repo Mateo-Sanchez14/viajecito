@@ -1,5 +1,6 @@
 import { screen, within } from "@testing-library/react";
 import type { TripCard } from "../cards/types";
+import type { TripAction } from "../actions/types";
 import type { TripStat } from "../stats/types";
 import { describe, expect, it } from "vitest";
 import { MeProvider } from "@/features/auth/MeProvider";
@@ -9,11 +10,11 @@ import { TripProvider } from "../TripProvider";
 import { CREW_ID, TRIP_ID, formatDay, makeMe, makeTrip } from "../fixtures";
 import { TripOverview } from "./TripOverview";
 
-function setup(trip = makeTrip(), cards: TripCard[] = [], stats: TripStat[] = []) {
+function setup(trip = makeTrip(), cards: TripCard[] = [], stats: TripStat[] = [], actions: TripAction[] = []) {
   return renderWithProviders(
     <MeProvider me={makeMe()}>
       <TripProvider trip={trip}>
-        <TripOverview cards={cards} stats={stats} />
+        <TripOverview cards={cards} stats={stats} actions={actions} />
       </TripProvider>
     </MeProvider>,
   );
@@ -140,6 +141,15 @@ describe("TripOverview", () => {
     setup(makeTrip(), [], [{ key: "x", order: 1, Component: () => <p>stat x</p> }]);
 
     expect(screen.getByText("stat x")).toBeInTheDocument();
+  });
+
+  it("renders the next actions between the stats and the crew", () => {
+    setup(makeTrip(), [], [], [{ key: "a", order: 1, Component: () => <p>action a</p> }]);
+
+    const section = screen.getByRole("heading", { name: messages.trips.actions.title }).closest("section") as HTMLElement;
+    expect(within(section).getByText("action a")).toBeInTheDocument();
+    const crew = screen.getByRole("heading", { name: messages.trips.overview.participants });
+    expect(section.compareDocumentPosition(crew) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
   it("adds no navigation link named after the overview section", () => {

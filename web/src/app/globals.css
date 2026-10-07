@@ -1423,6 +1423,136 @@ html:has(dialog[open]) {
   box-shadow: var(--elev-1);
 }
 
+/* What is still missing: the section stays out of the page until some rule has something to say. */
+.next-actions {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.next-actions:not(:has(li:not(:empty))) {
+  display: none;
+}
+
+.next-actions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.next-actions-list > li:empty {
+  display: none;
+}
+
+.next-action {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  box-sizing: border-box;
+  min-height: 56px;
+  padding: 10px 14px;
+  background: var(--surface);
+  color: var(--foreground);
+  text-decoration: none;
+}
+
+a.next-action {
+  transition:
+    transform var(--dur-fast) var(--ease-out),
+    box-shadow var(--dur-fast) var(--ease-out);
+}
+
+a.next-action:hover {
+  box-shadow: var(--elev-2);
+}
+
+a.next-action:active {
+  transform: scale(0.99);
+}
+
+.next-action-icon {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-control);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.next-action[data-tone="warn"] .next-action-icon {
+  background: var(--warn-soft);
+  color: var(--warn);
+}
+
+.next-action[data-tone="neutral"] .next-action-icon {
+  background: var(--surface-sunken);
+  color: var(--muted);
+}
+
+.next-action-text {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.next-action-title {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.next-action-detail {
+  color: var(--muted);
+  font-size: var(--type-sm);
+  overflow-wrap: anywhere;
+}
+
+.next-action-caret {
+  flex: none;
+  color: var(--muted);
+}
+
+/* Overview layout from 900px: hero and stats full width, what is missing beside the crew, modules below. */
+@media (min-width: 900px) {
+  .trip-overview {
+    grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+    grid-template-areas:
+      "hero hero"
+      "stats stats"
+      "actions crew"
+      "modules modules";
+  }
+  .trip-overview:not(:has(.next-actions-list > li:not(:empty))) {
+    grid-template-areas:
+      "hero hero"
+      "stats stats"
+      "crew crew"
+      "modules modules";
+  }
+  .trip-overview > .trip-hero {
+    grid-area: hero;
+  }
+  .trip-overview > .trip-stats {
+    grid-area: stats;
+  }
+  .trip-overview > .next-actions {
+    grid-area: actions;
+  }
+  .trip-overview > .overview-crew {
+    grid-area: crew;
+  }
+  .trip-overview > .overview-modules {
+    grid-area: modules;
+  }
+}
+
 .rsvp-control button:focus-visible {
   outline-offset: -3px;
 }

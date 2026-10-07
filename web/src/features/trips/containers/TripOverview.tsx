@@ -5,11 +5,13 @@ import { useTranslations } from "next-intl";
 import { Avatar } from "@/ui/atoms/Avatar";
 import { Badge, type BadgeVariant } from "@/ui/atoms/Badge";
 import type { Rsvp } from "../api/trips";
+import { tripActions, type TripAction } from "../actions";
 import { tripCards, type TripCard } from "../cards";
 import { sectionPath } from "../lib/paths";
 import { useSectionLabel } from "../lib/useSectionLabel";
 import { useTripContext } from "../TripProvider";
 import { tripStats, type TripStat } from "../stats";
+import { NextActions } from "./NextActions";
 import { RsvpControl } from "./RsvpControl";
 import { TripHero } from "./TripHero";
 import { TripStats } from "./TripStats";
@@ -21,13 +23,15 @@ const RSVP_VARIANT: Record<Rsvp, BadgeVariant> = {
   pending: "neutral",
 };
 
-/** Container: hero, readiness stats, who is going (with my RSVP) and a card per module. */
+/** Container: hero, readiness stats, what is missing, who is going (with my RSVP) and a card per module. */
 export function TripOverview({
   cards = tripCards,
   stats = tripStats,
+  actions = tripActions,
 }: {
   cards?: TripCard[];
   stats?: TripStat[];
+  actions?: TripAction[];
 }) {
   const t = useTranslations("trips");
   const sectionLabel = useSectionLabel();
@@ -42,6 +46,7 @@ export function TripOverview({
     <div className="trip-overview">
       <TripHero />
       <TripStats stats={stats} />
+      <NextActions actions={actions} />
 
       <section id="rsvp" aria-labelledby="overview-crew-title" className="overview-crew flex min-w-0 flex-col gap-4">
         <h2 id="overview-crew-title" className="text-lg font-semibold">

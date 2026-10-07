@@ -128,6 +128,27 @@
         "detail": "de {total}",
         "progress": "Tu valija armada"
       }
+    },
+    "actions": {
+      "title": "Qué falta",
+      "rsvpMine": "Confirmá si venís",
+      "rsvpMineDetail": "Todavía no respondiste",
+      "rsvpOthers": "{count, plural, one {# persona sin responder} other {# personas sin responder}}",
+      "rsvpOthersDetail": "Sin sus respuestas no sabemos cuántos son",
+      "datesVote": "Voten las fechas",
+      "datesVoteDetail": "Ya hay una votación abierta",
+      "datesUndecided": "Definan las fechas",
+      "datesUndecidedDetail": "Todavía no hay día de salida",
+      "missingPrice": "{count, plural, one {Falta el precio de # propuesta} other {Faltan los precios de # propuestas}}",
+      "missingPriceDetail": "Sin precio no entran en la cuenta",
+      "tasksOverdue": "{count, plural, one {# tarea vencida} other {# tareas vencidas}}",
+      "tasksOverdueDetail": "Revisalas en logística",
+      "tasksMine": "{count, plural, one {Tenés # tarea pendiente} other {Tenés # tareas pendientes}}",
+      "tasksMineDetail": "Marcalas cuando las hagas",
+      "documentsNone": "Subí los documentos del viaje",
+      "documentsNoneDetail": "Pasajes, reservas y seguro, todo en un lugar",
+      "itineraryEmpty": "Armá el itinerario",
+      "itineraryEmptyDetail": "Todavía no hay planes en ningún día"
     }
   }
 }
