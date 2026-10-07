@@ -114,6 +114,47 @@ vdc exec api python manage.py bootstrap_crew --help
 journalctl -u viajecito-tick.service -n 20
 ```
 
+### Automatic deployment from main
+
+All five workflows run on every main push; pull-request path filters remain. The Pi polls the public
+GitHub API every five minutes (normally two requests/check, below the unauthenticated 60/hour budget).
+It deploys only the current main SHA when the latest push attempts of the exact API, web, platform,
+e2e and images workflows all succeeded. Missing, pending or failed checks wait; an older successful
+SHA is never used as a fallback. Publication alone does not deploy untested `latest` images.
+
+Install on the Pi after copying these files from the approved checkout:
+
+```sh
+sudo install -m 700 deploy/scripts/autodeploy.py /srv/viajecito/autodeploy.py
+sudo install -m 644 deploy/systemd/viajecito-autodeploy.{service,timer} /etc/systemd/system/
+sudo python3 /srv/viajecito/autodeploy.py --check
+sudo systemctl daemon-reload
+sudo systemctl enable --now viajecito-autodeploy.timer
+systemctl list-timers viajecito-autodeploy.timer
+journalctl -u viajecito-autodeploy.service -n 30
+```
+
+Requires Python 3.11+, public repository access and existing Docker/GHCR pull access. No SSH key,
+GitHub runner or new application secret is installed. The updater validates and stages that SHA's
+Compose/scripts under `/srv/viajecito/releases/`, preserving env/data paths, and deploys both images
+with the exact SHA. `deployed-sha` is replaced atomically only after health and smoke checks succeed.
+Deploys are serialized; failed bundles remain for diagnosis and are retried on a later tick.
+The updater bootstrap and systemd units themselves are updated manually, not executed from an archive.
+Existing tick/backup units remain unchanged and target the same `viajecito` Compose project.
+
+Disable the timer **and stop its service** before a manual deploy or restore:
+
+```sh
+sudo systemctl disable --now viajecito-autodeploy.timer
+sudo systemctl stop viajecito-autodeploy.service
+```
+
+Failures appear in the journal; there is no automatic database-migration rollback. A failed rollout
+may already have changed containers or schema; restore requires the existing deliberate runbook.
+Do not edit `deployed-sha` to claim a failed deployment succeeded. Re-enable the timer when returning
+to main tracking. Run offline checks with `python3 -m unittest deploy/scripts/tests/test_autodeploy.py`
+and `bash deploy/scripts/tests/test_lib.sh`; platform CI executes both.
+
 ## Backups and restore drill
 
 `viajecito-backup.timer` runs `backup.sh` daily at 04:00 (+ up to 15 min random delay; `Persistent=true`

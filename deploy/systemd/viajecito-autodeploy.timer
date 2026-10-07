@@ -1,0 +1,11 @@
+[Unit]
+Description=Check viajecito main releases every five minutes
+
+[Timer]
+OnBootSec=2min
+OnUnitInactiveSec=5min
+RandomizedDelaySec=30s
+Unit=viajecito-autodeploy.service
+
+[Install]
+WantedBy=timers.target

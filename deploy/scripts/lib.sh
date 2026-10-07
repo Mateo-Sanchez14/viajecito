@@ -29,7 +29,8 @@ load_env() {
 
 # dc ARGS...: docker compose bound to the Pi project file and env file.
 dc() {
-  docker compose --env-file "$PI_ENV_FILE" -f "$VIAJECITO_ROOT/compose.pi.yml" "$@"
+  IMAGE_TAG="${DEPLOY_IMAGE_TAG:-${IMAGE_TAG:-latest}}" docker compose --env-file "$PI_ENV_FILE" \
+    --project-directory "$VIAJECITO_ROOT" -f "${VIAJECITO_COMPOSE_FILE:-$VIAJECITO_ROOT/compose.pi.yml}" "$@"
 }
 
 require_cmd() {

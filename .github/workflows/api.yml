@@ -3,7 +3,6 @@ name: api
 on:
   push:
     branches: [main]
-    paths: ["api/**", "contracts/**", ".github/workflows/api.yml"]
   pull_request:
     paths: ["api/**", "contracts/**", ".github/workflows/api.yml"]
 

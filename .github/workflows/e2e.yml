@@ -3,13 +3,6 @@ name: e2e
 on:
   push:
     branches: [main]
-    paths:
-      - "api/**"
-      - "web/**"
-      - "deploy/**"
-      - "docker-compose.yml"
-      - "Makefile"
-      - ".github/workflows/e2e.yml"
   pull_request:
     paths:
       - "api/**"

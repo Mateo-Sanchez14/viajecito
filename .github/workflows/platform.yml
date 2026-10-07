@@ -3,7 +3,6 @@ name: platform
 on:
   push:
     branches: [main]
-    paths: ["deploy/**", "docker-compose.yml", "Makefile", ".github/**"]
   pull_request:
     paths: ["deploy/**", "docker-compose.yml", "Makefile", ".github/**"]
 
@@ -34,5 +33,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+      - run: python3 -m unittest deploy/scripts/tests/test_autodeploy.py
+      - run: bash deploy/scripts/tests/test_lib.sh
       - run: cp .env.example .env
       - run: docker compose config -q
