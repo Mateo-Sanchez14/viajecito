@@ -382,6 +382,28 @@ This supersedes the Gowa go-live steps (droplet webhook, gastito change); the Go
   is provider-agnostic; jids in WAHA URL paths are percent-encoded. GOWS group payload fields are still
   doc-derived: replace the fixtures with a live capture after go-live.
 
+## UI overhaul contract (2026-10-07, SDD change `ui-overhaul`)
+
+- **Trip cover (api, core `trips`)**: `Trip.cover` (private file under `MEDIA_ROOT/trips/covers`) +
+  `cover_version`; `TripOut` and `TripSummaryOut` gain `has_cover: bool` and `cover_version: int` (bumped whenever the cover changes).
+  `POST /api/trips/{trip_id}/cover` (multipart, field `file`; POST because Django parses multipart only on
+  POST) and `DELETE` return `200 TripOut`; `GET` returns `image/webp` with `Cache-Control: private,
+  max-age=604800`, `nosniff`, `Cross-Origin-Resource-Policy: same-origin` (clients append `?v=<cover_version>`).
+  Auth via `member_of_trip` (`401` anonymous, `404` non-member), cookie CSRF on unsafe routes. Errors:
+  `400 file_required`, `413 file_too_large` / `image_too_large`, `415 unsupported_image`; `GET` without a
+  cover → `404`. Image processing lives in `api/shared/images.py` (Pillow, EXIF stripped, WebP);
+  `linkpreview/adapters/thumbnail.py` is a thin wrapper over it.
+- **Web design system**: tokens (color, radius, elevation, type scale, motion, z-index) are authored on
+  `:root` in `web/src/app/globals.css`; browser layout tests load only that file, so asserted geometry must
+  be authored CSS, not Tailwind utilities. Icons come only from `web/src/ui/icons.ts`
+  (`@phosphor-icons/react/ssr`). Illustrations are inline SVG colored by `--art-*` tokens (light + dark).
+- **Web registries (append-only, one line each)**: overview cards `features/trips/cards/index.ts`, hero
+  stats, and next actions `features/trips/actions/`. Quick capture (`features/capture/`, trigger
+  "Agregar rápido") creates proposals (link, or "Idea con precio" = title + `est_price`, server default
+  status `proposed`) and tasks through existing endpoints; it never writes the budget.
+- **Navigation**: `SectionNav` from 768px up; below it `BottomNav` (Resumen, Propuestas, Logística,
+  Itinerario + "Más" sheet). Both navs carry distinct accessible names; tests scope queries by landmark.
+
 ## Session handoff
 
 Resuming work in a new session (any tool): read `odd/HANDOFF.md` first (state, ordered next steps, merge
