@@ -179,6 +179,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/trips/{trip_id}/cover": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Trip Cover
+         * @description `200 image/webp` (private, one week; the web adds `?v=<cover_version>`, which is ignored).
+         *     404 without a cover or without access.
+         */
+        get: operations["trips_api_get_cover"];
+        put?: never;
+        /**
+         * Set Trip Cover
+         * @description Multipart `file` (JPEG, PNG, WEBP or GIF, at most 5 MiB and 25 megapixels); re-encoded to
+         *     WebP without metadata and stored privately, replacing any previous cover. Any active member of
+         *     the crew may set it. 400: `file_required`. 413: `file_too_large`, `image_too_large`.
+         *     415: `unsupported_image` (also SVG, HEIC, truncated or undecodable files).
+         */
+        post: operations["trips_api_set_cover"];
+        /**
+         * Clear Trip Cover
+         * @description Removes the cover; idempotent (a trip without one answers 200 unchanged).
+         */
+        delete: operations["trips_api_clear_cover"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/trips/{trip_id}/proposals": {
         parameters: {
             query?: never;
@@ -1219,6 +1251,10 @@ export interface components {
             end_on: string | null;
             /** Destination Label */
             destination_label: string;
+            /** Has Cover */
+            has_cover: boolean;
+            /** Cover Version */
+            cover_version: number;
         };
         /** ParticipantOut */
         ParticipantOut: {
@@ -1270,6 +1306,10 @@ export interface components {
             fx_rates: {
                 [key: string]: string;
             };
+            /** Has Cover */
+            has_cover: boolean;
+            /** Cover Version */
+            cover_version: number;
             /** Modules */
             modules: string[];
             /** Participants */
@@ -3311,6 +3351,178 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    trips_api_get_cover: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                trip_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The cover (WebP, at most 1280 px on its longest side) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "image/webp": string;
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    trips_api_set_cover: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                trip_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    /** File */
+                    file?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TripOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Content Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unsupported Media Type */
+            415: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    trips_api_clear_cover: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                trip_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TripOut"];
                 };
             };
             /** @description Unauthorized */

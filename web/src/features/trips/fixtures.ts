@@ -23,6 +23,8 @@ export function makeTrip(overrides: Partial<Schemas["TripOut"]> = {}): Schemas["
     timezone: "America/Argentina/Buenos_Aires",
     currency: "USD",
     fx_rates: {},
+    has_cover: false,
+    cover_version: 0,
     modules: ["proposals", "dates", "logistics", "itinerary", "today", "budget", "documents"],
     participants: [
       makeParticipant(),
@@ -34,8 +36,20 @@ export function makeTrip(overrides: Partial<Schemas["TripOut"]> = {}): Schemas["
 }
 
 export function makeSummary(overrides: Partial<Schemas["TripSummaryOut"]> = {}): Schemas["TripSummaryOut"] {
-  const { id, name, type, status, start_on, end_on, destination_label } = makeTrip();
-  return { id, name, type, status, start_on, end_on, destination_label, ...overrides };
+  const { id, name, type, status, start_on, end_on, destination_label, has_cover, cover_version } =
+    makeTrip();
+  return {
+    id,
+    name,
+    type,
+    status,
+    start_on,
+    end_on,
+    destination_label,
+    has_cover,
+    cover_version,
+    ...overrides,
+  };
 }
 
 export function makeMe(overrides: Partial<Schemas["MeOut"]> = {}): Schemas["MeOut"] {
