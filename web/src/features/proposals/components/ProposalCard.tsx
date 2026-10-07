@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useId, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { Card } from "@/ui/atoms/Card";
+import { ChatCircleIcon, ThumbsUpIcon } from "@/ui/icons";
 import type { ProposalSummary } from "../api/proposals";
 import { CategoryChip } from "./CategoryChip";
 import { PriceTag } from "./PriceTag";
@@ -58,10 +59,16 @@ export function ProposalCard({ proposal, href, voteSlot }: ProposalCardProps) {
           )}
         </div>
       </div>
-      <p className="proposal-meta flex flex-wrap gap-x-4 gap-y-1 border-t border-border pt-3 text-xs text-muted">
+      <p className="proposal-meta flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-border pt-3 text-xs text-muted">
         <span>{t("card.by", { author: proposal.author.display_name })}</span>
-        <span>{t("vote.count", { up: proposal.tally.up, down: proposal.tally.down })}</span>
-        <span>{t("card.comments", { count: proposal.comment_count })}</span>
+        <span className="inline-flex items-center gap-1">
+          <ThumbsUpIcon size={14} aria-hidden="true" />
+          {t("vote.count", { up: proposal.tally.up, down: proposal.tally.down })}
+        </span>
+        <span className="inline-flex items-center gap-1">
+          <ChatCircleIcon size={14} aria-hidden="true" />
+          {t("card.comments", { count: proposal.comment_count })}
+        </span>
       </p>
       {voteSlot}
     </Card>

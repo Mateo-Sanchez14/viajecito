@@ -1,6 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { Button } from "@/ui/atoms/Button";
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type MouseEvent, type PointerEvent } from "react";
 import { ANSWERS, ANSWER_CLASSES, ANSWER_GLYPH, answerKey } from "../lib/answers";
 import { isWeekend, nextAnswer, stepDate, weekRows, addDays, type Answer, type CellValue } from "../lib/calendar";
@@ -143,16 +144,15 @@ export function AvailabilityGrid({ dates, answers, onChange, disabled = false }:
   return (
     <div className="flex flex-col gap-3">
       <div className="flex flex-wrap items-center gap-2">
-        <button
-          type="button"
+        <Button
+          variant={paintMode ? "primary" : "secondary"}
+          size="sm"
           aria-pressed={paintMode}
           onClick={() => setPaintMode((on) => !on)}
-          className={`min-h-11 rounded-xl border px-4 text-sm font-medium ${
-            paintMode ? "border-foreground bg-foreground text-background" : "border-border bg-surface"
-          }`}
+          className="ui-button-auto min-h-11"
         >
           {t("paint")}
-        </button>
+        </Button>
         <div role="group" aria-label={t("paintValue")} className="flex flex-wrap gap-2">
           {options.map(({ value, key }) => (
             <button
@@ -160,7 +160,7 @@ export function AvailabilityGrid({ dates, answers, onChange, disabled = false }:
               type="button"
               aria-pressed={paint === value}
               onClick={() => setPaint(value)}
-              className={`min-h-11 rounded-xl border px-3 text-sm ${
+              className={`min-h-11 rounded-[var(--radius-control)] border px-3 text-sm transition-colors ${
                 paint === value ? "border-foreground font-medium" : "border-border"
               } ${value ? ANSWER_CLASSES[value] : "bg-surface"}`}
             >

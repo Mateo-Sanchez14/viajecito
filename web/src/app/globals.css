@@ -234,6 +234,11 @@ html:has(dialog[open]) {
   font-size: var(--type-sm);
 }
 
+/* Primary buttons are full width by default; inline actions opt out. */
+.ui-button-auto {
+  width: auto;
+}
+
 .ui-button-link {
   min-height: 44px;
   padding-inline: 8px;
@@ -381,9 +386,21 @@ html:has(dialog[open]) {
   background: var(--surface);
 }
 
+/* A sunken tray, not a dashed outline: an empty screen still looks composed. */
 .ui-empty-state {
-  background: color-mix(in srgb, var(--surface) 60%, transparent);
-  border-radius: var(--radius-panel);
+  background: var(--surface-sunken);
+  border-radius: var(--radius-card);
+}
+
+.ui-empty-art {
+  width: min(10rem, 60%);
+  aspect-ratio: 4 / 3;
+}
+
+.ui-empty-title {
+  font-size: var(--type-lg);
+  letter-spacing: var(--tracking-heading);
+  text-wrap: balance;
 }
 
 /* Staggered entry: children rise in one after another. */
@@ -589,10 +606,15 @@ html:has(dialog[open]) {
   list-style: none;
 }
 
+/* A boarding-pass ticket: the trip on the left, a perforated stub with its status on the right. */
 .trip-ticket {
   position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: stretch;
   border-radius: var(--radius-card);
   box-shadow: var(--elev-1);
+  text-decoration: none;
   transition: border-color var(--dur-fast) var(--ease-out), transform var(--dur-fast) var(--ease-out);
 }
 
@@ -612,23 +634,65 @@ html:has(dialog[open]) {
   border-color: var(--muted);
 }
 
+.trip-ticket-main {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 4px;
+  padding: 20px 20px 20px 24px;
+}
+
 .trip-ticket-title {
   font-size: 1.125rem;
   overflow-wrap: anywhere;
-  line-height: 1.5;
+  line-height: 1.4;
+  letter-spacing: var(--tracking-heading);
 }
 
-.trip-ticket > .ui-badge {
+.trip-ticket-dates {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.trip-ticket-stub {
+  position: relative;
+  display: flex;
+  min-width: 8.5rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 16px 0 20px;
+  border-left: 2px dashed var(--border);
+  color: var(--muted);
+}
+
+.trip-ticket-stub::before,
+.trip-ticket-stub::after {
+  content: "";
+  position: absolute;
+  left: -8px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--background);
+}
+
+.trip-ticket-stub::before {
+  top: -8px;
+}
+
+.trip-ticket-stub::after {
+  bottom: -8px;
+}
+
+.trip-ticket-stub > .ui-badge {
   flex-shrink: 0;
-  border: 0;
-  border-left: 1px dashed var(--border);
-  border-radius: 0;
-  padding-left: 20px;
 }
 
 .create-trip-disclosure {
-  border-radius: 20px;
-  background: color-mix(in srgb, var(--surface) 60%, transparent);
+  border-radius: var(--radius-card);
+  background: var(--surface);
 }
 
 .create-trip-disclosure summary {
@@ -868,6 +932,371 @@ html:has(dialog[open]) {
   }
 }
 
+/* Form, list and notice primitives shared by budget, documents and logistics. */
+.ui-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.ui-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.ui-form-title {
+  margin: 0;
+  font-size: var(--type-lg);
+  font-weight: 600;
+}
+
+.ui-field {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 6px;
+  font-size: var(--type-sm);
+  font-weight: 500;
+}
+
+.ui-field > .ui-input {
+  font-weight: 400;
+}
+
+.ui-field-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  gap: 12px 16px;
+}
+
+.ui-hint {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--type-sm);
+}
+
+.ui-form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ui-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ui-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  padding: 12px 14px;
+  border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+  border-radius: var(--radius-card);
+  background: var(--surface);
+}
+
+.ui-row-main {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 9rem;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ui-row-title {
+  margin: 0;
+  font-size: var(--type-base);
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+.ui-row-meta {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--type-sm);
+  overflow-wrap: anywhere;
+}
+
+.ui-row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+}
+
+.ui-row-chip {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-control);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.ui-group-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 8px;
+  color: var(--muted);
+  font-size: var(--type-sm);
+  font-weight: 600;
+}
+
+/* A native checkbox inside a 44px target. */
+.ui-check {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  margin: -6px -8px -6px -10px;
+  cursor: pointer;
+}
+
+.ui-check > input {
+  width: 22px;
+  height: 22px;
+  accent-color: var(--ok);
+}
+
+.ui-segmented {
+  display: inline-flex;
+  max-width: 100%;
+  gap: 4px;
+  padding: 4px;
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--foreground) 6%, var(--background));
+}
+
+.ui-segmented > button {
+  min-height: 44px;
+  padding-inline: 20px;
+  border-radius: var(--radius-pill);
+  color: var(--muted);
+  font-weight: 500;
+  transition:
+    background-color var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out);
+}
+
+.ui-segmented > button[aria-selected="true"] {
+  background: var(--surface);
+  color: var(--foreground);
+  box-shadow: var(--elev-1);
+}
+
+.ui-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 0;
+  padding: 12px 16px;
+  border-radius: var(--radius-card);
+  background: var(--warn-soft);
+  color: var(--warn);
+  font-size: var(--type-sm);
+  overflow-wrap: anywhere;
+}
+
+.ui-chip-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+}
+
+.ui-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-sunken);
+  font-size: var(--type-sm);
+}
+
+.ui-chip > dt {
+  font-weight: 600;
+}
+
+.ui-chip > dd {
+  margin: 0;
+}
+
+.ui-notice > svg {
+  flex: none;
+  margin-top: 2px;
+}
+
+/* Budget */
+.budget-hero {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 24px;
+  border-radius: var(--radius-panel);
+}
+
+.budget-per-person {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--type-lg);
+}
+
+.budget-per-person > .ui-tabular {
+  display: block;
+  color: var(--foreground);
+  font-size: clamp(2.25rem, 11vw, 3.5rem);
+  font-weight: 600;
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-display);
+  overflow-wrap: anywhere;
+}
+
+/* Two columns on phones with the total across both; three side by side from sm. */
+.budget-totals {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0;
+}
+
+.budget-totals > .budget-total:last-child {
+  grid-column: 1 / -1;
+}
+
+@media (min-width: 640px) {
+  .budget-totals {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .budget-totals > .budget-total:last-child {
+    grid-column: auto;
+  }
+}
+
+.budget-total {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px 16px;
+}
+
+.budget-total > dt {
+  color: var(--muted);
+  font-size: var(--type-sm);
+}
+
+.budget-total > dd {
+  margin: 0;
+  font-size: var(--type-lg);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.budget-category-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 0 4px;
+  font-size: var(--type-base);
+  font-weight: 600;
+}
+
+.budget-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+  padding-block: 12px;
+  border-top: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+}
+
+.budget-line-title {
+  min-width: 0;
+  flex: 1 1 10rem;
+  overflow-wrap: anywhere;
+}
+
+/* Logistics and documents */
+.logistics-toolbar {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  align-items: end;
+  gap: 12px 16px;
+}
+
+.logistics-toolbar > .ui-button {
+  justify-self: start;
+}
+
+.task-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.task-done {
+  color: var(--muted);
+  text-decoration: line-through;
+}
+
+.packing-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.packing-progress {
+  margin: 0;
+  font-size: var(--type-lg);
+  font-weight: 600;
+}
+
+.packing-row .packing-label {
+  flex: 1 1 8rem;
+  width: auto;
+}
+
+.packing-row .packing-quantity {
+  flex: none;
+  width: 5.5rem;
+}
+
+.crew-packing-row > .ui-progress {
+  flex: 1 1 8rem;
+}
+
+.document-editor {
+  flex: 1 1 100%;
+  padding-top: 12px;
+  border-top: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+}
+
+/* Loading skeleton shared by the budget, documents and logistics routes: a hero block, then rows. */
+.loading-hero {
+  height: 120px;
+  border-radius: var(--radius-card);
+}
+
+.loading-row {
+  height: 56px;
+  border-radius: var(--radius-card);
+}
+
 /* Readiness stat cards under the hero. */
 .trip-stats {
   display: grid;
@@ -1044,13 +1473,12 @@ html:has(dialog[open]) {
   .app-canvas {
     padding: 28px 20px calc(96px + var(--safe-bottom));
   }
-  .trip-ticket {
-    gap: 12px;
-    padding: 18px;
+  .trip-ticket-main {
+    padding: 16px 12px 16px 20px;
   }
-  .trip-ticket > .ui-badge {
-    padding-left: 12px;
-    max-width: 100px;
+  .trip-ticket-stub {
+    gap: 4px;
+    padding: 0 12px;
   }
 }
 

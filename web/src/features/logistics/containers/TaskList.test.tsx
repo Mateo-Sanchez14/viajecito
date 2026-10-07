@@ -73,3 +73,53 @@ it("sends the me owner filter", async () => {
   });
   await waitFor(() => expect(owners).toContain("me"));
 });
+it("shows a layout-shaped skeleton while loading", () => {
+  server.use(http.get("*/api/trips/:id/tasks", () => new Promise(() => {})));
+  setup();
+
+  expect(screen.getByRole("status", { name: "Cargando…" })).toBeInTheDocument();
+});
+it("shows an illustrated empty state whose call to action opens the new task form", async () => {
+  server.use(http.get("*/api/trips/:id/tasks", () => HttpResponse.json([])));
+  const view = renderWithProviders(
+    <MeProvider me={makeMe()}>
+      <TripProvider trip={makeTrip()}>
+        <TaskList tripId={TRIP_ID} />
+      </TripProvider>
+    </MeProvider>,
+  );
+  await screen.findByText("Todavía no hay tareas");
+  expect(view.container.querySelector("svg[data-scene='suitcase']")).toHaveAttribute("aria-hidden", "true");
+  // The toolbar button keeps its name; the empty state call to action is a different one.
+  expect(screen.getAllByRole("button", { name: "Nueva tarea" })).toHaveLength(1);
+  fireEvent.click(screen.getByRole("button", { name: "Crear la primera" }));
+  expect(await screen.findByRole("heading", { name: "Nueva tarea" })).toBeInTheDocument();
+});
+it("shows an inline error with a retry when the list fails, then recovers", async () => {
+  let calls = 0;
+  server.use(
+    http.get("*/api/trips/:id/tasks", () => {
+      calls += 1;
+      return calls === 1 ? HttpResponse.json({ code: "boom" }, { status: 500 }) : HttpResponse.json([task]);
+    }),
+  );
+  setup();
+  expect(await screen.findByRole("alert")).toHaveTextContent("No pudimos cargar la lista");
+  fireEvent.click(screen.getByRole("button", { name: "Reintentar" }));
+  await screen.findByRole("checkbox", { name: "Book car" });
+  expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+});
+it("marks overdue and done tasks with badges and names the row actions after the task", async () => {
+  server.use(
+    http.get("*/api/trips/:id/tasks", () =>
+      HttpResponse.json([task, { ...task, id: "task2", title: "Pack bags", status: "done", overdue: false }]),
+    ),
+  );
+  setup();
+  await screen.findByRole("checkbox", { name: "Book car" });
+  expect(screen.getByText(/Venció el/)).toBeInTheDocument();
+  expect(screen.getByText("Hecha")).toBeInTheDocument();
+  expect(screen.getByRole("checkbox", { name: "Pack bags" })).toBeChecked();
+  expect(screen.getByRole("button", { name: "Editar Book car" })).toHaveClass("ui-button-icon");
+  expect(screen.getByRole("button", { name: "Eliminar Pack bags" })).toHaveClass("ui-button-icon");
+});

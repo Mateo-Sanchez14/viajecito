@@ -1,4 +1,4 @@
-import { screen, waitForElementToBeRemoved } from "@testing-library/react";
+import { fireEvent, screen, waitForElementToBeRemoved } from "@testing-library/react";
 import { createOpenApiHttp } from "openapi-msw";
 import { describe, expect, it } from "vitest";
 import type { paths } from "@/shared/api/schema";
@@ -75,5 +75,43 @@ describe("TripList", () => {
     renderWithProviders(<TripList crewId={CREW_ID} />);
 
     expect(await screen.findByText(messages.trips.list.error)).toBeInTheDocument();
+  });
+});
+
+describe("TripList ticket", () => {
+  it("draws each trip as a ticket with a perforated stub holding the status", async () => {
+    server.use(trips(makeSummary()));
+    renderWithProviders(<TripList crewId={CREW_ID} />);
+
+    const link = await screen.findByRole("link", { name: /Bariloche 2027/ });
+    expect(link).toHaveClass("trip-ticket");
+    const stub = link.querySelector(".trip-ticket-stub") as HTMLElement;
+    expect(stub).toHaveTextContent(messages.trips.status.planning);
+    expect(stub.querySelector("svg")).toHaveAttribute("aria-hidden", "true");
+  });
+
+  it("illustrates the empty list", async () => {
+    server.use(trips());
+    const { container } = renderWithProviders(<TripList crewId={CREW_ID} />);
+
+    await screen.findByText(messages.trips.list.empty);
+    expect(container.querySelector("svg[data-scene='map']")).toHaveAttribute("aria-hidden", "true");
+  });
+
+  it("offers a retry when the list cannot load, and recovers", async () => {
+    let calls = 0;
+    server.use(
+      http.get("/api/crews/{crew_id}/trips", ({ response }) => {
+        calls += 1;
+        return calls === 1
+          ? response(404).json({ code: "not_found", message: "x" })
+          : response(200).json([makeSummary()]);
+      }),
+    );
+    renderWithProviders(<TripList crewId={CREW_ID} />);
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(messages.trips.list.error);
+    fireEvent.click(screen.getByRole("button", { name: messages.ui.retry }));
+    expect(await screen.findByRole("link", { name: /Bariloche 2027/ })).toBeInTheDocument();
   });
 });

@@ -1,7 +1,25 @@
 "use client";
 import { useState } from "react";
-import { useTranslations } from "next-intl";
+import { useFormatter, useTranslations } from "next-intl";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Button } from "@/ui/atoms/Button";
+import { ButtonLink } from "@/ui/atoms/ButtonLink";
+import { Input } from "@/ui/atoms/Input";
+import { Select } from "@/ui/atoms/Select";
+import { Skeleton } from "@/ui/atoms/Skeleton";
+import {
+  BedIcon,
+  FileTextIcon,
+  IdentificationCardIcon,
+  ImageIcon,
+  PencilSimpleIcon,
+  ShieldCheckIcon,
+  TicketIcon,
+  TrashIcon,
+} from "@/ui/icons";
+import { EmptyArt } from "@/ui/illustrations/EmptyArt";
+import { EmptyState } from "@/ui/molecules/EmptyState";
+import { InlineError } from "@/ui/molecules/InlineError";
 import { useDocuments } from "../hooks/useDocuments";
 import {
   deleteDocument,
@@ -9,7 +27,21 @@ import {
   updateDocument,
   type Document,
 } from "../api/documents";
-import { UploadDocumentForm, documentKinds } from "./UploadDocumentForm";
+import {
+  DOCUMENT_FILE_INPUT_ID,
+  UploadDocumentForm,
+  documentKinds,
+} from "./UploadDocumentForm";
+
+const KIND_ICON = {
+  reservation: BedIcon,
+  ticket: TicketIcon,
+  insurance: ShieldCheckIcon,
+  id: IdentificationCardIcon,
+  photo: ImageIcon,
+  other: FileTextIcon,
+} satisfies Record<Document["kind"], typeof FileTextIcon>;
+
 function DocumentEditor({
   document,
   tripId,
@@ -43,61 +75,70 @@ function DocumentEditor({
   });
   return (
     <form
-      className="flex flex-col gap-2"
+      className="ui-form document-editor"
       onSubmit={(e) => {
         e.preventDefault();
         save.mutate();
       }}
     >
-      <label>
-        {t("name")}
-        <input
-          className="block min-h-11 rounded border p-2"
-          required
-          maxLength={200}
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-        />
-      </label>
-      <label>
-        {t("expiry")}
-        <input
-          className="block min-h-11"
-          type="date"
-          value={expiry}
-          onChange={(e) => setExpiry(e.target.value)}
-        />
-      </label>
-      {viewerId === document.owner?.person_id && (
-        <label>
-          {t("visibilityLabel")}
-          <select
-            className="block min-h-11"
-            value={visibility}
-            disabled={document.kind === "id"}
-            onChange={(e) =>
-              setVisibility(e.target.value as Document["visibility"])
-            }
-          >
-            <option value="crew">{t("visibility.crew")}</option>
-            <option value="owner_only">{t("visibility.owner_only")}</option>
-          </select>
+      <div className="ui-field-grid">
+        <label className="ui-field">
+          {t("name")}
+          <Input
+            required
+            maxLength={200}
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+          />
         </label>
-      )}
-      {save.isError && <p role="alert">{t("errors.invalid_request")}</p>}
-      <button
-        className="min-h-11 underline"
-        disabled={save.isPending}
-        type="submit"
-      >
-        {t("save")}
-      </button>
-      <button className="min-h-11" type="button" onClick={onClose}>
-        {t("cancel")}
-      </button>
+        <label className="ui-field">
+          {t("expiry")}
+          <Input
+            type="date"
+            value={expiry}
+            onChange={(e) => setExpiry(e.target.value)}
+          />
+        </label>
+        {viewerId === document.owner?.person_id && (
+          <label className="ui-field">
+            {t("visibilityLabel")}
+            <Select
+              value={visibility}
+              disabled={document.kind === "id"}
+              onChange={(e) =>
+                setVisibility(e.target.value as Document["visibility"])
+              }
+            >
+              <option value="crew">{t("visibility.crew")}</option>
+              <option value="owner_only">{t("visibility.owner_only")}</option>
+            </Select>
+          </label>
+        )}
+      </div>
+      {save.isError && <InlineError message={t("errors.invalid_request")} />}
+      <div className="ui-form-actions">
+        <Button type="submit" className="ui-button-auto" size="sm" disabled={save.isPending}>
+          {t("save")}
+        </Button>
+        <Button variant="secondary" size="sm" onClick={onClose}>
+          {t("cancel")}
+        </Button>
+      </div>
     </form>
   );
 }
+
+/** Shaped like the loaded view: the upload card, then rows. */
+function VaultSkeleton({ label }: { label: string }) {
+  return (
+    <div role="status" aria-label={label} className="flex flex-col gap-3">
+      <Skeleton className="loading-row" />
+      <Skeleton className="loading-row" />
+      <Skeleton className="loading-row" />
+    </div>
+  );
+}
+
 export function DocumentVault({
   tripId,
   viewerId,
@@ -106,6 +147,8 @@ export function DocumentVault({
   viewerId?: string;
 }) {
   const t = useTranslations("documents");
+  const ui = useTranslations("ui");
+  const format = useFormatter();
   const cache = useQueryClient();
   const [kind, setKind] = useState("");
   const [editing, setEditing] = useState<string | null>(null);
@@ -115,30 +158,53 @@ export function DocumentVault({
     onSuccess: () =>
       cache.invalidateQueries({ queryKey: ["documents", tripId] }),
   });
+  const day = (iso: string) =>
+    format.dateTime(new Date(`${iso}T00:00:00Z`), {
+      dateStyle: "medium",
+      timeZone: "UTC",
+    });
   return (
-    <div className="flex flex-col gap-5">
+    <div className="ui-stack">
       <h2 className="text-2xl font-semibold">{t("title")}</h2>
-      <label>
+      <UploadDocumentForm tripId={tripId} />
+      <label className="ui-field">
         {t("filter")}
-        <select
-          className="block min-h-11"
-          value={kind}
-          onChange={(e) => setKind(e.target.value)}
-        >
+        <Select value={kind} onChange={(e) => setKind(e.target.value)}>
           <option value="">{t("all")}</option>
           {documentKinds.map((value) => (
             <option key={value} value={value}>
               {t(`kind.${value}`)}
             </option>
           ))}
-        </select>
+        </Select>
       </label>
-      <UploadDocumentForm tripId={tripId} />
-      {documents.isPending && <p role="status">{t("loading")}</p>}
-      {(documents.isError || remove.isError) && (
-        <p role="alert">{t("errors.invalid_request")}</p>
+      {documents.isPending && <VaultSkeleton label={t("loading")} />}
+      {documents.isError && (
+        <InlineError
+          message={t("loadFailed")}
+          retryLabel={ui("retry")}
+          onRetry={() => void documents.refetch()}
+        />
       )}
-      {documents.data?.length === 0 && <p>{t("empty")}</p>}
+      {remove.isError && <InlineError message={t("errors.invalid_request")} />}
+      {documents.data?.length === 0 && (
+        <EmptyState
+          art={<EmptyArt scene="ticket" />}
+          title={t("emptyTitle")}
+          description={t("empty")}
+          action={
+            <Button
+              variant="secondary"
+              className="ui-button-auto"
+              onClick={() =>
+                window.document.getElementById(DOCUMENT_FILE_INPUT_ID)?.focus()
+              }
+            >
+              {t("emptyCta")}
+            </Button>
+          }
+        />
+      )}
       {documentKinds.map((category) => {
         const rows =
           documents.data?.filter((document) => document.kind === category) ??
@@ -146,62 +212,71 @@ export function DocumentVault({
         return (
           rows.length > 0 && (
             <section key={category}>
-              <h2 className="font-semibold">{t(`kind.${category}`)}</h2>
-              <ul>
+              <h3 className="ui-group-title">{t(`kind.${category}`)}</h3>
+              <ul className="ui-list">
                 {rows.map((document) => {
                   const path = downloadPath(document.download_path);
+                  const Icon = KIND_ICON[document.kind];
                   return (
-                    <li
-                      className="flex flex-col gap-2 rounded border p-3"
-                      key={document.id}
-                    >
-                      <h3>{document.title}</h3>
-                      <p>
-                        {Math.ceil(document.size / 1024)} KB ·{" "}
-                        {t(`visibility.${document.visibility}`)}
-                      </p>
-                      {document.valid_until && (
-                        <p>{t("validUntil", { date: document.valid_until })}</p>
-                      )}
-                      {path && (
-                        <div className="flex gap-4">
-                          <a
-                            className="min-h-11 underline"
+                    <li className="ui-row document-row" key={document.id}>
+                      <span className="ui-row-chip" aria-hidden="true">
+                        <Icon size={20} />
+                      </span>
+                      <div className="ui-row-main">
+                        <h4 className="ui-row-title">{document.title}</h4>
+                        <p className="ui-row-meta">
+                          {Math.ceil(document.size / 1024)} KB ·{" "}
+                          {t(`visibility.${document.visibility}`)}
+                        </p>
+                        {document.valid_until && (
+                          <p className="ui-row-meta">
+                            {t("validUntil", { date: day(document.valid_until) })}
+                          </p>
+                        )}
+                      </div>
+                      <div className="ui-row-actions">
+                        {path && (
+                          <ButtonLink
                             href={path}
+                            variant="secondary"
+                            size="sm"
                             aria-label={t("downloadNamed", {
                               title: document.title,
                             })}
                           >
                             {t("download")}
-                          </a>
-                          {(document.mime === "application/pdf" ||
+                          </ButtonLink>
+                        )}
+                        {path &&
+                          (document.mime === "application/pdf" ||
                             document.mime.startsWith("image/")) && (
-                            <a
-                              className="min-h-11 underline"
+                            <ButtonLink
                               href={`${path}?inline=true`}
                               target="_blank"
                               rel="noopener noreferrer"
+                              variant="link"
                             >
                               {t("view")}
-                            </a>
+                            </ButtonLink>
                           )}
-                        </div>
-                      )}
-                      <button
-                        className="min-h-11 underline"
-                        onClick={() => setEditing(document.id)}
-                      >
-                        {t("edit")}
-                      </button>
-                      {document.can_delete && (
-                        <button
-                          className="min-h-11 underline"
-                          onClick={() => remove.mutate(document.id)}
-                          disabled={remove.isPending}
+                        <Button
+                          variant="icon"
+                          aria-label={t("edit")}
+                          onClick={() => setEditing(document.id)}
                         >
-                          {t("delete")}
-                        </button>
-                      )}
+                          <PencilSimpleIcon size={20} aria-hidden="true" />
+                        </Button>
+                        {document.can_delete && (
+                          <Button
+                            variant="icon"
+                            aria-label={t("delete")}
+                            onClick={() => remove.mutate(document.id)}
+                            disabled={remove.isPending}
+                          >
+                            <TrashIcon size={20} aria-hidden="true" />
+                          </Button>
+                        )}
+                      </div>
                       {editing === document.id && (
                         <DocumentEditor
                           viewerId={viewerId}

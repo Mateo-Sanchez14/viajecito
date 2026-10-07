@@ -2,6 +2,8 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { ApiError } from "@/shared/api/errors";
+import { EmptyArt } from "@/ui/illustrations/EmptyArt";
+import { EmptyState } from "@/ui/molecules/EmptyState";
 import type { Entry } from "../api/itinerary";
 import { EntryRow } from "../components/EntryRow";
 import { DayColumn } from "../components/DayColumn";
@@ -106,7 +108,9 @@ export function ItineraryPlanner({ tripId }: { tripId: string }) {
           )}
           {!data.days.some((day) => day.entries.length) &&
             !data.tray.length &&
-            !data.out_of_range.length && <p>{t("empty")}</p>}
+            !data.out_of_range.length && (
+              <EmptyState art={<EmptyArt scene="map" />} title={t("empty")} />
+            )}
         </>
       )}
     </div>

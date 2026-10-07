@@ -2,6 +2,7 @@
   "documents": {
     "title": "Documentos",
     "loading": "Cargando…",
+    "loadFailed": "No pudimos cargar los documentos",
     "upload": "Subir documento",
     "file": "Archivo",
     "name": "Título",
@@ -22,6 +23,8 @@
     "view": "Ver",
     "validUntil": "Vence el {date}",
     "empty": "Subí reservas, pasajes y seguros para tenerlos a mano en el viaje",
+    "emptyTitle": "Todavía no hay documentos",
+    "emptyCta": "Elegir un archivo",
     "kind": {
       "reservation": "Reserva",
       "ticket": "Pasaje",

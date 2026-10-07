@@ -2,9 +2,20 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Badge } from "@/ui/atoms/Badge";
+import { Button } from "@/ui/atoms/Button";
+import { ButtonLink } from "@/ui/atoms/ButtonLink";
+import { Card } from "@/ui/atoms/Card";
+import { Input } from "@/ui/atoms/Input";
+import { Skeleton } from "@/ui/atoms/Skeleton";
+import { ArrowSquareOutIcon, WarningCircleIcon } from "@/ui/icons";
+import { EmptyArt } from "@/ui/illustrations/EmptyArt";
+import { EmptyState } from "@/ui/molecules/EmptyState";
+import { InlineError } from "@/ui/molecules/InlineError";
 import { useBudget } from "../hooks/useBudget";
 import { setFxRates, type Budget } from "../api/budget";
 import { MoneyAmount } from "../components/MoneyAmount";
+
 export function FxRatesForm({
   tripId,
   budget,
@@ -29,7 +40,7 @@ export function FxRatesForm({
   });
   return (
     <form
-      className="flex flex-col gap-3 rounded-xl border p-4"
+      className="ui-card ui-form bg-surface p-5"
       onSubmit={(e) => {
         e.preventDefault();
         const valid =
@@ -43,54 +54,71 @@ export function FxRatesForm({
         if (valid) save.mutate();
       }}
     >
-      <h2>{t("fx.title")}</h2>
-      <p>
+      <h3 className="ui-form-title">{t("fx.title")}</h3>
+      <p className="ui-hint">
         {t("fx.help", {
           currency: currency || "…",
           tripCurrency: budget.currency,
         })}
       </p>
-      <label>
-        {t("fx.currency")}
-        <input
-          className="block min-h-11 rounded border p-2"
-          maxLength={3}
-          required
-          pattern="[A-Z]{3}"
-          value={currency}
-          onChange={(e) => setCurrency(e.target.value.toUpperCase())}
-        />
-      </label>
-      <label>
-        {t("fx.rate")}
-        <input
-          className="block min-h-11 rounded border p-2"
-          inputMode="decimal"
-          required
-          value={rate}
-          onChange={(e) => setRate(e.target.value)}
-        />
-      </label>
-      {(error || save.isError) && <p role="alert">{t("fx.invalid")}</p>}
-      {save.isSuccess && <p role="status">{t("fx.saved")}</p>}
-      <button
-        className="min-h-11 rounded border px-3"
-        type="submit"
-        disabled={save.isPending}
-      >
-        {t("fx.save")}
-      </button>
-      <dl>
-        {Object.entries(budget.fx_rates).map(([code, value]) => (
-          <div key={code}>
-            <dt>{code}</dt>
-            <dd>{value}</dd>
-          </div>
-        ))}
-      </dl>
+      <div className="ui-field-grid">
+        <label className="ui-field">
+          {t("fx.currency")}
+          <Input
+            maxLength={3}
+            required
+            pattern="[A-Z]{3}"
+            value={currency}
+            onChange={(e) => setCurrency(e.target.value.toUpperCase())}
+          />
+        </label>
+        <label className="ui-field">
+          {t("fx.rate")}
+          <Input
+            inputMode="decimal"
+            required
+            value={rate}
+            onChange={(e) => setRate(e.target.value)}
+          />
+        </label>
+      </div>
+      {(error || save.isError) && <InlineError message={t("fx.invalid")} />}
+      {save.isSuccess && (
+        <p role="status" className="ui-hint">
+          {t("fx.saved")}
+        </p>
+      )}
+      <div className="ui-form-actions">
+        <Button type="submit" className="ui-button-auto" disabled={save.isPending}>
+          {t("fx.save")}
+        </Button>
+      </div>
+      {Object.keys(budget.fx_rates).length > 0 && (
+        <dl className="ui-chip-list">
+          {Object.entries(budget.fx_rates).map(([code, value]) => (
+            <div key={code} className="ui-chip">
+              <dt>{code}</dt>
+              <dd className="ui-tabular">{value}</dd>
+            </div>
+          ))}
+        </dl>
+      )}
     </form>
   );
 }
+
+/** Shaped like the loaded view: one hero block, then rows. */
+function BudgetSkeleton({ label }: { label: string }) {
+  return (
+    <div role="status" aria-label={label} className="flex flex-col gap-3">
+      <Skeleton className="loading-hero" />
+      <Skeleton className="loading-row" />
+      <Skeleton className="loading-row" />
+      <Skeleton className="loading-row" />
+    </div>
+  );
+}
+
 export function BudgetView({
   tripId,
   crewId,
@@ -99,78 +127,107 @@ export function BudgetView({
   crewId: string;
 }) {
   const t = useTranslations("budget");
+  const ui = useTranslations("ui");
   const budget = useBudget(tripId);
   const data = budget.data;
+  const empty =
+    data &&
+    !data.lines.length &&
+    !data.unconverted.length &&
+    !data.missing_price.length;
   return (
-    <div className="flex flex-col gap-5" data-crew-id={crewId}>
+    <div className="ui-stack" data-crew-id={crewId}>
       <h2 className="text-2xl font-semibold">{t("title")}</h2>
-      {budget.isPending && <p role="status">{t("loading")}</p>}
-      {budget.isError && <p role="alert">{t("loadFailed")}</p>}
+      {budget.isPending && <BudgetSkeleton label={t("loading")} />}
+      {budget.isError && (
+        <InlineError
+          message={t("loadFailed")}
+          retryLabel={ui("retry")}
+          onRetry={() => void budget.refetch()}
+        />
+      )}
       {data && (
         <>
-          <p className="text-xl font-semibold">
-            <MoneyAmount amount={data.per_person} currency={data.currency} />{" "}
-            {t("perPersonSuffix")}
-          </p>
-          <p>{t("participants", { n: data.participants })}</p>
-          {data.participants_basis !== "in" && (
-            <p>{t("participantsAssumed")}</p>
+          {empty ? (
+            <EmptyState
+              art={<EmptyArt scene="coins" />}
+              title={t("emptyTitle")}
+              description={t("empty")}
+            />
+          ) : (
+            <>
+              <Card as="section" className="budget-hero">
+                <p className="budget-per-person">
+                  <MoneyAmount amount={data.per_person} currency={data.currency} />{" "}
+                  {t("perPersonSuffix")}
+                </p>
+                <p className="text-sm text-muted">
+                  {t("participants", { n: data.participants })}
+                </p>
+                {data.participants_basis !== "in" && (
+                  <p className="ui-hint">{t("participantsAssumed")}</p>
+                )}
+              </Card>
+              <dl className="budget-totals">
+                {(
+                  [
+                    ["committed", data.committed],
+                    ["expected", data.expected],
+                    ["total", data.total],
+                  ] as const
+                ).map(([key, amount]) => (
+                  <Card key={key} className="budget-total">
+                    <dt>{t(key)}</dt>
+                    <dd>
+                      <MoneyAmount amount={amount} currency={data.currency} />
+                    </dd>
+                  </Card>
+                ))}
+              </dl>
+              <p className="ui-hint">
+                {t("remainderPrefix")}{" "}
+                <MoneyAmount amount={data.remainder} currency={data.currency} />
+              </p>
+            </>
           )}
-          <dl>
-            <dt>{t("committed")}</dt>
-            <dd>
-              <MoneyAmount amount={data.committed} currency={data.currency} />
-            </dd>
-            <dt>{t("expected")}</dt>
-            <dd>
-              <MoneyAmount amount={data.expected} currency={data.currency} />
-            </dd>
-            <dt>{t("total")}</dt>
-            <dd>
-              <MoneyAmount amount={data.total} currency={data.currency} />
-            </dd>
-          </dl>
-          <p>
-            {t("remainderPrefix")}{" "}
-            <MoneyAmount amount={data.remainder} currency={data.currency} />
-          </p>
-          {!data.lines.length &&
-            !data.unconverted.length &&
-            !data.missing_price.length && <p>{t("empty")}</p>}
           {Object.entries(data.by_category).map(([category, total]) => (
-            <section key={category}>
-              <h2>
-                {t(`category.${category}`)}:{" "}
+            <Card as="section" key={category}>
+              <h3 className="budget-category-head">
+                <span>{t(`category.${category}`)}</span>
                 <MoneyAmount amount={total} currency={data.currency} />
-              </h2>
-              <ul>
+              </h3>
+              <ul className="ui-list" style={{ gap: 0 }}>
                 {data.lines
                   .filter((line) => line.category === category)
                   .map((line) => (
-                    <li className="py-2" key={line.proposal_id}>
-                      {line.title} ·{" "}
+                    <li className="budget-line" key={line.proposal_id}>
+                      <span className="budget-line-title">{line.title}</span>
                       {line.amount !== null && (
                         <MoneyAmount
                           amount={line.amount}
                           currency={data.currency}
                         />
-                      )}{" "}
-                      · {t(line.status === "booked" ? "committed" : "expected")}
+                      )}
+                      <Badge variant={line.status === "booked" ? "ok" : "neutral"}>
+                        {t(line.status === "booked" ? "committed" : "expected")}
+                      </Badge>
                       {line.nights_assumed && (
-                        <span> · {t("nightsAssumed")}</span>
+                        <Badge variant="degraded">{t("nightsAssumed")}</Badge>
                       )}
                     </li>
                   ))}
               </ul>
-            </section>
+            </Card>
           ))}
           {data.unconverted.map((line) => (
-            <p role="status" key={line.proposal_id}>
+            <p role="status" className="ui-notice" key={line.proposal_id}>
+              <WarningCircleIcon size={18} aria-hidden="true" />
               {t("unconverted", { currency: line.original_currency })}
             </p>
           ))}
           {data.missing_price.length > 0 && (
-            <p>
+            <p className="ui-notice">
+              <WarningCircleIcon size={18} aria-hidden="true" />
               {t("missingPrice", {
                 titles: data.missing_price.map((line) => line.title).join(", "),
               })}
@@ -178,9 +235,16 @@ export function BudgetView({
           )}
           <FxRatesForm tripId={tripId} budget={data} />
           {data.gastito_url && /^https:\/\//.test(data.gastito_url) && (
-            <a href={data.gastito_url} rel="noopener noreferrer">
-              {t("gastito")}
-            </a>
+            <div>
+              <ButtonLink
+                href={data.gastito_url}
+                rel="noopener noreferrer"
+                variant="secondary"
+              >
+                {t("gastito")}
+                <ArrowSquareOutIcon size={18} aria-hidden="true" />
+              </ButtonLink>
+            </div>
           )}
         </>
       )}

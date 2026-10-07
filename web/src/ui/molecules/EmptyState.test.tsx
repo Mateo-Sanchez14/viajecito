@@ -24,4 +24,25 @@ describe("EmptyState", () => {
 
     expect(screen.getByText("Empty")).toBeInTheDocument();
   });
+
+  it("renders an illustration above the title without replacing the title or the action", () => {
+    render(
+      <EmptyState
+        art={<svg data-testid="art" aria-hidden="true" />}
+        title="No hay nada"
+        action={<button>Crear</button>}
+      />,
+    );
+
+    const art = screen.getByTestId("art");
+    const title = screen.getByText("No hay nada");
+    expect(art.compareDocumentPosition(title) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Crear" })).toBeInTheDocument();
+  });
+
+  it("adds no art wrapper when there is no illustration", () => {
+    const { container } = render(<EmptyState title="Empty" />);
+
+    expect(container.querySelector(".ui-empty-art")).toBeNull();
+  });
 });

@@ -13,6 +13,7 @@
     "unconverted": "Falta la cotización de {currency}",
     "missingPrice": "Sin precio: {titles}",
     "empty": "Cuando elijan propuestas con precio, acá ves cuánto sale",
+    "emptyTitle": "Todavía no hay plata en juego",
     "gastito": "Cargá los gastos en gastito",
     "nightsAssumed": "Se asumió una noche",
     "fx": {

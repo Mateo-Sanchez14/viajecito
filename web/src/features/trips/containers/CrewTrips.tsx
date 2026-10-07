@@ -2,6 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { useMe } from "@/features/auth/MeProvider";
+import { PlusIcon } from "@/ui/icons";
 import { CreateTripForm } from "./CreateTripForm";
 import { TripList } from "./TripList";
 
@@ -20,7 +21,10 @@ export function CrewTrips() {
           <h2 className="crew-title text-lg font-semibold">{crew.name}</h2>
           <TripList crewId={crew.id} />
           <details className="create-trip-disclosure border border-border bg-surface p-4">
-            <summary className="flex min-h-11 cursor-pointer items-center text-sm font-medium">{t("create.open")}</summary>
+            <summary className="flex min-h-11 cursor-pointer items-center gap-2 text-sm font-medium">
+              <PlusIcon size={18} aria-hidden="true" />
+              {t("create.open")}
+            </summary>
             <div className="pt-4">
               <CreateTripForm crewId={crew.id} />
             </div>

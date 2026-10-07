@@ -3,6 +3,13 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTripContext } from "@/features/trips/TripProvider";
+import { Button } from "@/ui/atoms/Button";
+import { Select } from "@/ui/atoms/Select";
+import { Skeleton } from "@/ui/atoms/Skeleton";
+import { PlusIcon } from "@/ui/icons";
+import { EmptyArt } from "@/ui/illustrations/EmptyArt";
+import { EmptyState } from "@/ui/molecules/EmptyState";
+import { InlineError } from "@/ui/molecules/InlineError";
 import { deleteTask, type Task } from "../api/logistics";
 import { useTasks, useUpdateTask } from "../hooks/queries";
 import { TaskRow } from "../components/TaskRow";
@@ -18,6 +25,7 @@ function localDay(timezone: string) {
 }
 export function TaskList({ tripId }: { tripId: string }) {
   const t = useTranslations("logistics");
+  const ui = useTranslations("ui");
   const { trip } = useTripContext();
   const cache = useQueryClient();
   const [owner, setOwner] = useState("");
@@ -58,40 +66,30 @@ export function TaskList({ tripId }: { tripId: string }) {
     groups[key].push(task);
   }
   return (
-    <section className="flex flex-col gap-4">
-      <div className="flex flex-wrap gap-4">
-        <label>
+    <section className="ui-stack">
+      <div className="logistics-toolbar">
+        <label className="ui-field">
           {t("filter.label")}
-          <select
-            className="block min-h-11"
-            value={owner}
-            onChange={(e) => setOwner(e.target.value)}
-          >
+          <Select value={owner} onChange={(e) => setOwner(e.target.value)}>
             <option value="">{t("filter.all")}</option>
             <option value="me">{t("filter.mine")}</option>
-          </select>
+          </Select>
         </label>
-        <label>
+        <label className="ui-field">
           {t("task.kindLabel")}
-          <select
-            className="block min-h-11"
-            value={kind}
-            onChange={(e) => setKind(e.target.value)}
-          >
+          <Select value={kind} onChange={(e) => setKind(e.target.value)}>
             <option value="">{t("filter.all")}</option>
             {(["todo", "bring", "booking"] as const).map((v) => (
               <option key={v} value={v}>
                 {t(`task.kind.${v}`)}
               </option>
             ))}
-          </select>
+          </Select>
         </label>
-        <button
-          className="min-h-11 rounded border px-3"
-          onClick={() => setEditing(null)}
-        >
+        <Button className="ui-button-auto" onClick={() => setEditing(null)}>
+          <PlusIcon size={18} aria-hidden="true" />
           {t("task.add")}
-        </button>
+        </Button>
       </div>
       {editing !== undefined && (
         <TaskForm
@@ -101,17 +99,45 @@ export function TaskList({ tripId }: { tripId: string }) {
           onSaved={() => setEditing(undefined)}
         />
       )}
-      {tasks.isPending && <p role="status">{t("loading")}</p>}
-      {(tasks.isError || update.isError || remove.isError) && (
-        <p role="alert">{t("saveFailed")}</p>
+      {tasks.isPending && (
+        <div role="status" aria-label={t("loading")} className="flex flex-col gap-2">
+          <Skeleton className="loading-row" />
+          <Skeleton className="loading-row" />
+          <Skeleton className="loading-row" />
+        </div>
       )}
-      {tasks.data?.length === 0 && <p>{t("empty.tasks")}</p>}
+      {tasks.isError && (
+        <InlineError
+          message={t("loadFailed")}
+          retryLabel={ui("retry")}
+          onRetry={() => void tasks.refetch()}
+        />
+      )}
+      {(update.isError || remove.isError) && (
+        <InlineError message={t("saveFailed")} />
+      )}
+      {tasks.data?.length === 0 && (
+        <EmptyState
+          art={<EmptyArt scene="suitcase" />}
+          title={t("empty.tasks")}
+          description={t("empty.tasksBody")}
+          action={
+            <Button
+              variant="secondary"
+              className="ui-button-auto"
+              onClick={() => setEditing(null)}
+            >
+              {t("empty.tasksCta")}
+            </Button>
+          }
+        />
+      )}
       {Object.entries(groups)
         .filter(([, items]) => items.length)
         .map(([key, items]) => (
           <section key={key}>
-            <h2 className="mb-2 font-semibold">{t(`task.groups.${key}`)}</h2>
-            <ul className="flex flex-col gap-2">
+            <h3 className="ui-group-title">{t(`task.groups.${key}`)}</h3>
+            <ul className="ui-list">
               {items.map((task) => (
                 <TaskRow
                   key={task.id}

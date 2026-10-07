@@ -131,3 +131,55 @@ it("reloads stored quantities and edits or clears them through PATCH", async () 
   fireEvent.blur(reloaded);
   await waitFor(() => expect(quantity).toBeNull());
 });
+it("shows a skeleton while loading and an illustrated empty state without sections", async () => {
+  server.use(
+    http.get("*/api/trips/:id/packing/summary", () => HttpResponse.json([])),
+    http.get("*/api/trips/:id/packing/me", () =>
+      HttpResponse.json({ templates_available: [], applied: [], sections: [], progress: { packed: 0, total: 0 } }),
+    ),
+  );
+  const view = renderWithProviders(<PackingList tripId="t1" />);
+
+  expect(screen.getByRole("status", { name: "Cargando…" })).toBeInTheDocument();
+  await screen.findByText("Arrancá con una lista armada");
+  expect(view.container.querySelector("svg[data-scene='suitcase']")).toBeInTheDocument();
+  expect(screen.getByRole("progressbar", { name: "Valija" })).toHaveAttribute("aria-valuenow", "0");
+});
+it("exposes packing progress as a progressbar and lists the crew with their own meters", async () => {
+  server.use(
+    http.get("*/api/trips/:id/packing/me", () =>
+      HttpResponse.json({
+        templates_available: [],
+        applied: [],
+        sections: [],
+        progress: { packed: 1, total: 4 },
+      }),
+    ),
+    http.get("*/api/trips/:id/packing/summary", () =>
+      HttpResponse.json([{ person: { person_id: "p", display_name: "Lucia" }, packed: 3, total: 4 }]),
+    ),
+  );
+  renderWithProviders(<PackingList tripId="t1" />);
+
+  await screen.findByText("1 de 4 en la valija");
+  expect(screen.getByRole("progressbar", { name: "Valija" })).toHaveAttribute("aria-valuenow", "25");
+  expect(await screen.findByRole("progressbar", { name: "Lucia" })).toHaveAttribute("aria-valuenow", "75");
+  expect(screen.getByText("3 de 4 en la valija")).toBeInTheDocument();
+});
+it("shows an inline error with a retry when the packing list fails", async () => {
+  let calls = 0;
+  server.use(
+    http.get("*/api/trips/:id/packing/summary", () => HttpResponse.json([])),
+    http.get("*/api/trips/:id/packing/me", () => {
+      calls += 1;
+      return calls === 1
+        ? HttpResponse.json({ code: "boom" }, { status: 500 })
+        : HttpResponse.json({ templates_available: [], applied: [], sections: [], progress: { packed: 0, total: 0 } });
+    }),
+  );
+  renderWithProviders(<PackingList tripId="t1" />);
+
+  expect(await screen.findByRole("alert")).toHaveTextContent("No pudimos cargar la lista");
+  fireEvent.click(screen.getByRole("button", { name: "Reintentar" }));
+  await screen.findByText("Arrancá con una lista armada");
+});

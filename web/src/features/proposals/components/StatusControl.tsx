@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
+import { Button } from "@/ui/atoms/Button";
 import { ConfirmDialog } from "@/ui/molecules/ConfirmDialog";
 import type { ProposalStatus } from "../api/proposals";
 import { isBackwards, needsConfirm, transitionLabelKey } from "../lib/status";
@@ -36,15 +37,16 @@ export function StatusControl({ status, allowedTransitions, onTransition, pendin
     <>
       <div role="group" aria-label={t("label")} className="flex flex-wrap gap-2">
         {allowedTransitions.map((to) => (
-          <button
+          <Button
             key={to}
-            type="button"
+            variant="secondary"
+            size="sm"
             disabled={pending}
             onClick={() => request(to)}
-            className="min-h-11 rounded-xl border border-border bg-surface px-4 text-sm font-medium disabled:opacity-60"
+            className="min-h-11"
           >
             {t(transitionLabelKey(status, to))}
-          </button>
+          </Button>
         ))}
       </div>
       <ConfirmDialog

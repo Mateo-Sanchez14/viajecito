@@ -100,6 +100,14 @@ describe("ProposalBoard", () => {
     expect(screen.getByText(t.empty.body)).toBeInTheDocument();
   });
 
+  it("illustrates the empty board with the map scene above the title", async () => {
+    serveList([]);
+    const { container } = setup();
+
+    await screen.findByText(t.empty.title);
+    expect(container.querySelector("svg[data-scene='map']")).toHaveAttribute("aria-hidden", "true");
+  });
+
   it("says no proposal matches the filters and lets you clear them", async () => {
     const searches = serveList((search) => (search.getAll("category").length ? [] : [lodging]));
     setup();

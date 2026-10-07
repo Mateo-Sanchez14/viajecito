@@ -16,7 +16,7 @@ export function MoneyAmount({
 }) {
   const digits = minorUnits[currency] ?? 2;
   return (
-    <span className="tabular-nums">
+    <span className="ui-tabular">
       {new Intl.NumberFormat("es-AR", {
         style: "currency",
         currency,

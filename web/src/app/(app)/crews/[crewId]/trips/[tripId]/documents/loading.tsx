@@ -1,11 +1,11 @@
 import { getTranslations } from "next-intl/server";
-import { Skeleton } from "@/ui/atoms/Skeleton";
+import { ListSkeleton } from "@/ui/molecules/ListSkeleton";
 export default async function Loading() {
   const t = await getTranslations("documents");
   return (
-    <section aria-busy="true">
+    <section aria-busy="true" className="flex flex-col gap-5">
       <h1 className="text-2xl font-semibold">{t("title")}</h1>
-      <Skeleton className="h-40" />
+      <ListSkeleton />
     </section>
   );
 }

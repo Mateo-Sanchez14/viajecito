@@ -43,7 +43,11 @@
         "later": "Más adelante",
         "noDate": "Sin fecha",
         "done": "Hechas"
-      }
+      },
+      "dueOn": "Vence el {date}",
+      "overdueOn": "Venció el {date}",
+      "editNamed": "Editar {title}",
+      "deleteNamed": "Eliminar {title}"
     },
     "packing": {
       "apply": "Usar la lista {template}",
@@ -53,11 +57,14 @@
       "edit": "Editar {item}",
       "crew": "Valijas del grupo",
       "section": "Sección",
-      "quantity": "Cantidad de {item}"
+      "quantity": "Cantidad de {item}",
+      "deleteNamed": "Quitar {item} de la valija"
     },
     "empty": {
-      "tasks": "No hay tareas. ¡Qué organizados!",
-      "packing": "Arrancá con una lista armada"
+      "tasks": "Todavía no hay tareas",
+      "packing": "Arrancá con una lista armada",
+      "tasksBody": "Anotá reservas, compras y cosas para llevar así nadie se olvida de nada.",
+      "tasksCta": "Crear la primera"
     },
     "overview": "{overdue} tareas vencidas · {mine} tuyas"
   }

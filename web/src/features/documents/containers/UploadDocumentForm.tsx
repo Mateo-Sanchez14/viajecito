@@ -3,6 +3,10 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ApiError } from "@/shared/api/errors";
+import { Button } from "@/ui/atoms/Button";
+import { Input } from "@/ui/atoms/Input";
+import { Select } from "@/ui/atoms/Select";
+import { WarningCircleIcon } from "@/ui/icons";
 import {
   uploadDocument,
   validateUpload,
@@ -16,6 +20,8 @@ export const documentKinds = [
   "photo",
   "other",
 ] as const;
+/** The file input's id: the empty state points its call to action here. */
+export const DOCUMENT_FILE_INPUT_ID = "document-file";
 export function UploadDocumentForm({ tripId }: { tripId: string }) {
   const t = useTranslations("documents");
   const cache = useQueryClient();
@@ -60,7 +66,7 @@ export function UploadDocumentForm({ tripId }: { tripId: string }) {
   ];
   return (
     <form
-      className="flex flex-col gap-3 rounded-xl border p-4"
+      className="ui-card ui-form bg-surface p-5"
       onSubmit={(e) => {
         e.preventDefault();
         if (file) {
@@ -70,11 +76,11 @@ export function UploadDocumentForm({ tripId }: { tripId: string }) {
         }
       }}
     >
-      <h2>{t("upload")}</h2>
-      <label>
+      <h3 className="ui-form-title">{t("upload")}</h3>
+      <label className="ui-field">
         {t("file")}
-        <input
-          className="block min-h-11 max-w-full"
+        <Input
+          id={DOCUMENT_FILE_INPUT_ID}
           type="file"
           accept=".pdf,.jpg,.jpeg,.png,.webp,.heic,.heif"
           aria-describedby={error ? "upload-error" : undefined}
@@ -86,75 +92,82 @@ export function UploadDocumentForm({ tripId }: { tripId: string }) {
           }}
         />
       </label>
-      <label>
-        {t("name")}
-        <input
-          className="block min-h-11 rounded border p-2"
-          maxLength={200}
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-        />
-      </label>
-      <label>
-        {t("kindLabel")}
-        <select
-          className="block min-h-11"
-          value={kind}
-          onChange={(e) => {
-            const next = e.target.value as Document["kind"];
-            setKind(next);
-            if (next === "id") setVisibility("owner_only");
-          }}
-        >
-          {documentKinds.map((value) => (
-            <option key={value} value={value}>
-              {t(`kind.${value}`)}
-            </option>
-          ))}
-        </select>
-      </label>
-      <label>
-        {t("visibilityLabel")}
-        <select
-          className="block min-h-11"
-          value={kind === "id" ? "owner_only" : visibility}
-          disabled={kind === "id"}
-          onChange={(e) =>
-            setVisibility(e.target.value as Document["visibility"])
-          }
-        >
-          <option value="crew">{t("visibility.crew")}</option>
-          <option value="owner_only">{t("visibility.owner_only")}</option>
-        </select>
-      </label>
+      <div className="ui-field-grid">
+        <label className="ui-field">
+          {t("name")}
+          <Input
+            maxLength={200}
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+          />
+        </label>
+        <label className="ui-field">
+          {t("kindLabel")}
+          <Select
+            value={kind}
+            onChange={(e) => {
+              const next = e.target.value as Document["kind"];
+              setKind(next);
+              if (next === "id") setVisibility("owner_only");
+            }}
+          >
+            {documentKinds.map((value) => (
+              <option key={value} value={value}>
+                {t(`kind.${value}`)}
+              </option>
+            ))}
+          </Select>
+        </label>
+        <label className="ui-field">
+          {t("visibilityLabel")}
+          <Select
+            value={kind === "id" ? "owner_only" : visibility}
+            disabled={kind === "id"}
+            onChange={(e) =>
+              setVisibility(e.target.value as Document["visibility"])
+            }
+          >
+            <option value="crew">{t("visibility.crew")}</option>
+            <option value="owner_only">{t("visibility.owner_only")}</option>
+          </Select>
+        </label>
+        <label className="ui-field">
+          {t("expiry")}
+          <Input
+            type="date"
+            value={validUntil}
+            onChange={(e) => setValidUntil(e.target.value)}
+          />
+        </label>
+      </div>
       {(kind === "id" || visibility === "owner_only") && (
-        <p>{t("privateHelp")}</p>
+        <p className="ui-hint">{t("privateHelp")}</p>
       )}
-      <label>
-        {t("expiry")}
-        <input
-          className="block min-h-11"
-          type="date"
-          value={validUntil}
-          onChange={(e) => setValidUntil(e.target.value)}
-        />
-      </label>
       {error && (
-        <p id="upload-error" role="alert">
+        <p id="upload-error" role="alert" className="ui-notice">
+          <WarningCircleIcon size={18} aria-hidden="true" />
           {t(`errors.${known.includes(error) ? error : "invalid_request"}`)}
         </p>
       )}
       {upload.isPending && (
-        <p aria-live="polite">{t("progress", { percent: progress })}</p>
+        <p aria-live="polite" className="ui-hint ui-tabular">
+          {t("progress", { percent: progress })}
+        </p>
       )}
-      {upload.isSuccess && <p role="status">{t("uploaded")}</p>}
-      <button
-        className="min-h-11 rounded border px-3"
-        type="submit"
-        disabled={!file || !!validation || upload.isPending}
-      >
-        {t("upload")}
-      </button>
+      {upload.isSuccess && (
+        <p role="status" className="ui-hint">
+          {t("uploaded")}
+        </p>
+      )}
+      <div className="ui-form-actions">
+        <Button
+          type="submit"
+          className="ui-button-auto"
+          disabled={!file || !!validation || upload.isPending}
+        >
+          {t("upload")}
+        </Button>
+      </div>
     </form>
   );
 }

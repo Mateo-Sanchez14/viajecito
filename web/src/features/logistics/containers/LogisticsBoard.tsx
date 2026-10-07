@@ -7,14 +7,14 @@ export function LogisticsBoard({ tripId }: { tripId: string }) {
   const t = useTranslations("logistics");
   const [tab, setTab] = useState<"tasks" | "packing">("tasks");
   return (
-    <div className="flex flex-col gap-5">
+    <div className="ui-stack">
       <h2 className="text-2xl font-semibold">{t("title")}</h2>
-      <div role="tablist" aria-label={t("title")}>
+      <div className="ui-segmented" role="tablist" aria-label={t("title")}>
         {(["tasks", "packing"] as const).map((key) => (
           <button
             key={key}
             id={`tab-${key}`}
-            className="min-h-11 rounded border px-4"
+            type="button"
             role="tab"
             aria-controls={`panel-${key}`}
             aria-selected={tab === key}

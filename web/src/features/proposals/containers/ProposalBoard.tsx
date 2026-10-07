@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/ui/atoms/Button";
 import { Skeleton } from "@/ui/atoms/Skeleton";
+import { EmptyArt } from "@/ui/illustrations/EmptyArt";
 import { EmptyState } from "@/ui/molecules/EmptyState";
 import { PageHeader } from "@/ui/molecules/PageHeader";
 import { DEFAULT_FILTERS, type ProposalFilters as Filters } from "../api/proposals";
@@ -71,7 +72,11 @@ export function ProposalBoard({ tripId, crewId }: ProposalBoardProps) {
             }
           />
         ) : (
-          <EmptyState title={t("empty.title")} description={t("empty.body")} />
+          <EmptyState
+            art={<EmptyArt scene="map" />}
+            title={t("empty.title")}
+            description={t("empty.body")}
+          />
         )
       )}
 

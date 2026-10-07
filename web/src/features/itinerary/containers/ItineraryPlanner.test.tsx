@@ -197,3 +197,13 @@ it("opens the entry editor as an accessible modal sheet", async () => {
   fireEvent.click(within(sheet).getByRole("button", { name: "Cancelar" }));
   expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
 });
+it("shows an illustrated empty state when there is nothing planned at all", async () => {
+  server.use(itineraryHandler(makeItinerary({ days: [], tray: [], out_of_range: [] })));
+  const { container } = renderWithProviders(<ItineraryPlanner tripId="trip" />);
+  expect(
+    await screen.findByText(
+      "Armá el día a día o elegí propuestas para llenar la bandeja",
+    ),
+  ).toBeVisible();
+  expect(container.querySelector("svg[data-scene='map']")).toHaveAttribute("aria-hidden", "true");
+});

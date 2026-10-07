@@ -3,6 +3,11 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTripContext } from "@/features/trips/TripProvider";
+import { Button } from "@/ui/atoms/Button";
+import { Input } from "@/ui/atoms/Input";
+import { Select } from "@/ui/atoms/Select";
+import { Textarea } from "@/ui/atoms/Textarea";
+import { InlineError } from "@/ui/molecules/InlineError";
 import {
   createTask,
   updateTask,
@@ -49,110 +54,106 @@ export function TaskForm({
   });
   return (
     <form
-      className="flex flex-col gap-3 rounded-xl border border-border p-4"
+      className="ui-card ui-form bg-surface p-5"
       onSubmit={(event) => {
         event.preventDefault();
         save.mutate();
       }}
     >
-      <h2>{task ? t("edit") : t("task.add")}</h2>
-      <label>
+      <h3 className="ui-form-title">{task ? t("edit") : t("task.add")}</h3>
+      <label className="ui-field">
         {t("task.title")}
-        <input
-          className="block w-full rounded border p-2"
+        <Input
           required
           maxLength={200}
           value={title}
           onChange={(e) => setTitle(e.target.value)}
         />
       </label>
-      <label>
-        {t("task.kindLabel")}
-        <select
-          className="block min-h-11"
-          value={kind}
-          onChange={(e) => setKind(e.target.value as TaskCreate["kind"])}
-        >
-          {(["todo", "bring", "booking"] as const).map((v) => (
-            <option key={v} value={v}>
-              {t(`task.kind.${v}`)}
-            </option>
-          ))}
-        </select>
-      </label>
-      <label>
-        {t("task.owner")}
-        <select
-          className="block min-h-11"
-          value={owner}
-          onChange={(e) => setOwner(e.target.value)}
-        >
-          <option value="">{t("task.noOwner")}</option>
-          {participants.map((p) => (
-            <option key={p.person_id} value={p.person_id}>
-              {p.display_name}
-            </option>
-          ))}
-        </select>
-      </label>
-      <label>
-        {t("due")}
-        <input
-          className="block min-h-11"
-          type="date"
-          value={due}
-          onChange={(e) => setDue(e.target.value)}
-        />
-      </label>
-      <label>
+      <div className="ui-field-grid">
+        <label className="ui-field">
+          {t("task.kindLabel")}
+          <Select
+            value={kind}
+            onChange={(e) => setKind(e.target.value as TaskCreate["kind"])}
+          >
+            {(["todo", "bring", "booking"] as const).map((v) => (
+              <option key={v} value={v}>
+                {t(`task.kind.${v}`)}
+              </option>
+            ))}
+          </Select>
+        </label>
+        <label className="ui-field">
+          {t("task.owner")}
+          <Select value={owner} onChange={(e) => setOwner(e.target.value)}>
+            <option value="">{t("task.noOwner")}</option>
+            {participants.map((p) => (
+              <option key={p.person_id} value={p.person_id}>
+                {p.display_name}
+              </option>
+            ))}
+          </Select>
+        </label>
+        <label className="ui-field">
+          {t("due")}
+          <Input
+            type="date"
+            value={due}
+            onChange={(e) => setDue(e.target.value)}
+          />
+        </label>
+        {kind === "bring" && (
+          <label className="ui-field">
+            {t("quantity")}
+            <Input
+              type="number"
+              min={1}
+              value={quantity}
+              onChange={(e) => setQuantity(e.target.value)}
+            />
+          </label>
+        )}
+        {task && (
+          <label className="ui-field">
+            {t("task.statusLabel")}
+            <Select
+              value={status}
+              onChange={(e) => setStatus(e.target.value as Task["status"])}
+            >
+              {(["open", "blocked", "done"] as const)
+                .filter((value) => task.status !== "done" || value !== "blocked")
+                .map((value) => (
+                  <option key={value} value={value}>
+                    {t(`task.status.${value}`)}
+                  </option>
+                ))}
+            </Select>
+          </label>
+        )}
+      </div>
+      <label className="ui-field">
         {t("notes")}
-        <textarea
-          className="block w-full rounded border p-2"
+        <Textarea
+          rows={3}
           maxLength={2000}
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
         />
       </label>
-      {kind === "bring" && (
-        <label>
-          {t("quantity")}
-          <input
-            type="number"
-            min={1}
-            className="block min-h-11"
-            value={quantity}
-            onChange={(e) => setQuantity(e.target.value)}
-          />
-        </label>
-      )}
-      {task && (
-        <label>
-          {t("task.statusLabel")}
-          <select
-            value={status}
-            onChange={(e) => setStatus(e.target.value as Task["status"])}
-          >
-            {(["open", "blocked", "done"] as const)
-              .filter((value) => task.status !== "done" || value !== "blocked")
-              .map((value) => (
-                <option key={value} value={value}>
-                  {t(`task.status.${value}`)}
-                </option>
-              ))}
-          </select>
-        </label>
-      )}
-      {save.isError && <p role="alert">{t("saveFailed")}</p>}
-      <button
-        className="min-h-11 rounded bg-foreground px-4 text-background"
-        type="submit"
-        disabled={save.isPending || !title.trim()}
-      >
-        {t("save")}
-      </button>
-      <button className="min-h-11" onClick={onSaved} type="button">
-        {t("cancel")}
-      </button>
+      {save.isError && <InlineError message={t("saveFailed")} />}
+      <div className="ui-form-actions">
+        <Button
+          type="submit"
+          className="ui-button-auto"
+          disabled={save.isPending || !title.trim()}
+        >
+          {t("save")}
+        </Button>
+        <Button variant="secondary" onClick={onSaved}>
+          {t("cancel")}
+        </Button>
+      </div>
     </form>
   );
 }
