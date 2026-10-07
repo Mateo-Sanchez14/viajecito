@@ -12,6 +12,7 @@ ACTIVE_STATUSES = ("planning", "booked", "ongoing")  # trips that still need rem
 RSVP_VALUES = ("in", "maybe", "out", "pending")
 DEFAULT_TRIP_TYPE = "generic"
 DEFAULT_CURRENCY = "USD"
+COVER_BOX = (1280, 1280)  # a cover fits inside this box and is never upscaled
 MAX_FX_RATES = 10
 FX_MIN_EXPONENT, FX_MAX_EXPONENT = -9, 12  # bounds of ``Decimal.adjusted()``
 FX_MAX_DECIMALS = 8
@@ -20,6 +21,15 @@ _CURRENCY_CODE = re.compile(r"^[A-Z]{3}$")
 
 class InvalidTripInputError(ValueError):
     """A trip field is not acceptable."""
+
+
+class InvalidCoverError(ValueError):
+    """The uploaded cover cannot be used; ``code`` is ``too_large`` | ``too_many_pixels`` |
+    ``invalid_image``."""
+
+    def __init__(self, code: str) -> None:
+        super().__init__(code)
+        self.code = code
 
 
 @dataclass(frozen=True)
@@ -35,6 +45,8 @@ class TripData:
     timezone: str
     currency: str
     fx_rates: dict[str, str]
+    has_cover: bool = False
+    cover_version: int = 0
 
 
 TripRef = TripData  # what other apps get back from the callable use cases

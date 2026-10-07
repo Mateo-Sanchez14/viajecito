@@ -1,6 +1,8 @@
 from datetime import date
 from typing import Any
+from uuid import uuid4
 
+from django.core.files.base import ContentFile
 from django.db import transaction
 
 from crews.models import Crew, CrewMembership
@@ -21,6 +23,8 @@ def trip_data(trip: Trip) -> TripData:
         timezone=trip.timezone,
         currency=trip.currency,
         fx_rates=dict(trip.fx_rates),
+        has_cover=bool(trip.cover),
+        cover_version=trip.cover_version,
     )
 
 
@@ -100,3 +104,42 @@ class DjangoTripStore:
             trip_id=trip_id, person_id=person_id, defaults={"rsvp": rsvp}
         )
         return participant_data(row.person, row.rsvp)
+
+    def set_cover(self, trip_id: str, webp: bytes) -> TripData:
+        with transaction.atomic():
+            trip = Trip.objects.get(pk=trip_id)
+            storage = trip.cover.storage
+            old_name = trip.cover.name if trip.cover else ""
+            trip.cover.save(f"{uuid4()}.webp", ContentFile(webp), save=False)
+            new_name = trip.cover.name
+            trip.cover_version += 1
+            try:
+                trip.save(update_fields=["cover", "cover_version"])
+            except Exception:
+                storage.delete(new_name)  # the row was not updated: do not orphan the new file
+                raise
+            if old_name:
+                transaction.on_commit(lambda: storage.delete(old_name))
+        return trip_data(trip)
+
+    def clear_cover(self, trip_id: str) -> TripData:
+        with transaction.atomic():
+            trip = Trip.objects.get(pk=trip_id)
+            if trip.cover:
+                storage = trip.cover.storage
+                old_name = trip.cover.name
+                trip.cover = None
+                trip.cover_version += 1
+                trip.save(update_fields=["cover", "cover_version"])
+                transaction.on_commit(lambda: storage.delete(old_name))
+        return trip_data(trip)
+
+    def read_cover(self, trip_id: str) -> bytes | None:
+        trip = Trip.objects.filter(pk=trip_id).first()
+        if trip is None or not trip.cover:
+            return None
+        try:
+            with trip.cover.open("rb") as handle:
+                return handle.read()
+        except OSError:
+            return None

@@ -49,6 +49,8 @@ class TripSummaryOut(Schema):
     start_on: date | None
     end_on: date | None
     destination_label: str
+    has_cover: bool
+    cover_version: int
 
 
 class TripOut(Schema):
@@ -63,6 +65,8 @@ class TripOut(Schema):
     timezone: str
     currency: str
     fx_rates: dict[str, str]
+    has_cover: bool
+    cover_version: int
     modules: list[str]
     participants: list[ParticipantOut]
     my_rsvp: Rsvp

@@ -29,6 +29,10 @@ class Trip(models.Model):
     timezone = models.CharField(max_length=64, blank=True)  # defaults to the crew's on save
     currency = models.CharField(max_length=3, default=domain.DEFAULT_CURRENCY)
     fx_rates = models.JSONField(default=dict, blank=True)
+    # Private cover photo (WebP). MEDIA is not publicly routed; it is served by an authorized
+    # endpoint. ``cover_version`` changes whenever the cover is set, replaced or removed.
+    cover = models.ImageField(upload_to="trips/covers/", null=True, blank=True)
+    cover_version = models.PositiveIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

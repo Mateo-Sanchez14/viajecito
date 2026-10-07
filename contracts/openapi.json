@@ -656,6 +656,255 @@
         ]
       }
     },
+    "/api/trips/{trip_id}/cover": {
+      "post": {
+        "operationId": "trips_api_set_cover",
+        "summary": "Set Trip Cover",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "trip_id",
+            "schema": {
+              "format": "uuid",
+              "title": "Trip Id",
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TripOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Content Too Large",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Unsupported Media Type",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          }
+        },
+        "description": "Multipart `file` (JPEG, PNG, WEBP or GIF, at most 5 MiB and 25 megapixels); re-encoded to\nWebP without metadata and stored privately, replacing any previous cover. Any active member of\nthe crew may set it. 400: `file_required`. 413: `file_too_large`, `image_too_large`.\n415: `unsupported_image` (also SVG, HEIC, truncated or undecodable files).",
+        "tags": [
+          "trips"
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "properties": {
+                  "file": {
+                    "anyOf": [
+                      {
+                        "format": "binary",
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "File"
+                  }
+                },
+                "title": "FileParams",
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ]
+      },
+      "get": {
+        "operationId": "trips_api_get_cover",
+        "summary": "Get Trip Cover",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "trip_id",
+            "schema": {
+              "format": "uuid",
+              "title": "Trip Id",
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "The cover (WebP, at most 1280 px on its longest side)",
+            "content": {
+              "image/webp": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        },
+        "description": "`200 image/webp` (private, one week; the web adds `?v=<cover_version>`, which is ignored).\n404 without a cover or without access.",
+        "tags": [
+          "trips"
+        ],
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ]
+      },
+      "delete": {
+        "operationId": "trips_api_clear_cover",
+        "summary": "Clear Trip Cover",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "trip_id",
+            "schema": {
+              "format": "uuid",
+              "title": "Trip Id",
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TripOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          }
+        },
+        "description": "Removes the cover; idempotent (a trip without one answers 200 unchanged).",
+        "tags": [
+          "trips"
+        ],
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ]
+      }
+    },
     "/api/trips/{trip_id}/proposals": {
       "get": {
         "operationId": "proposals_api_list_trip_proposals",
@@ -6860,6 +7109,14 @@
           "destination_label": {
             "title": "Destination Label",
             "type": "string"
+          },
+          "has_cover": {
+            "title": "Has Cover",
+            "type": "boolean"
+          },
+          "cover_version": {
+            "title": "Cover Version",
+            "type": "integer"
           }
         },
         "required": [
@@ -6869,7 +7126,9 @@
           "status",
           "start_on",
           "end_on",
-          "destination_label"
+          "destination_label",
+          "has_cover",
+          "cover_version"
         ],
         "title": "TripSummaryOut",
         "type": "object"
@@ -6978,6 +7237,14 @@
             "title": "Fx Rates",
             "type": "object"
           },
+          "has_cover": {
+            "title": "Has Cover",
+            "type": "boolean"
+          },
+          "cover_version": {
+            "title": "Cover Version",
+            "type": "integer"
+          },
           "modules": {
             "items": {
               "type": "string"
@@ -7015,6 +7282,8 @@
           "timezone",
           "currency",
           "fx_rates",
+          "has_cover",
+          "cover_version",
           "modules",
           "participants",
           "my_rsvp"

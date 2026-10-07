@@ -43,6 +43,8 @@ def test_list_returns_summaries_of_the_crew_trips_only(as_person, crew, other_cr
             "start_on": None,
             "end_on": None,
             "destination_label": "",
+            "has_cover": False,
+            "cover_version": 0,
         }
     ]
 
@@ -88,6 +90,8 @@ def test_create_returns_the_trip_and_enrolls_the_creator(as_person, crew, ana):
         "timezone": "America/Santiago",
         "currency": "USD",
         "fx_rates": {},
+        "has_cover": False,
+        "cover_version": 0,
         "modules": GENERIC_MODULES,
         "participants": [{"person_id": str(ana.pk), "display_name": "Ana", "rsvp": "in"}],
         "my_rsvp": "in",
