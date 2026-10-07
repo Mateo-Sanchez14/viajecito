@@ -5,7 +5,7 @@ export function Skeleton({ className = "", ...props }: ComponentProps<"div">) {
   return (
     <div
       aria-hidden="true"
-      className={`ui-skeleton animate-pulse rounded-xl bg-foreground/10 ${className}`}
+      className={`ui-skeleton animate-pulse bg-foreground/10 ${className}`}
       {...props}
     />
   );

@@ -13,6 +13,7 @@ describe("Badge", () => {
     ["ok", "bg-ok-soft"],
     ["degraded", "bg-warn-soft"],
     ["neutral", "bg-surface"],
+    ["accent", "bg-accent-soft"],
   ] as const)("applies the %s variant classes", (variant, expectedClass) => {
     render(<Badge variant={variant}>label</Badge>);
 
@@ -23,5 +24,17 @@ describe("Badge", () => {
     render(<Badge variant="ok">label</Badge>);
 
     expect(screen.getByText("label")).toHaveAttribute("data-variant", "ok");
+  });
+
+  it("renders an optional leading icon before the label", () => {
+    render(
+      <Badge variant="accent" icon={<svg data-testid="icon" aria-hidden="true" />}>
+        label
+      </Badge>,
+    );
+
+    const badge = screen.getByText("label");
+    expect(badge).toContainElement(screen.getByTestId("icon"));
+    expect(badge.firstElementChild).toBe(screen.getByTestId("icon"));
   });
 });

@@ -2,5 +2,10 @@
   "app": {
     "name": "viajecito",
     "tagline": "Planeá el próximo viaje con tu gente"
+  },
+  "ui": {
+    "close": "Cerrar",
+    "back": "Volver",
+    "retry": "Reintentar"
   }
 }

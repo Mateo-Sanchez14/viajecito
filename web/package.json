@@ -15,6 +15,7 @@
     "api:types:check": "openapi-typescript ../contracts/openapi.json --default-non-nullable false -o \"${TMPDIR:-/tmp}/viajecito-schema.d.ts\" && diff -u src/shared/api/schema.d.ts \"${TMPDIR:-/tmp}/viajecito-schema.d.ts\""
   },
   "dependencies": {
+    "@phosphor-icons/react": "^2.1.10",
     "@serwist/next": "^9.5.12",
     "@tanstack/react-query": "^5.104.0",
     "leaflet": "1.9.4",

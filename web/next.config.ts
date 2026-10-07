@@ -17,6 +17,10 @@ const apiInternalUrl = process.env.API_INTERNAL_URL ?? "http://localhost:8000";
 
 const nextConfig: NextConfig = {
   output: "standalone",
+  // Icons come from one barrel (src/ui/icons.ts); keep the bundle to the icons actually used.
+  experimental: {
+    optimizePackageImports: ["@phosphor-icons/react"],
+  },
   // Dev convenience only. Production relies on the tunnel splitting /api/* to the api,
   // so the rewrite (baked at build time) is not registered there.
   async rewrites() {
