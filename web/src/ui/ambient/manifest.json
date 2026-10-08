@@ -20,6 +20,16 @@
       "mp4": "/ambient/city.88fd55d09f.mp4",
       "poster": "/ambient/city.88fd55d09f.webp"
     },
+    "road": {
+      "credit": {
+        "author": "Dimitri Baret",
+        "license": "Pexels License https://www.pexels.com/license/",
+        "source": "https://www.pexels.com/video/point-of-view-of-a-car-driving-along-the-road-15330792/"
+      },
+      "hash": "df5955c0a0",
+      "mp4": "/ambient/road.df5955c0a0.mp4",
+      "poster": "/ambient/road.df5955c0a0.webp"
+    },
     "snow": {
       "credit": {
         "author": "Wietse van den Hout",

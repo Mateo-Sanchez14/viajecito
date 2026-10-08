@@ -9,9 +9,16 @@ const SOURCES = ["https://www.pexels.com/", "https://pixabay.com/"];
 const isText = (value) => typeof value === "string" && value.trim() !== "";
 const isNumber = (value) => typeof value === "number" && Number.isFinite(value);
 
+export const DEFAULT_CRF = 27;
+export const MIN_CRF = 18;
+export const MAX_CRF = 35;
+// "16:9": a small width:height ratio. Only digits reach the ffmpeg filter expression below.
+const CROP = /^([1-9][0-9]?):([1-9][0-9]?)$/;
+
 /**
  * Problems with one entry of clips.json (an empty array means valid). The file name must be a plain
- * name inside scripts/ambient/sources/: no separators, no `..`, no URL, a video extension.
+ * name inside scripts/ambient/sources/: no separators, no `..`, no URL, a video extension. `crf`
+ * (integer 18-35, default 27) and `crop` (a "w:h" ratio, centered) are optional per-clip encode options.
  */
 export function validateClip(entry) {
   if (typeof entry !== "object" || entry === null || Array.isArray(entry)) return ["entry must be an object"];
@@ -26,23 +33,37 @@ export function validateClip(entry) {
     errors.push("source must be a pexels.com or pixabay.com https URL");
   if (!isText(entry.author)) errors.push("author must not be empty");
   if (!isText(entry.license)) errors.push("license must not be empty");
+  if (entry.crf !== undefined && !(Number.isInteger(entry.crf) && entry.crf >= MIN_CRF && entry.crf <= MAX_CRF))
+    errors.push(`crf must be an integer from ${MIN_CRF} to ${MAX_CRF}`);
+  if (entry.crop !== undefined && !(typeof entry.crop === "string" && CROP.test(entry.crop)))
+    errors.push('crop must be a width:height ratio such as "16:9"');
   return errors;
+}
+
+/** Center crop to a w:h ratio (never upscaling), then 720p, 30 fps constant, yuv420p. */
+function videoFilter(crop) {
+  const match = crop === undefined ? null : CROP.exec(crop);
+  if (crop !== undefined && match === null) throw new Error(`invalid crop ${JSON.stringify(crop)}`);
+  const cropFilter = match ? `crop='min(iw,ih*${match[1]}/${match[2]})':'min(ih,iw*${match[2]}/${match[1]})',` : "";
+  return `${cropFilter}scale=-2:720:flags=lanczos,fps=30,format=yuv420p`;
 }
 
 /**
  * ffmpeg argv for the loop: trimmed, 720p, 30 fps constant, H.264 high/4.0, no audio, no
  * subtitles, no data streams, no metadata, moov atom first. `-protocol_whitelist file` comes
  * right before `-i` so a crafted container cannot make ffmpeg open a network or concat URL.
+ * Optional per-clip `crf` (default 27) and `crop` ("w:h", centered, applied before the scale).
  */
-export function encodeArgs({ input, output, start, duration }) {
+export function encodeArgs({ input, output, start, duration, crf = DEFAULT_CRF, crop }) {
+  if (!Number.isInteger(crf) || crf < MIN_CRF || crf > MAX_CRF) throw new Error(`invalid crf ${JSON.stringify(crf)}`);
   return [
     "-hide_banner", "-loglevel", "error", "-nostdin", "-y",
     "-ss", String(start), "-t", String(duration),
     "-protocol_whitelist", "file", "-i", input,
     "-an", "-sn", "-dn", "-map_metadata", "-1",
-    "-vf", "scale=-2:720:flags=lanczos,fps=30,format=yuv420p",
+    "-vf", videoFilter(crop),
     "-fps_mode", "cfr",
-    "-c:v", "libx264", "-preset", "slow", "-crf", "27", "-profile:v", "high", "-level", "4.0", "-tag:v", "avc1",
+    "-c:v", "libx264", "-preset", "slow", "-crf", String(crf), "-profile:v", "high", "-level", "4.0", "-tag:v", "avc1",
     "-movflags", "+faststart",
     output,
   ];

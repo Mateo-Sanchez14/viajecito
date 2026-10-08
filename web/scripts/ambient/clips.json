@@ -25,5 +25,16 @@
     "author": "Alef Morais",
     "source": "https://www.pexels.com/video/aerial-drone-view-of-tropical-beach-coastline-39108740/",
     "license": "Pexels License https://www.pexels.com/license/"
+  },
+  {
+    "scene": "road",
+    "file": "road-15330792.mp4",
+    "start": 4,
+    "duration": 6,
+    "crf": 30,
+    "crop": "16:9",
+    "author": "Dimitri Baret",
+    "source": "https://www.pexels.com/video/point-of-view-of-a-car-driving-along-the-road-15330792/",
+    "license": "Pexels License https://www.pexels.com/license/"
   }
 ]

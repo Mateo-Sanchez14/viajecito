@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { describe, it } from "node:test";
-import { SCENES, encodeArgs, hashName, isOwnOutput, posterArgs, serializeManifest, validateClip } from "./lib.mjs";
+import { DEFAULT_CRF, SCENES, encodeArgs, hashName, isOwnOutput, posterArgs, serializeManifest, validateClip } from "./lib.mjs";
 
 const valid = {
   scene: "city",
@@ -80,6 +80,24 @@ describe("validateClip", () => {
     assert.notDeepEqual(validateClip({ ...valid, license: "" }), []);
   });
 
+  it("accepts the optional crf (integer 18 to 35) and crop (w:h ratio)", () => {
+    assert.deepEqual(validateClip({ ...valid, crf: 18 }), []);
+    assert.deepEqual(validateClip({ ...valid, crf: 35, crop: "16:9" }), []);
+    assert.deepEqual(validateClip({ ...valid, crop: "4:3" }), []);
+  });
+
+  it("rejects a crf outside 18 to 35 or that is not an integer", () => {
+    for (const crf of [17, 36, 0, -1, 27.5, "27", Number.NaN, null]) {
+      assert.notDeepEqual(validateClip({ ...valid, crf }), [], `crf ${crf}`);
+    }
+  });
+
+  it("rejects a crop that is not a plain ratio (nothing else may reach the filter graph)", () => {
+    for (const crop of ["16-9", "16:", ":9", "0:9", "16:0", "100:9", "w:h", "16:9,scale=1:1", "16:9'", "iw:ih", 1.5, null, ""]) {
+      assert.notDeepEqual(validateClip({ ...valid, crop }), [], `crop ${crop}`);
+    }
+  });
+
   it("rejects something that is not an object", () => {
     for (const entry of [null, undefined, "x", 3, []]) assert.notDeepEqual(validateClip(entry), []);
   });
@@ -119,6 +137,44 @@ describe("encodeArgs", () => {
     assert.match(args[args.indexOf("-vf") + 1], /scale=-2:720/);
     assert.equal(args[args.indexOf("-c:v") + 1], "libx264");
     assert.ok(args.indexOf("-ss") < args.indexOf("-i"), "fast input seek");
+  });
+});
+
+describe("encodeArgs per-clip options", () => {
+  const base = { input: "/s/road.mp4", output: "/t/out.mp4", start: 4, duration: 6 };
+
+  it("keeps CRF 27 and no crop by default", () => {
+    const args = encodeArgs(base);
+    assert.equal(DEFAULT_CRF, 27);
+    assert.equal(args[args.indexOf("-crf") + 1], "27");
+    assert.equal(args[args.indexOf("-vf") + 1], "scale=-2:720:flags=lanczos,fps=30,format=yuv420p");
+  });
+
+  it("uses the clip's crf", () => {
+    const args = encodeArgs({ ...base, crf: 30 });
+    assert.equal(args[args.indexOf("-crf") + 1], "30");
+  });
+
+  it("center-crops to the ratio before the 720p scale", () => {
+    const args = encodeArgs({ ...base, crop: "16:9" });
+    assert.equal(
+      args[args.indexOf("-vf") + 1],
+      "crop='min(iw,ih*16/9)':'min(ih,iw*9/16)',scale=-2:720:flags=lanczos,fps=30,format=yuv420p",
+    );
+  });
+
+  it("keeps the safety flags with the options on", () => {
+    const args = encodeArgs({ ...base, crf: 30, crop: "16:9" });
+    const at = args.indexOf("-i");
+    assert.deepEqual(args.slice(at - 2, at + 2), ["-protocol_whitelist", "file", "-i", "/s/road.mp4"]);
+    for (const flag of ["-nostdin", "-an", "-sn", "-dn"]) assert.ok(args.includes(flag), flag);
+  });
+
+  it("refuses an out-of-range crf or a malformed crop instead of building argv", () => {
+    assert.throws(() => encodeArgs({ ...base, crf: 40 }));
+    assert.throws(() => encodeArgs({ ...base, crf: 17 }));
+    assert.throws(() => encodeArgs({ ...base, crf: "30" }));
+    assert.throws(() => encodeArgs({ ...base, crop: "16:9,scale=1:1" }));
   });
 });
 

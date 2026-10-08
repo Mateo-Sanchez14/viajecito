@@ -95,7 +95,7 @@ function encodeClip(clip, tmp, maxBytes) {
   const input = resolveSource(clip.file);
   const mp4 = path.join(tmp, `${clip.scene}.mp4`);
   const webp = path.join(tmp, `${clip.scene}.webp`);
-  run(FFMPEG, encodeArgs({ input, output: mp4, start: clip.start, duration: clip.duration }));
+  run(FFMPEG, encodeArgs({ input, output: mp4, start: clip.start, duration: clip.duration, crf: clip.crf, crop: clip.crop }));
   run(FFMPEG, posterArgs({ input: mp4, output: webp }));
 
   const facts = probe(mp4);
@@ -121,7 +121,7 @@ function readManifest() {
 function dryRun(clips) {
   const tmp = path.join("<tmp>");
   for (const clip of clips) {
-    console.log(JSON.stringify([FFMPEG, ...encodeArgs({ input: path.join("scripts/ambient/sources", clip.file), output: `${tmp}/${clip.scene}.mp4`, start: clip.start, duration: clip.duration })]));
+    console.log(JSON.stringify([FFMPEG, ...encodeArgs({ input: path.join("scripts/ambient/sources", clip.file), output: `${tmp}/${clip.scene}.mp4`, start: clip.start, duration: clip.duration, crf: clip.crf, crop: clip.crop })]));
     console.log(JSON.stringify([FFMPEG, ...posterArgs({ input: `${tmp}/${clip.scene}.mp4`, output: `${tmp}/${clip.scene}.webp` })]));
   }
 }
