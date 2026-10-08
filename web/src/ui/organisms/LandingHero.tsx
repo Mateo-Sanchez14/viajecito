@@ -44,7 +44,7 @@ export function LandingHero({ media, greeting, tagline, next }: LandingHeroProps
         </h1>
         <p className="landing-hero-tagline">{tagline}</p>
         {next.status === "loading" && (
-          <div className="landing-next" aria-busy="true" aria-label={next.label}>
+          <div className="landing-next" role="status" aria-busy="true" aria-label={next.label}>
             <Skeleton className="landing-next-skeleton" />
           </div>
         )}

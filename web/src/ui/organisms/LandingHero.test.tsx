@@ -95,8 +95,9 @@ describe("LandingHero", () => {
   it("shows a layout-shaped loading skeleton labelled for assistive tech", () => {
     const { container } = setup({ status: "loading", label: "Buscando tu próximo viaje" });
 
-    const busy = container.querySelector("[aria-busy='true']")!;
-    expect(busy).toHaveAttribute("aria-label", "Buscando tu próximo viaje");
+    // aria-label is only permitted on an element with a role: a bare div would fail axe.
+    const busy = screen.getByRole("status", { name: "Buscando tu próximo viaje" });
+    expect(busy).toBe(container.querySelector("[aria-busy='true']"));
     expect(busy.querySelector(".landing-next-skeleton")).toBeInTheDocument();
     expect(screen.queryByRole("link")).not.toBeInTheDocument();
   });
