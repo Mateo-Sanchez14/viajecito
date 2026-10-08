@@ -30,3 +30,56 @@ describe("coverScene", () => {
     expect(scenes).toEqual(new Set(["road", "city", "beach"]));
   });
 });
+
+describe("coverScene keyword inference", () => {
+  const scene = (destination_label: string, name = "", type = "generic") =>
+    coverScene({ id: "44444444-4444-4444-8444-444444444444", type, name, destination_label });
+
+  it.each([
+    ["Bariloche", "snow"],
+    ["Cerro Catedral", "snow"],
+    ["Valle Nevado, Chile", "snow"],
+    ["Lago Puelo", "snow"],
+    ["Mar del Plata", "beach"],
+    ["Punta del Este", "beach"],
+    ["Florianópolis", "beach"],
+    ["Mendoza", "road"],
+    ["Cafayate", "road"],
+    ["Salta y Jujuy", "road"],
+    ["Buenos Aires", "city"],
+    ["Madrid", "city"],
+    ["Nueva York", "city"],
+    ["Ruta 40", "road"],
+  ] as const)("reads %s as %s", (destination, expected) => {
+    expect(scene(destination)).toBe(expected);
+  });
+
+  it("ignores case and accents", () => {
+    expect(scene("FLORIANOPOLIS")).toBe(scene("florianópolis"));
+    expect(scene("ESQUÍ")).toBe("snow");
+  });
+
+  it("matches whole words only", () => {
+    // "mar" is a beach word, but never inside another word; the id decides these.
+    expect(["road", "city", "beach"]).toContain(scene("Marruecos"));
+    expect(scene("Primavera en el parque", "", "generic")).not.toBe("snow");
+  });
+
+  it("falls back to the trip name when the destination says nothing", () => {
+    expect(scene("", "Finde en Pinamar")).toBe("beach");
+    expect(scene("Algún lugar", "Semana de esquí")).toBe("snow");
+  });
+
+  it("prefers the destination over the name", () => {
+    expect(scene("Mar del Plata", "Cerro Catedral con amigos")).toBe("beach");
+  });
+
+  it("keeps ski trips on the snow scene even when the destination points elsewhere", () => {
+    expect(scene("Mar del Plata", "", "ski")).toBe("snow");
+  });
+
+  it("still gives a stable scene to trips that name nothing recognisable", () => {
+    expect(scene("Zzz", "Qqq")).toBe(scene("Zzz", "Qqq"));
+    expect(["road", "city", "beach"]).toContain(scene("Zzz", "Qqq"));
+  });
+});

@@ -1,3 +1,5 @@
+import { SCENE_FOR_KIND, inferSceneKind } from "./sceneKeywords";
+
 export type CoverScene = "road" | "beach" | "snow" | "city";
 
 /** Scenes a trip falls back to when it has no ski type, in a fixed order the hash indexes into. */
@@ -14,10 +16,19 @@ function hash(value: string): number {
 }
 
 /**
- * The cover illustration for a trip: `ski` always gets snow; every other type (known or not) gets
- * a stable pick from road / city / beach derived from the trip id, so a trip keeps its scene.
+ * The scene a trip gets when it has no photo: `ski` always gets snow; otherwise the destination (then
+ * the name) is read for place keywords (a beach town gets the beach, Bariloche the snow, Mendoza the
+ * vineyard road...). Trips that name nothing we recognise keep a stable pick from road / city / beach
+ * derived from the trip id, so a trip never changes scene just by being listed again.
  */
-export function coverScene(trip: { id: string; type: string }): CoverScene {
+export function coverScene(trip: {
+  id: string;
+  type: string;
+  name?: string;
+  destination_label?: string;
+}): CoverScene {
   if (trip.type === "ski") return "snow";
+  const kind = inferSceneKind(trip.destination_label ?? "") ?? inferSceneKind(trip.name ?? "");
+  if (kind) return SCENE_FOR_KIND[kind];
   return DEFAULT_SCENES[hash(trip.id) % DEFAULT_SCENES.length];
 }
