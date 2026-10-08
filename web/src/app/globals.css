@@ -638,6 +638,10 @@ html:has(dialog[open]) {
 
 .trip-list-note {
   margin: 0;
+  padding: 20px;
+  border: 2px dashed var(--border);
+  border-radius: var(--radius-card);
+  text-align: center;
 }
 
 .trip-card {

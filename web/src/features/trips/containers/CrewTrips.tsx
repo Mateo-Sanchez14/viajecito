@@ -18,6 +18,7 @@ function CrewTripsBlock({
   level,
   named,
   featuredTripId,
+  showCreate,
 }: {
   crew: Crew;
   heading: ReactNode;
@@ -25,6 +26,8 @@ function CrewTripsBlock({
   /** Name the crew inside the sheet (several crews). */
   named: boolean;
   featuredTripId?: string;
+  /** False when the hero already offers the only way forward (a lone crew with no trips yet). */
+  showCreate: boolean;
 }) {
   const t = useTranslations("trips");
   const [open, setOpen] = useState(false);
@@ -32,10 +35,12 @@ function CrewTripsBlock({
     <section className="crew-section flex w-full min-w-0 flex-col gap-5">
       <div className="home-trips-head">
         {heading}
-        <Button variant="primary" size="sm" className="ui-button-auto" onClick={() => setOpen(true)}>
-          <PlusIcon size={18} aria-hidden="true" />
-          {t("create.open")}
-        </Button>
+        {showCreate && (
+          <Button variant="primary" size="sm" className="ui-button-auto" onClick={() => setOpen(true)}>
+            <PlusIcon size={18} aria-hidden="true" />
+            {t("create.open")}
+          </Button>
+        )}
       </div>
       <TripList crewId={crew.id} level={level} featuredTripId={featuredTripId} />
       <CreateTripSheet
@@ -56,7 +61,7 @@ export function CrewTrips() {
   const t = useTranslations("trips");
   const empty = useTranslations("home.crews")("empty");
   const { crews } = useMe();
-  const { picked } = useHomeTrips();
+  const { picked, results } = useHomeTrips();
   const featuredTripId = picked?.trip.id;
   const title = <h2 className="home-title font-semibold">{t("title")}</h2>;
 
@@ -70,7 +75,14 @@ export function CrewTrips() {
   }
   if (crews.length === 1) {
     return (
-      <CrewTripsBlock crew={crews[0]} heading={title} level={3} named={false} featuredTripId={featuredTripId} />
+      <CrewTripsBlock
+        crew={crews[0]}
+        heading={title}
+        level={3}
+        named={false}
+        featuredTripId={featuredTripId}
+        showCreate={results[0]?.data?.length !== 0}
+      />
     );
   }
   return (
@@ -84,6 +96,7 @@ export function CrewTrips() {
           level={4}
           named
           featuredTripId={featuredTripId}
+          showCreate
         />
       ))}
     </>

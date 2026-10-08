@@ -71,6 +71,22 @@ describe("CrewTrips with one crew", () => {
     expect(within(sheet).queryByText(/^En /)).not.toBeInTheDocument();
   });
 
+  it("leaves the only way forward to the hero while the lone crew has no trips", async () => {
+    serve({ [CREW_ID]: [] });
+    setup();
+
+    expect(await screen.findByText(messages.trips.list.empty)).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: messages.trips.create.open })).not.toBeInTheDocument();
+  });
+
+  it("says so when the only trip is the featured one, instead of an empty list", async () => {
+    serve({ [CREW_ID]: [MENDOZA] });
+    setup();
+
+    expect(await screen.findByText(messages.trips.list.onlyFeatured)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: messages.trips.create.open })).toBeInTheDocument();
+  });
+
   it("keeps no create form inline", async () => {
     serve({ [CREW_ID]: [makeSummary(), MENDOZA] });
     setup();
