@@ -71,7 +71,7 @@ it.each([320, 390, 768, 1280])("does not overflow horizontally at %ipx, even wit
   expect(await page.locator(".section-banner-title").textContent()).toBe(LONG);
 });
 
-it.each([320, 390, 1280])("keeps the photo a slim strip (84 to 120px tall) filling the content width at %ipx", async (width) => {
+it.each([320, 390, 1280])("keeps the photo a slim strip (84 to 140px tall) filling the content width at %ipx", async (width) => {
   await show(banner(), width);
 
   const geometry = await page.evaluate(() => {
@@ -83,7 +83,7 @@ it.each([320, 390, 1280])("keeps the photo a slim strip (84 to 120px tall) filli
   });
 
   expect(geometry.height).toBeGreaterThanOrEqual(84);
-  expect(geometry.height).toBeLessThanOrEqual(120);
+  expect(geometry.height).toBeLessThanOrEqual(140);
   expect(Math.abs(geometry.mediaWidth - geometry.inner)).toBeLessThan(2);
   expect(geometry.imgSame).toBe(true);
 });

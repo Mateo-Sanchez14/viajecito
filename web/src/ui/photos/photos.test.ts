@@ -71,12 +71,6 @@ describe("the committed photo library", () => {
     }
     expect(provenance).toContain("2026-10-08");
   });
-
-  it("never lets a landscape-only focal position leak: only portraits are cropped with one", () => {
-    for (const [id, photo] of Object.entries(manifest.photos)) {
-      if ("position" in photo) expect(photo.orientation, id).toBe("portrait");
-    }
-  });
 });
 
 describe("pickScenePhoto", () => {

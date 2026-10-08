@@ -34,8 +34,8 @@ entries of `photos.json`. The downloaded originals (1920 px JPEG) live only in t
 | city-madero | scene city | Andres Idda Bianchi | https://www.pexels.com/photo/20985696/ | portrait, focal 50% 35% | `city-madero.87776c3dcc.400.webp` (32 KB); `city-madero.87776c3dcc.800.webp` (106 KB) |
 | city-obelisco | scene city | Andres Idda Bianchi | https://www.pexels.com/photo/22690629/ | portrait, focal 50% 35% | `city-obelisco.3add2e099c.400.webp` (23 KB); `city-obelisco.3add2e099c.800.webp` (70 KB) |
 | road | scene road | Stephen Leonardi | https://www.pexels.com/photo/28134859/ | landscape | `road.1678d44a59.640.webp` (22 KB); `road.1678d44a59.1280.webp` (69 KB) |
-| packing | banner logistics | Kindel Media | https://www.pexels.com/photo/8212231/ | landscape | `packing.a415d6acc4.640.webp` (51 KB); `packing.a415d6acc4.1280.webp` (134 KB) |
-| map | banner map | Lara Jameson | https://www.pexels.com/photo/8828439/ | landscape | `map.0c542a0785.640.webp` (26 KB); `map.0c542a0785.1280.webp` (64 KB) |
-| planner | banner planner | Karola G | https://www.pexels.com/photo/5706225/ | landscape | `planner.1301af117b.640.webp` (5 KB); `planner.1301af117b.1280.webp` (13 KB) |
+| packing | banner logistics | Kindel Media | https://www.pexels.com/photo/8212231/ | landscape, banner crop 50% 40% | `packing.a415d6acc4.640.webp` (51 KB); `packing.a415d6acc4.1280.webp` (134 KB) |
+| map | banner map | Lara Jameson | https://www.pexels.com/photo/8828439/ | landscape, banner crop 50% 55% | `map.0c542a0785.640.webp` (26 KB); `map.0c542a0785.1280.webp` (64 KB) |
+| planner | banner planner | Karola G | https://www.pexels.com/photo/5706225/ | landscape, banner crop 30% 88% | `planner.1301af117b.640.webp` (5 KB); `planner.1301af117b.1280.webp` (13 KB) |
 
 Total committed photo payload: 1.43 MB (1503362 bytes) in 26 files (cap: each file <= 150 KB).

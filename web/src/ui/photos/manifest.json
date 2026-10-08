@@ -136,6 +136,7 @@
         "source": "https://www.pexels.com/photo/8828439/"
       },
       "orientation": "landscape",
+      "position": "50% 55%",
       "variants": [
         {
           "height": 426,
@@ -157,6 +158,7 @@
         "source": "https://www.pexels.com/photo/8212231/"
       },
       "orientation": "landscape",
+      "position": "50% 40%",
       "variants": [
         {
           "height": 480,
@@ -178,6 +180,7 @@
         "source": "https://www.pexels.com/photo/5706225/"
       },
       "orientation": "landscape",
+      "position": "30% 88%",
       "variants": [
         {
           "height": 426,

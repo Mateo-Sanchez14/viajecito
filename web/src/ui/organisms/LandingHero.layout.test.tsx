@@ -4,7 +4,9 @@ import { chromium, type Browser, type Page } from "@playwright/test";
 import { afterAll, beforeAll, expect, it, vi } from "vitest";
 import { compiledCss } from "@/test/compiledCss";
 import { textContrast } from "@/test/contrast";
+import { Photo } from "@/ui/atoms/Photo";
 import { TripCoverArt } from "@/ui/illustrations/TripCoverArt";
+import { scenePhotos } from "@/ui/photos/photos";
 import { LandingHero } from "./LandingHero";
 
 // Headless Chromium launches slowly when the whole suite runs in parallel on a busy machine.
@@ -145,3 +147,35 @@ it.each(["light", "dark"] as const)(
     });
   },
 );
+
+it.each([390, 900, 1280])("keeps the hero frame its own size when the photo is a tall portrait, at %ipx", async (width) => {
+  const portrait = scenePhotos("city")[0];
+  const base = await (async () => {
+    await page.setViewportSize({ width, height: 900 });
+    await page.setContent(`<body>${markup()}</body>`);
+    await page.addStyleTag({ content: css });
+    return page.locator(".landing-hero").evaluate((element) => element.getBoundingClientRect().height);
+  })();
+
+  const html = renderToStaticMarkup(
+    <main className="app-canvas mx-auto">
+      <LandingHero
+        media={<Photo photo={portrait} priority className="trip-hero-photo" />}
+        greeting="Hola, Mateo"
+        tagline="Planeá el próximo viaje con tu gente"
+        next={{ status: "trip", label: "Próximo viaje", name: "Bariloche 2027", destination: "Bariloche", dates: "1 jul al 8 jul", href: "/crews/c/trips/t", cta: "Ver el viaje", countdown: { value: "10", unit: "días", caption: "para salir" } }}
+      />
+    </main>,
+  );
+  await page.setContent(`<body>${html}</body>`);
+  await page.addStyleTag({ content: css });
+
+  const geometry = await page.evaluate(() => {
+    const frame = document.querySelector(".landing-hero-media")!.getBoundingClientRect();
+    const img = document.querySelector(".landing-hero-media img")!.getBoundingClientRect();
+    return { frame: frame.height, same: Math.abs(frame.height - img.height) < 1 && Math.abs(frame.width - img.width) < 1, hero: document.querySelector(".landing-hero")!.getBoundingClientRect().height };
+  });
+  expect(geometry.same).toBe(true);
+  expect(Math.abs(geometry.hero - base)).toBeLessThan(2);
+  expect(await overflow()).toBeLessThanOrEqual(width);
+});

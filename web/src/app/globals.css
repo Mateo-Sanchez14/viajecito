@@ -1028,7 +1028,10 @@ html:has(dialog[open]) {
   min-width: 0;
 }
 
+/* Fills the media frame whatever its own ratio: a portrait photo must never make the frame taller. */
 .trip-hero-photo {
+  position: absolute;
+  inset: 0;
   display: block;
   width: 100%;
   height: 100%;
@@ -2722,7 +2725,7 @@ main[tabindex="-1"]:focus { outline: none; }
   flex-direction: column;
 }
 .section-banner-media {
-  height: clamp(84px, 24vw, 120px);
+  height: clamp(84px, 24vw, 140px);
   overflow: hidden;
   border-radius: var(--radius-card) var(--radius-card) 0 0;
   background: var(--art-sky);
