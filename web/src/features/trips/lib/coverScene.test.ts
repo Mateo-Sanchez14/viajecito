@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { coverScene } from "./coverScene";
+import { coverScene, inferCoverScene } from "./coverScene";
 
 const SCENES = ["road", "beach", "snow", "city"];
 
@@ -81,5 +81,17 @@ describe("coverScene keyword inference", () => {
   it("still gives a stable scene to trips that name nothing recognisable", () => {
     expect(scene("Zzz", "Qqq")).toBe(scene("Zzz", "Qqq"));
     expect(["road", "city", "beach"]).toContain(scene("Zzz", "Qqq"));
+  });
+});
+
+describe("inferCoverScene", () => {
+  it("is null when nothing is recognised, so callers can tell a hint from a fallback", () => {
+    expect(inferCoverScene({ type: "generic", name: "Qqq", destination_label: "Zzz" })).toBeNull();
+    expect(inferCoverScene({ type: "generic" })).toBeNull();
+  });
+
+  it("reads ski trips as snow and keywords as their scene", () => {
+    expect(inferCoverScene({ type: "ski" })).toBe("snow");
+    expect(inferCoverScene({ type: "generic", destination_label: "Pinamar" })).toBe("beach");
   });
 });

@@ -19,10 +19,34 @@ function fill(label: string, value: string) {
   fireEvent.change(screen.getByLabelText(label), { target: { value } });
 }
 const submit = () => fireEvent.click(screen.getByRole("button", { name: t.submit }));
+const more = () => screen.getByText(t.more).closest("details") as HTMLDetailsElement;
+
+function captureCreate(trip = makeTrip()) {
+  const captured: { body?: unknown } = {};
+  server.use(
+    http.get("/api/auth/csrf", ({ response }) => response(200).json({ csrf_token: "tok" })),
+    http.post("/api/crews/{crew_id}/trips", async ({ request, response }) => {
+      captured.body = await request.json();
+      return response(201).json(trip);
+    }),
+  );
+  return captured;
+}
 
 describe("CreateTripForm", () => {
   beforeEach(() => push.mockReset());
   afterEach(() => resetCsrfToken());
+
+  it("asks where to first and keeps type and currency behind 'more options'", () => {
+    renderWithProviders(<CreateTripForm crewId={CREW_ID} />);
+
+    const labels = screen.getAllByRole("textbox").map((input) => input.getAttribute("id"));
+    expect(screen.getAllByRole("textbox")[0]).toHaveAccessibleName(t.destination);
+    expect(labels.length).toBeGreaterThanOrEqual(2);
+    expect(more().open).toBe(false);
+    expect(more()).toContainElement(screen.getByLabelText(t.type));
+    expect(more()).toContainElement(screen.getByLabelText(t.currency));
+  });
 
   it("requires a name and does not call the api", () => {
     renderWithProviders(<CreateTripForm crewId={CREW_ID} />);
@@ -45,7 +69,7 @@ describe("CreateTripForm", () => {
     expect(screen.getByText(t.errors.endBeforeStart)).toBeInTheDocument();
   });
 
-  it("rejects a currency that is not a 3-letter code", () => {
+  it("rejects a currency that is not a 3-letter code, and opens 'more options' to show why", () => {
     renderWithProviders(<CreateTripForm crewId={CREW_ID} />);
     fill(t.name, "Bariloche");
     fill(t.currency, "DOLARES");
@@ -53,28 +77,23 @@ describe("CreateTripForm", () => {
     submit();
 
     expect(screen.getByText(t.errors.currencyInvalid)).toBeInTheDocument();
+    expect(more().open).toBe(true);
   });
 
   it("creates the trip and navigates to it", async () => {
-    let body: unknown;
-    server.use(
-      http.get("/api/auth/csrf", ({ response }) => response(200).json({ csrf_token: "tok" })),
-      http.post("/api/crews/{crew_id}/trips", async ({ request, response }) => {
-        body = await request.json();
-        return response(201).json(makeTrip());
-      }),
-    );
+    const captured = captureCreate();
     renderWithProviders(<CreateTripForm crewId={CREW_ID} />);
+    fill(t.destination, "Bariloche");
     fill(t.name, "  Bariloche 2027 ");
     fill(t.startOn, "2027-07-01");
     fill(t.endOn, "2027-07-08");
-    fill(t.destination, "Bariloche");
+    fireEvent.click(screen.getByText(t.more));
     fill(t.currency, "ars");
 
     submit();
 
     await waitFor(() => expect(push).toHaveBeenCalledWith(`/crews/${CREW_ID}/trips/${TRIP_ID}`));
-    expect(body).toEqual({
+    expect(captured.body).toEqual({
       name: "Bariloche 2027",
       type: "generic",
       start_on: "2027-07-01",
@@ -85,22 +104,15 @@ describe("CreateTripForm", () => {
   });
 
   it("submits the selected ski trip type", async () => {
-    let body: unknown;
-    server.use(
-      http.get("/api/auth/csrf", ({ response }) => response(200).json({ csrf_token: "tok" })),
-      http.post("/api/crews/{crew_id}/trips", async ({ request, response }) => {
-        body = await request.json();
-        return response(201).json(makeTrip({ type: "ski" }));
-      }),
-    );
+    const captured = captureCreate(makeTrip({ type: "ski" }));
     renderWithProviders(<CreateTripForm crewId={CREW_ID} />);
     fill(t.name, "Ski trip");
     fill(t.type, "ski");
 
     submit();
 
-    await waitFor(() => expect(push).toHaveBeenCalledWith(`/crews/${CREW_ID}/trips/${TRIP_ID}`));
-    expect(body).toEqual({
+    await waitFor(() => expect(push).toHaveBeenCalled());
+    expect(captured.body).toEqual({
       name: "Ski trip",
       type: "ski",
       start_on: null,
@@ -111,14 +123,7 @@ describe("CreateTripForm", () => {
   });
 
   it("sends explicit nulls, an empty destination and the USD default when left blank", async () => {
-    let body: unknown;
-    server.use(
-      http.get("/api/auth/csrf", ({ response }) => response(200).json({ csrf_token: "tok" })),
-      http.post("/api/crews/{crew_id}/trips", async ({ request, response }) => {
-        body = await request.json();
-        return response(201).json(makeTrip());
-      }),
-    );
+    const captured = captureCreate();
     renderWithProviders(<CreateTripForm crewId={CREW_ID} />);
     fill(t.name, "Solo nombre");
     fill(t.currency, "");
@@ -126,7 +131,7 @@ describe("CreateTripForm", () => {
     submit();
 
     await waitFor(() => expect(push).toHaveBeenCalled());
-    expect(body).toEqual({
+    expect(captured.body).toEqual({
       name: "Solo nombre",
       type: "generic",
       start_on: null,
@@ -156,5 +161,84 @@ describe("CreateTripForm", () => {
 
     expect(await screen.findByText(t.errors.failed)).toBeInTheDocument();
     expect(push).not.toHaveBeenCalled();
+  });
+});
+
+describe("CreateTripForm suggested name", () => {
+  beforeEach(() => push.mockReset());
+  afterEach(() => resetCsrfToken());
+
+  const nameInput = () => screen.getByLabelText(t.name) as HTMLInputElement;
+
+  it("starts empty and follows the destination", () => {
+    renderWithProviders(<CreateTripForm crewId={CREW_ID} />);
+    expect(nameInput().value).toBe("");
+
+    fill(t.destination, "Mendoza, Argentina");
+
+    expect(nameInput().value).toBe("Mendoza");
+  });
+
+  it("adds the month and year of the start date", () => {
+    renderWithProviders(<CreateTripForm crewId={CREW_ID} />);
+
+    fill(t.destination, "Bariloche");
+    fill(t.startOn, "2027-07-01");
+
+    expect(nameInput().value).toMatch(/^Bariloche jul\.? 2027$/);
+  });
+
+  it("stops following once the person edits the name, even if they empty it", () => {
+    renderWithProviders(<CreateTripForm crewId={CREW_ID} />);
+    fill(t.destination, "Bariloche");
+
+    fill(t.name, "Finde con los pibes");
+    fill(t.destination, "Pinamar");
+    expect(nameInput().value).toBe("Finde con los pibes");
+
+    fill(t.name, "");
+    fill(t.destination, "Salta");
+    expect(nameInput().value).toBe("");
+  });
+
+  it("submits the suggested name as is", async () => {
+    const captured = captureCreate();
+    renderWithProviders(<CreateTripForm crewId={CREW_ID} />);
+    fill(t.destination, "Bariloche, Río Negro");
+
+    submit();
+
+    await waitFor(() => expect(push).toHaveBeenCalled());
+    expect(captured.body).toMatchObject({ name: "Bariloche", destination_label: "Bariloche, Río Negro" });
+  });
+});
+
+describe("CreateTripForm picture hint", () => {
+  it("shows nothing for a destination it does not recognise", () => {
+    renderWithProviders(<CreateTripForm crewId={CREW_ID} />);
+
+    fill(t.destination, "Zzz");
+
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
+  });
+
+  it("says which picture a recognised destination gets, with a decorative still", () => {
+    const { container } = renderWithProviders(<CreateTripForm crewId={CREW_ID} />);
+
+    fill(t.destination, "Mar del Plata");
+
+    expect(screen.getByRole("status")).toHaveTextContent(t.sceneHint.replace("{scene}", t.scene.beach));
+    const still = container.querySelector<HTMLImageElement>(".create-trip-scene-image")!;
+    expect(still.getAttribute("src")).toMatch(/^\/ambient\/beach\./);
+    expect(still).toHaveAttribute("alt", "");
+  });
+
+  it("follows the trip type: ski is always snow", () => {
+    renderWithProviders(<CreateTripForm crewId={CREW_ID} />);
+    fill(t.destination, "Mar del Plata");
+
+    fill(t.type, "ski");
+
+    expect(screen.getByRole("status")).toHaveTextContent(t.scene.snow);
   });
 });

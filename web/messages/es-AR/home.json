@@ -11,7 +11,8 @@
       "loading": "Buscando tu próximo viaje",
       "empty": {
         "title": "Todavía no hay un viaje a la vista",
-        "body": "Armá uno acá abajo y empiecen a tirar ideas."
+        "body": "Sumá uno y empiecen a tirar ideas.",
+        "cta": "Armar un viaje"
       }
     }
   }

@@ -1,4 +1,4 @@
-import { fireEvent, screen } from "@testing-library/react";
+import { fireEvent, screen, within } from "@testing-library/react";
 import { createOpenApiHttp } from "openapi-msw";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { MeProvider } from "@/features/auth/MeProvider";
@@ -13,6 +13,7 @@ import { HomeHero } from "./HomeHero";
 import { TripList } from "./TripList";
 
 const clock = vi.hoisted(() => ({ now: null as Date | null }));
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
 vi.mock("@/shared/lib/useClientNow", () => ({ useClientNow: () => clock.now }));
 
 // Ambient footage: no clip by default (an empty manifest); tests opt in per scene.
@@ -308,5 +309,62 @@ describe("HomeHero requests", () => {
     await screen.findByRole("link", { name: hero.open });
 
     expect(calls.sort()).toEqual([CREW_ID, OTHER_CREW].sort());
+  });
+});
+
+describe("HomeHero create call to action", () => {
+  const cta = () => screen.findByRole("button", { name: hero.empty.cta });
+
+  it("opens the new-trip sheet from the empty state, with the destination first", async () => {
+    server.use(trips({}));
+    setup();
+
+    fireEvent.click(await cta());
+
+    const sheet = await screen.findByRole("dialog", { name: messages.trips.create.title });
+    const first = within(sheet).getAllByRole("textbox")[0];
+    expect(first).toHaveAccessibleName(messages.trips.create.destination);
+    // One crew: the sheet does not need to say where the trip lands.
+    expect(within(sheet).queryByText(/^En /)).not.toBeInTheDocument();
+  });
+
+  it("closes the sheet again without creating anything", async () => {
+    server.use(trips({}));
+    setup();
+    fireEvent.click(await cta());
+    const sheet = await screen.findByRole("dialog", { name: messages.trips.create.title });
+
+    fireEvent.click(within(sheet).getByRole("button", { name: messages.trips.create.close }));
+
+    expect(within(sheet).queryByRole("textbox")).not.toBeInTheDocument();
+  });
+
+  it("also offers it when trips exist but none has a date", async () => {
+    server.use(trips({ [CREW_ID]: [makeSummary({ start_on: null, end_on: null, status: "idea" })] }));
+    setup();
+
+    expect(await cta()).toBeInTheDocument();
+  });
+
+  it("names the crew in the sheet when the person belongs to several", async () => {
+    server.use(trips({}));
+    setup(makeMe({ crews: [crewOf(CREW_ID, "Los Pibes"), crewOf(OTHER_CREW, "Familia")] }));
+
+    fireEvent.click(await cta());
+
+    expect(await screen.findByText(messages.trips.create.forCrew.replace("{crew}", "Los Pibes"))).toBeInTheDocument();
+  });
+
+  it("offers no create button when there is a trip to feature, or no crew to create it in", async () => {
+    server.use(trips({ [CREW_ID]: [makeSummary()] }));
+    setup();
+    await screen.findByRole("link", { name: hero.open });
+    expect(screen.queryByRole("button", { name: hero.empty.cta })).not.toBeInTheDocument();
+  });
+
+  it("offers no create button without a crew", () => {
+    setup(makeMe({ crews: [] }));
+
+    expect(screen.queryByRole("button", { name: hero.empty.cta })).not.toBeInTheDocument();
   });
 });

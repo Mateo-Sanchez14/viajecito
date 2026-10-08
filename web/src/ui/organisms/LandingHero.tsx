@@ -8,7 +8,7 @@ import type { BoardingPassCountdown } from "./BoardingPass";
 export type LandingNext =
   | { status: "loading"; label: string }
   | { status: "error"; message: string; retryLabel: string; onRetry: () => void }
-  | { status: "empty"; title: string; body: string }
+  | { status: "empty"; title: string; body: string; /** The one way forward, e.g. "create a trip". */ action?: ReactNode }
   | {
       status: "trip";
       label: string;
@@ -57,6 +57,7 @@ export function LandingHero({ media, greeting, tagline, next }: LandingHeroProps
           <div className="landing-next">
             <h2 className="landing-next-name">{next.title}</h2>
             <p className="landing-next-caption">{next.body}</p>
+            {next.action}
           </div>
         )}
         {next.status === "trip" && (

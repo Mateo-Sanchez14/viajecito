@@ -7,8 +7,7 @@ import { afterAll, beforeAll, expect, it, vi } from "vitest";
 import messages from "../../messages/es-AR";
 import { MeProvider } from "@/features/auth/MeProvider";
 import { UploadDocumentForm } from "@/features/documents/containers/UploadDocumentForm";
-import { CrewTrips } from "@/features/trips/containers/CrewTrips";
-import { CREW_ID, makeMe } from "@/features/trips/fixtures";
+import { makeMe } from "@/features/trips/fixtures";
 import { compiledCss } from "@/test/compiledCss";
 import { StatCard } from "./molecules/StatCard";
 
@@ -29,7 +28,6 @@ function render(children: React.ReactNode, seed: (client: QueryClient) => void =
   );
 }
 
-const home = render(<CrewTrips />, (client) => client.setQueryData(["trips", "crew", CREW_ID], []));
 const upload = render(<UploadDocumentForm tripId="t1" />);
 
 const stat = (index: number) => (
@@ -112,48 +110,6 @@ async function show(html: string, width: number, height = 900) {
   await page.setContent(`<body><main class="app-canvas mx-auto">${html}</main></body>`);
   await page.addStyleTag({ content: css });
 }
-
-it.each([390, 1280])("lays the home 'new trip' disclosure out as one row of icon and label at %ipx", async (width) => {
-  await show(home, width);
-  const row = await page.evaluate(() => {
-    const summary = document.querySelector<HTMLElement>(".create-trip-disclosure summary")!;
-    const icon = summary.querySelector("svg")!.getBoundingClientRect();
-    const range = document.createRange();
-    range.selectNodeContents(summary.lastChild!);
-    const label = range.getBoundingClientRect();
-    const box = summary.getBoundingClientRect();
-    const style = getComputedStyle(summary);
-    return {
-      display: style.display,
-      marker: getComputedStyle(summary, "::marker").content,
-      listStyle: style.listStyleType,
-      height: box.height,
-      iconMiddle: icon.top + icon.height / 2,
-      labelMiddle: label.top + label.height / 2,
-      iconRight: icon.right,
-      labelLeft: label.left,
-      labelLines: Math.round(label.height / parseFloat(style.lineHeight || "20")),
-    };
-  });
-
-  expect(row.display).toBe("flex");
-  expect(row.listStyle).toBe("none");
-  expect(row.height).toBeGreaterThanOrEqual(44);
-  expect(Math.abs(row.iconMiddle - row.labelMiddle)).toBeLessThanOrEqual(2);
-  expect(row.labelLeft).toBeGreaterThanOrEqual(row.iconRight);
-  expect(row.labelLines).toBeLessThanOrEqual(1);
-});
-
-it("opens the disclosure from the keyboard and keeps the 44px target", async () => {
-  await show(home, 390);
-  await page.keyboard.press("Tab");
-  const focused = await page.evaluate(() => document.activeElement?.tagName);
-  expect(focused).toBe("SUMMARY");
-
-  await page.keyboard.press("Enter");
-  expect(await page.evaluate(() => document.querySelector<HTMLDetailsElement>(".create-trip-disclosure")!.open)).toBe(true);
-  expect(await page.locator(".create-trip-disclosure summary").evaluate((element) => element.getBoundingClientRect().height)).toBeGreaterThanOrEqual(44);
-});
 
 it.each([1, 2, 3, 4])("fills the desktop stats row with %i cards, with no empty slot", async (count) => {
   await show(stats(count), 1280);

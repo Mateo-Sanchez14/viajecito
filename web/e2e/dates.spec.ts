@@ -10,7 +10,7 @@ test("open a dates decision, mark days, close it and see the dates on the overvi
   await page.goto("/");
 
   // A fresh trip without dates, so the overview card has something to change.
-  await page.getByText(messages.trips.create.open).first().click();
+  await page.getByRole("button", { name: messages.trips.create.open, exact: true }).click();
   await page.getByLabel(messages.trips.create.name).fill(`Fechas e2e ${Date.now()}`);
   await page.getByRole("button", { name: messages.trips.create.submit }).click();
   await page.waitForURL(/\/crews\/[^/]+\/trips\/[^/]+$/);

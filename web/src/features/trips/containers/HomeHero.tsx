@@ -1,8 +1,11 @@
 "use client";
 
+import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useMe } from "@/features/auth/MeProvider";
 import { useAmbientAllowed } from "@/shared/lib/useAmbientAllowed";
+import { Button } from "@/ui/atoms/Button";
+import { PlusIcon } from "@/ui/icons";
 import { ambientClip } from "@/ui/ambient/scenes";
 import { TripCoverArt } from "@/ui/illustrations/TripCoverArt";
 import { AmbientVideo } from "@/ui/molecules/AmbientVideo";
@@ -14,6 +17,7 @@ import { coverScene } from "../lib/coverScene";
 import { describeCountdown } from "../lib/describeCountdown";
 import { tripPath } from "../lib/paths";
 import { useDateRange } from "../lib/useDateRange";
+import { CreateTripSheet } from "./CreateTripSheet";
 
 /** Container: greets the person and features their next trip, from the trips the list below already fetches. */
 export function HomeHero() {
@@ -23,6 +27,8 @@ export function HomeHero() {
   const { person } = useMe();
   const allowMotion = useAmbientAllowed();
   const { crews, results, failed, picked } = useHomeTrips();
+  const [creating, setCreating] = useState(false);
+  const createCrew = crews[0];
   const featured = picked ?? null;
   const cover = useCoverFallback(featured?.trip ?? null);
 
@@ -45,7 +51,17 @@ export function HomeHero() {
   } else if (picked === undefined) {
     next = { status: "loading", label: t("home.hero.loading") };
   } else if (picked === null) {
-    next = { status: "empty", title: t("home.hero.empty.title"), body: t("home.hero.empty.body") };
+    next = {
+      status: "empty",
+      title: t("home.hero.empty.title"),
+      body: t("home.hero.empty.body"),
+      action: (
+        <Button variant="primary" size="sm" className="ui-button-auto" onClick={() => setCreating(true)}>
+          <PlusIcon size={18} aria-hidden="true" />
+          {t("home.hero.empty.cta")}
+        </Button>
+      ),
+    };
   } else {
     next = {
       status: "trip",
@@ -73,5 +89,17 @@ export function HomeHero() {
       </>
     );
 
-  return <LandingHero media={media} greeting={greeting} tagline={t("app.tagline")} next={next} />;
+  return (
+    <>
+      <LandingHero media={media} greeting={greeting} tagline={t("app.tagline")} next={next} />
+      {createCrew && (
+        <CreateTripSheet
+          crewId={createCrew.id}
+          crewName={crews.length > 1 ? createCrew.name : undefined}
+          open={creating}
+          onClose={() => setCreating(false)}
+        />
+      )}
+    </>
+  );
 }

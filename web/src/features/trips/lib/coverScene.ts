@@ -15,20 +15,23 @@ function hash(value: string): number {
   return result;
 }
 
+type SceneSource = { type: string; name?: string; destination_label?: string };
+
 /**
- * The scene a trip gets when it has no photo: `ski` always gets snow; otherwise the destination (then
- * the name) is read for place keywords (a beach town gets the beach, Bariloche the snow, Mendoza the
- * vineyard road...). Trips that name nothing we recognise keep a stable pick from road / city / beach
- * derived from the trip id, so a trip never changes scene just by being listed again.
+ * The scene the trip's words point to, or `null` when they name nothing we recognise: `ski` always
+ * means snow; otherwise the destination (then the name) is read for place keywords, so a beach town
+ * gets the beach, Bariloche the snow and Mendoza the vineyard road.
  */
-export function coverScene(trip: {
-  id: string;
-  type: string;
-  name?: string;
-  destination_label?: string;
-}): CoverScene {
+export function inferCoverScene(trip: SceneSource): CoverScene | null {
   if (trip.type === "ski") return "snow";
   const kind = inferSceneKind(trip.destination_label ?? "") ?? inferSceneKind(trip.name ?? "");
-  if (kind) return SCENE_FOR_KIND[kind];
-  return DEFAULT_SCENES[hash(trip.id) % DEFAULT_SCENES.length];
+  return kind ? SCENE_FOR_KIND[kind] : null;
+}
+
+/**
+ * The scene a trip gets when it has no photo: what its words point to, else a stable pick from
+ * road / city / beach derived from the trip id, so a trip never changes scene just by being listed again.
+ */
+export function coverScene(trip: SceneSource & { id: string }): CoverScene {
+  return inferCoverScene(trip) ?? DEFAULT_SCENES[hash(trip.id) % DEFAULT_SCENES.length];
 }

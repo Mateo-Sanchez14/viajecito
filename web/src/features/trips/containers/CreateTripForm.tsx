@@ -2,17 +2,23 @@
 
 import { useRouter } from "next/navigation";
 import { useId, useState, type FormEvent } from "react";
-import { useTranslations } from "next-intl";
+import { useFormatter, useTranslations } from "next-intl";
 import { Button } from "@/ui/atoms/Button";
 import { Input } from "@/ui/atoms/Input";
 import { Select } from "@/ui/atoms/Select";
+import { ambientClip } from "@/ui/ambient/scenes";
+import { CaretRightIcon } from "@/ui/icons";
 import type { TripCreate } from "../api/trips";
 import { useCreateTrip } from "../hooks/mutations";
+import { inferCoverScene } from "../lib/coverScene";
 import { tripPath } from "../lib/paths";
+import { suggestTripName } from "../lib/suggestTripName";
 
 // These match the registered api trip types; a trip-types endpoint could replace this list.
 const TRIP_TYPES = ["generic", "ski"] as const;
 const CURRENCY = /^[A-Z]{3}$/;
+/** Product default kept from the api (`DEFAULT_CURRENCY`); changing it is a product decision. */
+const DEFAULT_CURRENCY = "USD";
 
 type Field = "name" | "dates" | "currency";
 type ErrorKey = "nameRequired" | "endBeforeStart" | "currencyInvalid";
@@ -28,24 +34,38 @@ function validate(name: string, start: string, end: string, currency: string): E
   return errors;
 }
 
-/** Container: creates a trip in a crew, then opens it. */
+/**
+ * Container: creates a trip in a crew, then opens it. The destination comes first (it drives the
+ * picture and the suggested name); type and currency hide under "more options" with sensible defaults.
+ */
 export function CreateTripForm({ crewId }: { crewId: string }) {
   const t = useTranslations("trips");
+  const format = useFormatter();
   const router = useRouter();
   const create = useCreateTrip(crewId);
   const id = useId();
-  const [name, setName] = useState("");
-  const [type, setType] = useState<string>("generic");
+  const [destination, setDestination] = useState("");
   const [startOn, setStartOn] = useState("");
   const [endOn, setEndOn] = useState("");
-  const [destination, setDestination] = useState("");
-  const [currency, setCurrency] = useState("USD");
+  // `null` = the person has not touched the name: it follows the suggestion.
+  const [nameOverride, setNameOverride] = useState<string | null>(null);
+  const [type, setType] = useState<string>("generic");
+  const [currency, setCurrency] = useState(DEFAULT_CURRENCY);
+  const [moreOpen, setMoreOpen] = useState(false);
   const [errors, setErrors] = useState<Errors>({});
+
+  const whenLabel = startOn
+    ? format.dateTime(new Date(`${startOn}T00:00:00Z`), { month: "short", year: "numeric", timeZone: "UTC" })
+    : null;
+  const name = nameOverride ?? suggestTripName(destination, whenLabel);
+  const scene = destination.trim() ? inferCoverScene({ type, destination_label: destination }) : null;
+  const still = scene ? ambientClip(scene)?.poster : undefined;
 
   function onSubmit(event: FormEvent) {
     event.preventDefault();
     const found = validate(name, startOn, endOn, currency);
     setErrors(found);
+    if (found.currency) setMoreOpen(true); // the error lives in a closed disclosure otherwise
     if (Object.keys(found).length > 0) return;
 
     const body: TripCreate = {
@@ -54,7 +74,7 @@ export function CreateTripForm({ crewId }: { crewId: string }) {
       start_on: startOn || null,
       end_on: endOn || null,
       destination_label: destination.trim(),
-      currency: currency.trim().toUpperCase() || "USD",
+      currency: currency.trim().toUpperCase() || DEFAULT_CURRENCY,
     };
 
     create.mutate(body, {
@@ -66,31 +86,27 @@ export function CreateTripForm({ crewId }: { crewId: string }) {
   const describedBy = (field: Field) => (errors[field] ? `${id}-${field}-error` : undefined);
 
   return (
-    <form noValidate onSubmit={onSubmit} className="flex flex-col gap-4">
-      <h3 className="text-base font-semibold">{t("create.title")}</h3>
-
+    <form noValidate onSubmit={onSubmit} className="create-trip-form flex flex-col gap-4">
       <div className="flex flex-col gap-1">
-        <label htmlFor={`${id}-name`} className="text-sm font-medium">{t("create.name")}</label>
+        <label htmlFor={`${id}-destination`} className="text-base font-semibold">{t("create.destination")}</label>
         <Input
-          id={`${id}-name`}
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder={t("create.namePlaceholder")}
-          invalid={Boolean(errors.name)}
-          aria-describedby={describedBy("name")}
+          id={`${id}-destination`}
+          value={destination}
+          onChange={(e) => setDestination(e.target.value)}
+          placeholder={t("create.destinationPlaceholder")}
+          autoComplete="off"
         />
-        {err("name") && (
-          <p id={`${id}-name-error`} role="alert" className="text-sm text-warn">{err("name")}</p>
+        {scene && (
+          <div className="create-trip-scene">
+            {still && (
+              // eslint-disable-next-line @next/next/no-img-element -- self-hosted static still, decorative
+              <img src={still} alt="" className="create-trip-scene-image" data-scene={scene} />
+            )}
+            <p role="status" className="create-trip-scene-hint text-sm text-muted">
+              {t("create.sceneHint", { scene: t(`create.scene.${scene}`) })}
+            </p>
+          </div>
         )}
-      </div>
-
-      <div className="flex flex-col gap-1">
-        <label htmlFor={`${id}-type`} className="text-sm font-medium">{t("create.type")}</label>
-        <Select id={`${id}-type`} value={type} onChange={(e) => setType(e.target.value)}>
-          {TRIP_TYPES.map((key) => (
-            <option key={key} value={key}>{t(`types.${key}`)}</option>
-          ))}
-        </Select>
       </div>
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -115,29 +131,54 @@ export function CreateTripForm({ crewId }: { crewId: string }) {
       </div>
 
       <div className="flex flex-col gap-1">
-        <label htmlFor={`${id}-destination`} className="text-sm font-medium">{t("create.destination")}</label>
+        <label htmlFor={`${id}-name`} className="text-sm font-medium">{t("create.name")}</label>
         <Input
-          id={`${id}-destination`}
-          value={destination}
-          onChange={(e) => setDestination(e.target.value)}
-          placeholder={t("create.destinationPlaceholder")}
+          id={`${id}-name`}
+          value={name}
+          onChange={(e) => setNameOverride(e.target.value)}
+          placeholder={t("create.namePlaceholder")}
+          invalid={Boolean(errors.name)}
+          aria-describedby={describedBy("name")}
         />
-      </div>
-
-      <div className="flex flex-col gap-1">
-        <label htmlFor={`${id}-currency`} className="text-sm font-medium">{t("create.currency")}</label>
-        <Input
-          id={`${id}-currency`}
-          value={currency}
-          onChange={(e) => setCurrency(e.target.value)}
-          maxLength={3}
-          invalid={Boolean(errors.currency)}
-          aria-describedby={describedBy("currency")}
-        />
-        {err("currency") && (
-          <p id={`${id}-currency-error`} role="alert" className="text-sm text-warn">{err("currency")}</p>
+        {err("name") && (
+          <p id={`${id}-name-error`} role="alert" className="text-sm text-warn">{err("name")}</p>
         )}
       </div>
+
+      <details
+        className="create-trip-more"
+        open={moreOpen}
+        onToggle={(event) => setMoreOpen(event.currentTarget.open)}
+      >
+        <summary>
+          <CaretRightIcon size={16} aria-hidden="true" />
+          {t("create.more")}
+        </summary>
+        <div className="create-trip-more-body flex flex-col gap-4">
+          <div className="flex flex-col gap-1">
+            <label htmlFor={`${id}-type`} className="text-sm font-medium">{t("create.type")}</label>
+            <Select id={`${id}-type`} value={type} onChange={(e) => setType(e.target.value)}>
+              {TRIP_TYPES.map((key) => (
+                <option key={key} value={key}>{t(`types.${key}`)}</option>
+              ))}
+            </Select>
+          </div>
+          <div className="flex flex-col gap-1">
+            <label htmlFor={`${id}-currency`} className="text-sm font-medium">{t("create.currency")}</label>
+            <Input
+              id={`${id}-currency`}
+              value={currency}
+              onChange={(e) => setCurrency(e.target.value)}
+              maxLength={3}
+              invalid={Boolean(errors.currency)}
+              aria-describedby={describedBy("currency")}
+            />
+            {err("currency") && (
+              <p id={`${id}-currency-error`} role="alert" className="text-sm text-warn">{err("currency")}</p>
+            )}
+          </div>
+        </div>
+      </details>
 
       {create.isError && (
         <p role="alert" className="text-sm text-warn">{t("create.errors.failed")}</p>

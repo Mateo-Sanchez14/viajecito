@@ -585,14 +585,25 @@ html:has(dialog[open]) {
 }
 
 .home-title {
-  font-size: clamp(1.75rem, 4vw, 2.5rem);
-  line-height: 1.1;
-  letter-spacing: -0.06em;
-  margin-bottom: 4px;
+  margin: 0;
+  font-size: var(--type-xl);
+  font-weight: 600;
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-heading);
+}
+
+/* Title (or crew name) on the left, the "new trip" button on the right. */
+.home-trips-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
 }
 
 .crew-title {
   display: flex;
+  min-width: 0;
+  flex: 1;
   align-items: center;
   gap: 12px;
 }
@@ -878,33 +889,47 @@ html:has(dialog[open]) {
   border-radius: var(--radius-card);
 }
 
-.create-trip-disclosure {
-  border-radius: var(--radius-card);
-  background: var(--surface);
+/* New-trip sheet: the destination leads and shows which picture the trip will get. */
+.create-trip-scene {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+.create-trip-scene-image {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 6;
+  border-radius: var(--radius-control);
+  object-fit: cover;
+  background: var(--art-sky);
+}
+.create-trip-scene-hint {
+  margin: 0;
 }
 
-.create-trip-disclosure summary {
+.create-trip-more > summary {
   display: flex;
+  min-height: 44px;
+  cursor: pointer;
   align-items: center;
   gap: 8px;
-  min-height: 44px;
-  padding-block: 10px;
-  padding-left: 4px;
+  color: var(--muted);
+  font-size: var(--type-sm);
+  font-weight: 500;
   list-style: none;
 }
-
-/* The native marker is replaced by the Plus icon in the markup. */
-.create-trip-disclosure summary::-webkit-details-marker {
+.create-trip-more > summary::-webkit-details-marker {
   display: none;
 }
-
-.create-trip-disclosure[open] summary {
-  border-bottom: 1px solid var(--border);
-  padding-bottom: 16px;
+.create-trip-more > summary > svg {
+  transition: transform var(--dur-fast) var(--ease-out);
 }
-
-.home-health {
-  margin-top: 16px;
+.create-trip-more[open] > summary > svg {
+  transform: rotate(90deg);
+}
+.create-trip-more-body {
+  padding-top: 4px;
 }
 
 .trip-overview {
@@ -2468,6 +2493,8 @@ a.app-wordmark:hover::before { transform: scale(1.18); }
 a.app-wordmark:active { transform: scale(0.98); }
 /* Phones need the room for help, bell and logout; the home hero greets instead. */
 @media (max-width: 559px) { .app-greeting { display: none; } }
+/* On the home the hero already greets by name: the header does not say it twice. */
+body:has(.landing-hero) .app-greeting { display: none; }
 @media (max-width: 359px) {
   .app-wordmark { justify-content: center; }
   .app-wordmark-text { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
