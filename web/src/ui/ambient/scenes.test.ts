@@ -89,13 +89,17 @@ describe("committed manifest", () => {
 });
 
 describe("AmbientVideo usage", () => {
-  it("is imported only by the trip hero and the home hero", () => {
+  it("is imported only by the trip hero, the home hero and the login backdrop", () => {
     const importers = sourceFiles(SRC)
       .filter((file) => !/\.test\.tsx?$/.test(file) && !file.endsWith("AmbientVideo.tsx"))
       .filter((file) => /from\s+["']@\/ui\/molecules\/AmbientVideo["']/.test(readFileSync(file, "utf8")))
       .map((file) => relative(SRC, file))
       .sort();
 
-    expect(importers).toEqual(["features/trips/containers/HomeHero.tsx", "features/trips/containers/TripHero.tsx"]);
+    expect(importers).toEqual([
+      "features/auth/containers/LoginBackdropContainer.tsx",
+      "features/trips/containers/HomeHero.tsx",
+      "features/trips/containers/TripHero.tsx",
+    ]);
   });
 });

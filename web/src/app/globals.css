@@ -2404,6 +2404,105 @@ a.app-wordmark:active { transform: scale(0.98); }
 .trip-hero-media:has(> .ambient-media[data-playing]) > .trip-cover-art-live *,
 .landing-hero-media:has(> .ambient-media[data-playing]) > .trip-cover-art-live * { animation-play-state: paused; }
 
+/* S6 - Premium atmosphere: a calm, slowly breathing canvas behind the app and a cinematic entry on login.
+   Everything here is decorative (aria-hidden, no pointer events), sits below the content layer and moves
+   with transform/opacity only. Cards keep their opaque surfaces, so no text ever depends on it. */
+:root {
+  --grain-ink: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .9 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  --grain-paper: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .9 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  --topo-lines: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 800' fill='none' stroke='black' stroke-width='1.2' stroke-linecap='round'%3E%3Cpath d='M951 224Q957 230 956 237Q954 245 946 249Q937 253 929 255Q921 257 914 259Q907 261 900 260Q893 260 886 258Q880 256 872 254Q865 252 860 247Q855 242 855 236Q854 230 854 224Q854 218 856 211Q858 204 866 200Q874 196 883 198Q893 199 900 201Q906 203 913 205Q919 206 924 209Q930 211 937 215Q944 218 951 224Z'/%3E%3Cpath d='M1003 218Q1015 230 1012 244Q1008 259 990 267Q972 275 957 279Q941 283 928 287Q915 292 900 291Q886 291 872 287Q859 283 845 278Q830 273 820 264Q810 254 809 242Q808 230 807 218Q807 205 811 191Q815 177 831 170Q848 163 867 166Q886 170 899 173Q913 177 925 180Q937 182 949 187Q961 192 976 199Q990 206 1003 218Z'/%3E%3Cpath d='M1056 212Q1074 230 1067 252Q1060 273 1033 284Q1006 296 984 302Q961 308 942 315Q922 322 900 322Q878 321 858 315Q838 309 817 302Q795 295 780 281Q765 266 763 248Q761 230 760 211Q760 192 766 171Q772 150 797 141Q822 131 851 136Q879 141 899 147Q919 152 938 155Q957 158 975 165Q994 172 1016 182Q1037 193 1056 212Z'/%3E%3Cpath d='M1110 205Q1133 230 1122 258Q1111 287 1075 301Q1039 316 1010 325Q981 334 955 344Q929 354 900 353Q871 352 844 344Q817 336 789 326Q760 317 740 298Q720 278 717 254Q713 230 712 205Q711 179 720 151Q729 124 763 112Q798 99 835 107Q872 114 899 121Q925 127 950 130Q976 133 1002 142Q1028 151 1057 165Q1086 180 1110 205Z'/%3E%3Cpath d='M1165 198Q1192 230 1176 265Q1160 300 1115 318Q1070 336 1035 347Q1001 359 969 372Q937 385 900 384Q863 383 830 373Q796 363 761 351Q725 339 700 315Q675 291 670 260Q665 230 663 198Q661 166 674 132Q686 97 730 83Q774 69 820 79Q866 89 898 95Q931 102 963 104Q996 107 1030 118Q1064 128 1100 147Q1137 166 1165 198Z'/%3E%3Cpath d='M1220 191Q1251 230 1229 271Q1208 313 1154 334Q1101 354 1060 369Q1020 384 982 400Q945 417 900 416Q856 415 815 403Q775 390 732 375Q690 360 659 332Q629 303 623 266Q616 230 614 191Q611 152 627 112Q644 71 698 56Q752 40 806 52Q861 64 898 71Q936 77 977 79Q1017 80 1059 93Q1101 106 1145 129Q1189 152 1220 191Z'/%3E%3Cpath d='M1276 184Q1309 230 1282 278Q1254 325 1192 349Q1130 373 1085 391Q1040 409 996 429Q952 449 900 448Q848 446 801 432Q754 417 704 400Q654 382 619 349Q583 315 575 273Q566 230 563 184Q560 139 581 92Q602 45 666 29Q730 13 793 27Q855 41 899 47Q942 53 990 53Q1039 53 1089 67Q1139 82 1191 110Q1242 138 1276 184Z'/%3E%3Cpath d='M1331 177Q1367 230 1332 284Q1298 337 1228 364Q1159 390 1109 412Q1060 434 1010 458Q960 482 900 480Q841 478 787 461Q733 444 676 424Q618 405 577 366Q536 328 526 279Q515 230 512 177Q509 125 535 72Q561 20 635 3Q710 -14 780 3Q850 19 899 23Q948 27 1005 26Q1061 24 1120 40Q1179 57 1237 90Q1296 123 1331 177Z'/%3E%3Cpath d='M1387 169Q1423 230 1382 289Q1341 349 1264 378Q1186 408 1133 434Q1079 460 1024 488Q968 515 901 513Q833 510 772 491Q711 471 647 449Q583 427 536 384Q489 341 477 285Q464 230 460 170Q457 111 489 53Q521 -5 605 -22Q690 -39 767 -20Q845 -2 900 0Q954 2 1020 -2Q1085 -6 1152 13Q1220 31 1285 70Q1350 109 1387 169Z'/%3E%3Cpath d='M310 634Q311 640 303 645Q296 650 289 652Q281 655 277 659Q273 663 266 666Q259 669 250 668Q242 667 234 665Q226 663 217 662Q207 661 200 656Q193 652 191 646Q190 640 191 634Q193 628 201 624Q209 620 220 620Q231 621 238 621Q244 622 251 618Q258 614 269 612Q279 611 289 614Q298 617 304 622Q310 627 310 634Z'/%3E%3Cpath d='M368 628Q369 640 354 649Q340 659 326 665Q313 671 305 679Q298 687 283 693Q268 699 251 696Q234 693 218 690Q203 687 183 685Q163 682 148 673Q134 664 131 652Q129 640 133 628Q138 616 154 609Q170 601 192 602Q213 603 226 603Q239 603 252 594Q266 586 288 583Q311 580 329 586Q347 593 357 604Q368 615 368 628Z'/%3E%3Cpath d='M425 622Q424 640 403 654Q382 668 364 677Q345 686 334 699Q322 712 300 720Q277 728 251 723Q226 719 202 715Q178 712 148 708Q117 704 95 691Q74 677 71 659Q69 640 77 623Q85 605 109 595Q134 584 165 585Q196 586 214 584Q232 583 254 569Q276 556 309 552Q343 547 369 558Q395 570 410 586Q425 603 425 622Z'/%3E%3Cpath d='M479 616Q477 640 450 658Q423 676 400 689Q378 702 362 719Q347 737 317 747Q286 757 252 751Q218 745 186 741Q154 736 111 732Q69 727 41 709Q13 690 11 665Q9 640 21 617Q34 595 67 581Q101 568 140 569Q180 570 203 566Q226 561 256 543Q286 524 331 519Q376 514 410 530Q444 546 462 569Q480 592 479 616Z'/%3E%3Cpath d='M531 610Q528 640 496 662Q464 685 437 701Q411 718 392 740Q373 763 334 774Q295 786 252 778Q210 770 169 766Q128 762 74 757Q20 751 -14 727Q-49 703 -50 671Q-50 640 -32 612Q-14 584 28 569Q70 553 117 554Q165 555 192 546Q219 538 258 514Q296 489 353 484Q411 479 451 501Q491 523 512 552Q533 581 531 610Z'/%3E%3Cpath d='M581 605Q577 640 541 667Q504 693 474 714Q445 734 422 761Q399 789 351 802Q303 814 253 805Q202 796 152 792Q101 788 35 782Q-31 776 -71 746Q-111 716 -109 678Q-107 640 -83 608Q-59 575 -9 557Q41 539 95 539Q149 539 180 526Q211 513 259 483Q307 452 377 448Q446 444 492 472Q538 501 561 535Q584 570 581 605Z'/%3E%3Cpath d='M629 600Q625 640 584 671Q544 702 512 726Q479 751 452 783Q425 815 368 829Q312 843 253 832Q194 822 134 819Q74 816 -5 809Q-83 801 -128 765Q-174 729 -168 684Q-161 640 -131 603Q-101 566 -44 546Q14 526 74 525Q133 523 168 505Q203 486 261 450Q319 413 400 411Q481 409 532 444Q583 479 608 519Q633 560 629 600Z'/%3E%3Cpath d='M615 417Q617 420 612 423Q608 425 604 428Q600 430 594 433Q589 435 580 436Q570 438 560 438Q549 439 535 440Q521 440 511 438Q501 435 504 430Q507 426 513 423Q519 420 519 418Q520 416 521 413Q522 410 526 408Q530 405 539 401Q547 398 560 397Q574 396 583 400Q593 403 597 406Q601 410 607 412Q613 414 615 417Z'/%3E%3Cpath d='M671 414Q674 420 664 425Q655 430 647 435Q639 440 629 445Q619 451 600 453Q581 456 559 458Q537 460 509 460Q481 461 462 455Q444 449 452 440Q459 431 470 426Q480 420 479 416Q478 411 480 406Q481 400 490 394Q498 388 516 381Q533 375 560 374Q587 373 605 380Q623 387 632 393Q641 400 654 404Q667 408 671 414Z'/%3E%3Cpath d='M727 411Q731 420 716 428Q701 435 690 443Q679 450 664 458Q649 466 621 471Q592 475 558 478Q524 481 482 481Q441 482 416 472Q391 463 404 449Q417 436 430 428Q444 420 439 413Q434 406 436 398Q437 389 451 380Q465 370 492 361Q520 352 560 351Q600 351 627 362Q653 372 667 381Q681 390 701 396Q722 402 727 411Z'/%3E%3Cpath d='M783 408Q788 420 767 430Q746 440 733 450Q719 460 700 471Q680 482 642 489Q604 495 558 499Q511 503 456 503Q401 503 371 489Q341 475 360 457Q379 440 394 430Q409 420 398 411Q387 401 388 389Q389 377 409 364Q429 352 468 340Q506 328 560 329Q613 330 647 344Q680 358 700 369Q720 380 748 388Q777 396 783 408Z'/%3E%3Cpath d='M30 760C250 700 330 520 560 520S860 640 1020 420 1120 120 1170 60' stroke-dasharray='3 11' stroke-width='2'/%3E%3Ccircle cx='1170' cy='60' r='9' stroke-width='2'/%3E%3Ccircle cx='30' cy='760' r='5' fill='black' stroke='none'/%3E%3C/svg%3E");
+  --atmosphere-a: color-mix(in srgb, var(--art-ground) 34%, transparent);
+  --atmosphere-b: color-mix(in srgb, var(--art-sun) 20%, transparent);
+  --atmosphere-c: color-mix(in srgb, var(--art-water) 26%, transparent);
+  --atmosphere-line: var(--ok);
+  --atmosphere-line-opacity: 0.06;
+  --atmosphere-grain: var(--grain-ink);
+  --atmosphere-grain-opacity: 0.07;
+  --login-base: #0c1f19;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --atmosphere-a: color-mix(in srgb, var(--art-ground) 55%, transparent);
+    --atmosphere-b: color-mix(in srgb, var(--art-sun) 11%, transparent);
+    --atmosphere-c: color-mix(in srgb, var(--art-water) 40%, transparent);
+    --atmosphere-line-opacity: 0.05;
+    --atmosphere-grain: var(--grain-paper);
+    --atmosphere-grain-opacity: 0.05;
+  }
+}
+
+/* The fixed canvas layer paints above the page background and below every in-flow element. */
+body:has(.app-atmosphere),
+.public-canvas { isolation: isolate; }
+.public-canvas { position: relative; }
+
+.app-atmosphere {
+  position: fixed; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; contain: layout paint style;
+}
+.app-atmosphere-blob {
+  position: absolute; width: 70vmax; height: 70vmax; border-radius: 50%; will-change: transform;
+  animation: atmosphere-drift 78s var(--ease-in-out) infinite alternate;
+}
+.app-atmosphere-blob[data-blob="a"] {
+  top: -30vmax; left: -24vmax; background: radial-gradient(closest-side, var(--atmosphere-a), transparent);
+}
+.app-atmosphere-blob[data-blob="b"] {
+  top: 4vh; right: -34vmax; background: radial-gradient(closest-side, var(--atmosphere-b), transparent);
+  animation-duration: 64s; animation-direction: alternate-reverse;
+}
+.app-atmosphere-blob[data-blob="c"] {
+  bottom: -38vmax; left: 12vw; background: radial-gradient(closest-side, var(--atmosphere-c), transparent);
+  animation-duration: 90s;
+}
+@keyframes atmosphere-drift {
+  from { transform: translate3d(0, 0, 0) scale(1); opacity: 0.85; }
+  to { transform: translate3d(9vmax, 6vmax, 0) scale(1.12); opacity: 1; }
+}
+/* A faint topographic map with a dashed way to a ringed destination, drawn in the ink color via a mask. */
+.app-atmosphere::before {
+  content: ""; position: absolute; inset: 0; background: var(--atmosphere-line); opacity: var(--atmosphere-line-opacity);
+  -webkit-mask: var(--topo-lines) no-repeat right -8% top -6% / min(1500px, 165vw) auto;
+  mask: var(--topo-lines) no-repeat right -8% top -6% / min(1500px, 165vw) auto;
+}
+/* Film grain: SVG turbulence as a data URI (no asset), light ink on paper and the reverse in dark. */
+.app-atmosphere::after {
+  content: ""; position: absolute; inset: 0; background-image: var(--atmosphere-grain); background-size: 180px 180px;
+  opacity: var(--atmosphere-grain-opacity);
+}
+
+/* Login: footage behind a dark-to-transparent scrim and grain, the card floating above it. */
+.login-backdrop {
+  position: fixed; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; background: var(--login-base);
+}
+.login-backdrop-scrim {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(120% 90% at 50% 46%, rgb(10 22 18 / 0.16), rgb(10 22 18 / 0.58)),
+    linear-gradient(180deg, rgb(10 22 18 / 0.7), transparent 38%, rgb(10 22 18 / 0.5));
+}
+.login-backdrop-grain {
+  position: absolute; inset: 0; background-image: var(--grain-paper); background-size: 180px 180px; opacity: 0.1;
+}
+.login-brand {
+  position: absolute; top: calc(24px + env(safe-area-inset-top, 0px)); left: max(24px, env(safe-area-inset-left, 0px));
+  display: inline-flex; align-items: center; gap: 10px; color: #fffdf8; font-size: var(--type-xl); font-weight: 600;
+  letter-spacing: -0.06em; text-shadow: 0 1px 14px rgb(0 0 0 / 0.45);
+}
+.login-brand::before {
+  content: ""; width: 12px; height: 12px; border: 3px solid var(--art-sun); border-radius: 50%; box-shadow: 0 0 0 5px rgb(10 22 18 / 0.35);
+}
+/* The brand lives in the top margin; a short landscape screen has none to spare. */
+@media (max-height: 600px) { .login-brand { display: none; } }
+
+.public-canvas:has(.login-backdrop) .login-card {
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  -webkit-backdrop-filter: blur(18px) saturate(1.15); backdrop-filter: blur(18px) saturate(1.15);
+  box-shadow: var(--elev-3), inset 0 1px 0 color-mix(in srgb, var(--surface) 70%, transparent);
+  animation: login-rise var(--dur-slow) var(--ease-out) 80ms both;
+}
+@keyframes login-rise { from { opacity: 0; transform: translateY(14px); } }
+
 /* Stays last: it must beat every transition and animation declared above. */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
