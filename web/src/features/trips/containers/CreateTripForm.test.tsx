@@ -222,15 +222,30 @@ describe("CreateTripForm picture hint", () => {
     expect(screen.queryByRole("status")).not.toBeInTheDocument();
   });
 
-  it("says which picture a recognised destination gets, with a decorative still", () => {
+  it("says which picture a recognised destination gets, with its photo and a described alt", () => {
     const { container } = renderWithProviders(<CreateTripForm crewId={CREW_ID} />);
 
     fill(t.destination, "Mar del Plata");
 
     expect(screen.getByRole("status")).toHaveTextContent(t.sceneHint.replace("{scene}", t.scene.beach));
-    const still = container.querySelector<HTMLImageElement>(".create-trip-scene-image")!;
-    expect(still.getAttribute("src")).toMatch(/^\/ambient\/beach\./);
-    expect(still).toHaveAttribute("alt", "");
+    const photo = container.querySelector<HTMLImageElement>(".create-trip-scene-image")!;
+    expect(photo.getAttribute("src")).toMatch(/^\/photos\/beach-(aerial|foam)\.[0-9a-f]{10}\.640\.webp$/);
+    expect(photo).toHaveAttribute("alt", messages.photos.alt[photo.dataset.photo as keyof typeof messages.photos.alt]);
+    expect(photo).toHaveAttribute("loading", "lazy");
+  });
+
+  it.each([
+    ["Lago Puelo", "lake", "lake-patagonia"],
+    ["Mendoza", "vineyard", "vineyard"],
+    ["Salta", "desert", "desert"],
+    ["Buenos Aires", "city", "city-"],
+  ] as const)("shows %s with its own %s photo, not a borrowed scene", (destination, kind, photoId) => {
+    const { container } = renderWithProviders(<CreateTripForm crewId={CREW_ID} />);
+
+    fill(t.destination, destination);
+
+    expect(screen.getByRole("status")).toHaveTextContent(t.scene[kind]);
+    expect(container.querySelector<HTMLImageElement>(".create-trip-scene-image")!.dataset.photo).toContain(photoId);
   });
 
   it("follows the trip type: ski is always snow", () => {

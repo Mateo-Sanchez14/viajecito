@@ -20,6 +20,7 @@ import itinerary from "./itinerary.json";
 import today from "./today.json";
 import capture from "./capture.json";
 import onboarding from "./onboarding.json";
+import photos from "./photos.json";
 
 export default mergeMessages(
   logistics,
@@ -41,4 +42,5 @@ export default mergeMessages(
   today,
   capture,
   onboarding,
+  photos,
 );

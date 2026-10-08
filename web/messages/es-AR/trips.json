@@ -44,7 +44,10 @@
       "sceneHint": "Va a tener una imagen de {scene}. Después podés subirle tu propia foto.",
       "scene": {
         "snow": "montaña y nieve",
+        "lake": "lago",
         "beach": "playa",
+        "vineyard": "viñedos",
+        "desert": "desierto",
         "city": "ciudad",
         "road": "ruta"
       },

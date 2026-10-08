@@ -4,7 +4,6 @@ import { MeProvider } from "@/features/auth/MeProvider";
 import { renderWithProviders } from "@/test/render";
 import messages from "../../../../messages/es-AR";
 import { CREW_ID, TRIP_ID, formatDay, makeMe, makeTrip } from "../fixtures";
-import { coverScene } from "../lib/coverScene";
 import { TripProvider } from "../TripProvider";
 import { TripHero } from "./TripHero";
 
@@ -139,13 +138,25 @@ describe("TripHero facts and media", () => {
     expect(screen.getByText(messages.trips.overview.noDestination)).toBeInTheDocument();
   });
 
-  it("uses the snow illustration for ski trips and a decorative svg otherwise", () => {
-    const { container, unmount } = setup(makeTrip({ type: "ski" }));
-    expect(container.querySelector("svg[data-scene='snow']")).toHaveAttribute("aria-hidden", "true");
+  it("uses the snow photo for ski trips and the photo of the destination otherwise, never an illustration first", () => {
+    const { container, unmount } = setup(makeTrip({ type: "ski", destination_label: "Mar del Plata" }));
+    expect(container.querySelector(".trip-hero-media img")).toHaveAttribute("data-photo", expect.stringMatching(/^snow-/));
+    expect(container.querySelector(".trip-hero-media svg.trip-cover-art")).toBeNull();
     unmount();
 
-    const generic = setup(makeTrip({ type: "generic" }));
-    expect(generic.container.querySelector("svg.trip-cover-art")).toHaveAttribute("aria-hidden", "true");
+    const generic = setup(makeTrip({ type: "generic", destination_label: "Mendoza" }));
+    expect(generic.container.querySelector(".trip-hero-media img")).toHaveAttribute("data-photo", "vineyard");
+  });
+
+  it("loads the scene photo eagerly and at high priority, as the first thing on screen, with an empty alt", () => {
+    const { container } = setup(makeTrip({ destination_label: "Lago Puelo" }));
+
+    const photo = container.querySelector(".trip-hero-media img.trip-hero-photo")!;
+    expect(photo).toHaveAttribute("data-photo", "lake-patagonia");
+    expect(photo).toHaveAttribute("loading", "eager");
+    expect(photo).toHaveAttribute("fetchpriority", "high");
+    expect(photo).toHaveAttribute("alt", "");
+    expect(photo).toHaveAttribute("srcset");
   });
 });
 
@@ -170,26 +181,35 @@ describe("TripHero cover", () => {
     expect(screen.getByRole("img", { name: /Foto de/ }).getAttribute("src")).not.toBe(before);
   });
 
-  it("gives the hero illustration the live class", () => {
+  it("gives the hero illustration the live class when the scene photo cannot load", () => {
     const { container } = setup(makeTrip({ has_cover: false }));
+
+    fireEvent.error(container.querySelector(".trip-hero-media img")!);
 
     expect(container.querySelector(".trip-hero-media > svg.trip-cover-art")).toHaveClass("trip-cover-art-live");
   });
 
-  it("makes no cover request and shows the illustration when the trip has no cover", () => {
+  it("makes no cover request when the trip has no cover: the scene photo shows instead", () => {
     const { container } = setup(makeTrip({ has_cover: false }));
 
-    expect(container.querySelector("img")).toBeNull();
-    expect(container.querySelector("svg.trip-cover-art")).toBeInTheDocument();
+    const sources = [...container.querySelectorAll("img")].map((img) => img.getAttribute("src"));
+    expect(sources).toHaveLength(1);
+    expect(sources[0]).toMatch(/^\/photos\//);
+    expect(sources[0]).not.toContain("/cover");
+    expect(container.querySelector("svg.trip-cover-art")).toBeNull();
   });
 
-  it("falls back to the illustration, in the same media frame, when the photo cannot load (offline)", () => {
+  it("falls back from the cover to the scene photo and then to the illustration, in the same media frame (offline)", () => {
     const { container } = setup(makeTrip({ has_cover: true, cover_version: 1 }));
     const frame = container.querySelector(".trip-hero-media")!;
 
     fireEvent.error(screen.getByRole("img", { name: /Foto de/ }));
-
     expect(screen.queryByRole("img", { name: /Foto de/ })).not.toBeInTheDocument();
+    const photo = frame.querySelector("img")!;
+    expect(photo.getAttribute("src")).toMatch(/^\/photos\//);
+
+    fireEvent.error(photo);
+    expect(frame.querySelector("img")).toBeNull();
     expect(frame.querySelector("svg.trip-cover-art")).toBeInTheDocument();
     expect(container.querySelector(".trip-hero-media")).toBe(frame);
   });
@@ -209,10 +229,8 @@ describe("TripHero cover", () => {
 });
 
 describe("TripHero ambient layer", () => {
-  // makeTrip() is a generic trip: pick the scene it maps to so the clip applies.
-  const sceneOf = (trip: ReturnType<typeof makeTrip>) => coverScene(trip);
-  const withClip = (trip: ReturnType<typeof makeTrip>) => {
-    const scene = sceneOf(trip);
+  // makeTrip() is "Bariloche 2027": snow, one of the kinds whose generic footage fits.
+  const withClip = (scene = "snow") => {
     ambient.clips = {
       [scene]: { mp4: `/ambient/${scene}.0123456789.mp4`, poster: `/ambient/${scene}.0123456789.webp`, hash: "0123456789" },
     };
@@ -224,71 +242,78 @@ describe("TripHero ambient layer", () => {
     vi.spyOn(HTMLMediaElement.prototype, "pause").mockImplementation(() => {});
   });
 
-  it("shows only the illustration when the scene has no clip", () => {
+  it("shows only the photo when the scene has no clip", () => {
     const { container } = setup();
 
     expect(container.querySelector(".ambient-media")).toBeNull();
     expect(container.querySelector("video")).toBeNull();
-    expect(container.querySelector("svg.trip-cover-art")).toBeInTheDocument();
+    expect(container.querySelector(".trip-hero-media img.trip-hero-photo")).toBeInTheDocument();
   });
 
-  it("shows the poster, and no video, over the illustration when motion is not allowed", () => {
-    const trip = makeTrip();
-    const scene = withClip(trip);
+  it("shows the photo, and no video or second still, when motion is not allowed", () => {
+    withClip();
     ambient.allowed = false;
-    const { container } = setup(trip);
+    const { container } = setup();
 
-    const poster = container.querySelector(".ambient-media img.ambient-poster")!;
-    expect(poster).toHaveAttribute("alt", "");
-    expect(poster).toHaveAttribute("src", `/ambient/${scene}.0123456789.webp`);
+    expect(container.querySelector(".trip-hero-media img.trip-hero-photo")).toBeInTheDocument();
+    expect(container.querySelector("img.ambient-poster")).toBeNull();
     expect(container.querySelector("video")).toBeNull();
-    expect(container.querySelector("svg.trip-cover-art")).toBeInTheDocument();
   });
 
-  it("plays the clip over the illustration when motion is allowed", () => {
-    const trip = makeTrip();
-    const scene = withClip(trip);
+  it("plays the clip over the photo when motion is allowed", () => {
+    const scene = withClip();
     ambient.allowed = true;
-    const { container } = setup(trip);
+    const { container } = setup();
 
     const video = container.querySelector("video.ambient-video")!;
     expect(video).toHaveAttribute("src", `/ambient/${scene}.0123456789.mp4`);
     expect(video.closest(".ambient-media")).toHaveAttribute("aria-hidden", "true");
+    expect(container.querySelector(".trip-hero-media img.trip-hero-photo")).toBeInTheDocument();
   });
 
-  it("layers illustration, then footage, then the cover control as direct children of the media frame", () => {
-    const trip = makeTrip();
-    withClip(trip);
+  it("never plays the Sydney city loop: a city trip shows its photo even when a city clip exists", () => {
+    withClip("city");
     ambient.allowed = true;
-    const { container } = setup(trip);
+    const { container } = setup(makeTrip({ destination_label: "Buenos Aires", name: "Finde" }));
+
+    expect(container.querySelector(".trip-hero-media img")).toHaveAttribute("data-photo", expect.stringMatching(/^city-/));
+    expect(container.querySelector("video")).toBeNull();
+    expect(container.querySelector(".ambient-media")).toBeNull();
+  });
+
+  it("layers photo, then footage, then the cover control as direct children of the media frame", () => {
+    withClip();
+    ambient.allowed = true;
+    const { container } = setup();
 
     const frame = container.querySelector(".trip-hero-media")!;
-    const children = [...frame.children].map((child) => (child.tagName === "svg" ? "svg" : child.className.trim()));
-    expect(children).toEqual(["svg", "ambient-media", "trip-hero-media-action"]);
+    const children = [...frame.children].map((child) => (child.tagName === "IMG" ? "img" : child.className.trim()));
+    expect(children).toEqual(["img", "ambient-media", "trip-hero-media-action"]);
   });
 
-  it("lets the cover photo replace both the footage and the illustration", () => {
+  it("lets the cover photo replace the scene photo and the footage", () => {
     const trip = makeTrip({ has_cover: true, cover_version: 2 });
-    withClip(trip);
+    withClip();
     ambient.allowed = true;
     const { container } = setup(trip);
 
-    expect(container.querySelector("img.trip-hero-photo")).toBeInTheDocument();
+    const photos = container.querySelectorAll("img.trip-hero-photo");
+    expect(photos).toHaveLength(1);
+    expect(photos[0]).toHaveAttribute("src", `/api/trips/${TRIP_ID}/cover?v=2`);
     expect(container.querySelector(".ambient-media")).toBeNull();
     expect(container.querySelector("video")).toBeNull();
-    expect(container.querySelector("svg.trip-cover-art")).toBeNull();
   });
 
-  it("falls through to the footage when the cover photo cannot load", () => {
+  it("falls through to the scene photo and footage when the cover photo cannot load", () => {
     const trip = makeTrip({ has_cover: true, cover_version: 2 });
-    withClip(trip);
+    withClip();
     ambient.allowed = true;
     const { container } = setup(trip);
 
     fireEvent.error(screen.getByRole("img", { name: /Foto de/ }));
 
     expect(container.querySelector("video.ambient-video")).toBeInTheDocument();
-    expect(container.querySelector("img.trip-hero-photo")).toBeNull();
+    expect(container.querySelector("img.trip-hero-photo")!.getAttribute("src")).toMatch(/^\/photos\//);
   });
 
   it("keeps the hero box when footage is added or removed", () => {
@@ -298,7 +323,7 @@ describe("TripHero ambient layer", () => {
     expect(frame.classList.contains("trip-hero-media")).toBe(true);
     without.unmount();
 
-    withClip(trip);
+    withClip();
     const withFootage = setup(trip);
 
     expect(withFootage.container.querySelector(".trip-hero-media")?.className).toBe(frame.className);

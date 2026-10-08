@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { coverScene, inferCoverScene } from "./coverScene";
+import { coverScene, footageScene, inferTripKind, sceneKind, tripPhoto } from "./coverScene";
 
 const SCENES = ["road", "beach", "snow", "city"];
 
@@ -84,14 +84,85 @@ describe("coverScene keyword inference", () => {
   });
 });
 
-describe("inferCoverScene", () => {
+describe("inferTripKind", () => {
   it("is null when nothing is recognised, so callers can tell a hint from a fallback", () => {
-    expect(inferCoverScene({ type: "generic", name: "Qqq", destination_label: "Zzz" })).toBeNull();
-    expect(inferCoverScene({ type: "generic" })).toBeNull();
+    expect(inferTripKind({ type: "generic", name: "Qqq", destination_label: "Zzz" })).toBeNull();
+    expect(inferTripKind({ type: "generic" })).toBeNull();
   });
 
-  it("reads ski trips as snow and keywords as their scene", () => {
-    expect(inferCoverScene({ type: "ski" })).toBe("snow");
-    expect(inferCoverScene({ type: "generic", destination_label: "Pinamar" })).toBe("beach");
+  it("reads ski trips as snow and keywords as their kind", () => {
+    expect(inferTripKind({ type: "ski" })).toBe("snow");
+    expect(inferTripKind({ type: "generic", destination_label: "Pinamar" })).toBe("beach");
+  });
+
+  it.each([
+    ["Lago Puelo", "lake"],
+    ["Villa La Angostura", "lake"],
+    ["Mendoza, Argentina", "vineyard"],
+    ["Cafayate", "vineyard"],
+    ["Salta y Jujuy", "desert"],
+    ["San Pedro de Atacama", "desert"],
+    ["Buenos Aires", "city"],
+    ["Bariloche", "snow"],
+    ["Mar del Plata", "beach"],
+  ] as const)("keeps %s as its own kind: %s, not folded into another scene", (destination, kind) => {
+    expect(inferTripKind({ type: "generic", destination_label: destination })).toBe(kind);
+  });
+});
+
+describe("road trips", () => {
+  const roadTrip = { id: "9c1b8c1e-52c4-4f4e-9f57-0d2a3a8d6a10", type: "generic", name: "Road trip por la Ruta 40", destination_label: "Ruta 40" };
+
+  it("reads the exact 'Road trip por la Ruta 40' as a road, never a city", () => {
+    expect(inferTripKind(roadTrip)).toBe("road");
+    expect(sceneKind(roadTrip)).toBe("road");
+    expect(coverScene(roadTrip)).toBe("road");
+    expect(tripPhoto(roadTrip)?.id).toBe("road");
+  });
+
+  it.each(["Ruta 40", "ruta 7", "Road trip", "roadtrip", "Carretera Austral", "Autopista del Sol", "Highway 1", "Viaje en auto", "motorhome", "Camper por el sur"])(
+    "reads %s as a road",
+    (words) => {
+      expect(inferTripKind({ type: "generic", destination_label: words })).toBe("road");
+      expect(inferTripKind({ type: "generic", name: words })).toBe("road");
+    },
+  );
+
+  it("matches road words as whole words only", () => {
+    expect(inferTripKind({ type: "generic", destination_label: "Rutina" })).toBeNull();
+    expect(inferTripKind({ type: "generic", destination_label: "Autopistas" })).toBeNull();
+  });
+});
+
+describe("sceneKind, coverScene, tripPhoto and footageScene", () => {
+  const trip = (destination_label: string, id = "44444444-4444-4444-8444-444444444444") => ({ id, type: "generic", name: "", destination_label });
+
+  it("folds the finer kinds into the four illustration scenes", () => {
+    expect(coverScene(trip("Lago Puelo"))).toBe("snow");
+    expect(coverScene(trip("Mendoza"))).toBe("road");
+    expect(coverScene(trip("Salta"))).toBe("road");
+    expect(coverScene(trip("Madrid"))).toBe("city");
+  });
+
+  it("falls back to a stable road, city or beach kind for trips that name nothing", () => {
+    const kinds = new Set(Array.from({ length: 60 }, (_, index) => sceneKind(trip("Zzz", `trip-${index}`))));
+
+    expect(kinds).toEqual(new Set(["road", "city", "beach"]));
+  });
+
+  it("gives each trip a photo of its own kind, the same one every time", () => {
+    expect(tripPhoto(trip("Lago Puelo"))?.id).toBe("lake-patagonia");
+    expect(tripPhoto(trip("Mendoza"))?.id).toBe("vineyard");
+    expect(tripPhoto(trip("Salta"))?.id).toBe("desert");
+    expect(["snow-peaks", "snow-lake"]).toContain(tripPhoto(trip("Bariloche"))?.id);
+    expect(["city-madero", "city-obelisco"]).toContain(tripPhoto(trip("Buenos Aires"))?.id);
+    expect(tripPhoto(trip("Bariloche"))?.id).toBe(tripPhoto(trip("Bariloche"))?.id);
+  });
+
+  it("uses the generic footage only where it fits: snow, beach and road, never the Sydney city loop", () => {
+    expect(footageScene(trip("Bariloche"))).toBe("snow");
+    expect(footageScene(trip("Pinamar"))).toBe("beach");
+    expect(footageScene(trip("Ruta 40"))).toBe("road");
+    for (const place of ["Buenos Aires", "Lago Puelo", "Mendoza", "Salta"]) expect(footageScene(trip(place)), place).toBeNull();
   });
 });

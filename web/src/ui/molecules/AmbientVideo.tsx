@@ -6,8 +6,8 @@ import { AMBIENT_VIDEO_ENABLED } from "@/ui/ambient/scenes";
 type AmbientVideoProps = {
   /** Self-hosted, content-hashed MP4: muted, loopable, no audio track. */
   src: string;
-  /** WebP still shown first, and alone when `play` is false. */
-  poster: string;
+  /** WebP still shown first, and alone when `play` is false. Omit it when a photo of the same place sits beneath. */
+  poster?: string;
   /** Whether a video may play at all (motion allowed, no data saving). Decided by the container. */
   play: boolean;
   className?: string;
@@ -70,15 +70,17 @@ export function AmbientVideo({ src, poster, play, className = "" }: AmbientVideo
       data-poster={posterReady ? "" : undefined}
       data-playing={playing && canPlay ? "" : undefined}
     >
-      {/* eslint-disable-next-line @next/next/no-img-element -- decorative, content-hashed static file: no resizing wanted */}
-      <img
-        ref={posterRef}
-        className="ambient-poster"
-        src={poster}
-        alt=""
-        decoding="async"
-        onLoad={() => setPosterReady(true)}
-      />
+      {poster && (
+        // eslint-disable-next-line @next/next/no-img-element -- decorative, content-hashed static file: no resizing wanted
+        <img
+          ref={posterRef}
+          className="ambient-poster"
+          src={poster}
+          alt=""
+          decoding="async"
+          onLoad={() => setPosterReady(true)}
+        />
+      )}
       {canPlay && (
         <video
           ref={video}

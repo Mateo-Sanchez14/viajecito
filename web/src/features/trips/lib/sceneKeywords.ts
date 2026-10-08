@@ -1,9 +1,10 @@
+import type { PhotoScene } from "@/ui/photos/photos";
 import type { CoverScene } from "./coverScene";
 
 /** What a trip's destination or name talks about. Several kinds share one image. */
-export type SceneKind = "snow" | "lake" | "beach" | "vineyard" | "desert" | "city" | "road";
+export type SceneKind = PhotoScene;
 
-/** The approved imagery is four scenes: kinds without a scene of their own borrow the closest one. */
+/** The illustrations are four scenes: kinds without a drawing of their own borrow the closest one. */
 export const SCENE_FOR_KIND: Record<SceneKind, CoverScene> = {
   snow: "snow",
   lake: "snow", // mountain lakes sit under snowy peaks in the Andes
@@ -74,7 +75,7 @@ export const SCENE_KEYWORDS: readonly (readonly [SceneKind, readonly string[]])[
       "las vegas", "los angeles", "san francisco", "chicago", "mexico",
     ],
   ],
-  ["road", ["ruta", "ruta 40", "ruta 7", "road trip", "roadtrip", "carretera", "camper", "motorhome", "en auto"]],
+  ["road", ["ruta", "rutas", "ruta 40", "ruta 7", "road trip", "roadtrip", "carretera", "autopista", "highway", "camper", "motorhome", "en auto"]],
 ];
 
 const words = (text: string): string =>

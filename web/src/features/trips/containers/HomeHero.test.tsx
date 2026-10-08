@@ -8,7 +8,6 @@ import { server } from "@/test/server";
 import messages from "../../../../messages/es-AR";
 import { CREW_ID, TRIP_ID, formatDay, makeMe, makeSummary } from "../fixtures";
 import { tripCountdown } from "../lib/countdown";
-import { coverScene } from "../lib/coverScene";
 import { HomeHero } from "./HomeHero";
 import { TripList } from "./TripList";
 
@@ -182,22 +181,69 @@ describe("HomeHero next trip", () => {
     expect(container.querySelector("video")).toBeNull();
   });
 
-  it("falls back to the illustration, in the same frame, when the photo cannot load", async () => {
+  it("falls back from the cover to the scene photo, then to the illustration, in the same frame", async () => {
     server.use(trips({ [CREW_ID]: [makeSummary({ has_cover: true, cover_version: 1 })] }));
     const { container } = setup();
     await screen.findByRole("link", { name: hero.open });
     const frame = container.querySelector(".landing-hero-media")!;
 
     fireEvent.error(frame.querySelector("img")!);
+    const photo = frame.querySelector("img")!;
+    expect(photo.getAttribute("src")).toMatch(/^\/photos\//);
 
+    fireEvent.error(photo);
     expect(frame.querySelector("img")).toBeNull();
     expect(frame.querySelector("svg.trip-cover-art-live")).toBeInTheDocument();
     expect(container.querySelector(".landing-hero-media")).toBe(frame);
   });
 });
 
+describe("HomeHero scene photo", () => {
+  const trip = (destination_label: string) => makeSummary({ destination_label, name: "Viaje", has_cover: false });
+
+  it("shows the photo of the trip's scene, eager and at high priority, with no illustration", async () => {
+    server.use(trips({ [CREW_ID]: [trip("Lago Puelo")] }));
+    const { container } = setup();
+
+    await screen.findByRole("link", { name: hero.open });
+    const photo = container.querySelector<HTMLImageElement>(".landing-hero-media img.trip-hero-photo")!;
+    expect(photo).toHaveAttribute("data-photo", "lake-patagonia");
+    expect(photo).toHaveAttribute("loading", "eager");
+    expect(photo).toHaveAttribute("fetchpriority", "high");
+    expect(photo).toHaveAttribute("alt", "");
+    expect(photo).toHaveAttribute("srcset");
+    expect(photo).toHaveAttribute("width");
+    expect(container.querySelector(".landing-hero-media svg")).toBeNull();
+  });
+
+  it.each([
+    ["Mendoza", "vineyard"],
+    ["Salta", "desert"],
+    ["Mar del Plata", "beach-"],
+    ["Ruta 40", "road"],
+  ])("gives %s its own photo (%s)", async (destination, id) => {
+    server.use(trips({ [CREW_ID]: [trip(destination)] }));
+    const { container } = setup();
+
+    await screen.findByRole("link", { name: hero.open });
+    expect(container.querySelector(".landing-hero-media img")!.getAttribute("data-photo")).toContain(id);
+  });
+
+  it("uses the Buenos Aires photos, never the city video, for a city trip", async () => {
+    ambient.clips = { city: { mp4: "/ambient/city.0123456789.mp4", poster: "/ambient/city.0123456789.webp", hash: "0123456789" } };
+    ambient.allowed = true;
+    server.use(trips({ [CREW_ID]: [trip("Buenos Aires")] }));
+    const { container } = setup();
+
+    await screen.findByRole("link", { name: hero.open });
+    expect(container.querySelector(".landing-hero-media img")!.getAttribute("data-photo")).toMatch(/^city-/);
+    expect(container.querySelector(".ambient-media")).toBeNull();
+    expect(container.querySelector("video")).toBeNull();
+  });
+});
+
 describe("HomeHero ambient layer", () => {
-  const scene = coverScene(makeSummary());
+  const scene = "snow"; // makeSummary() is "Bariloche 2027": snow
   const withClip = () => {
     ambient.clips = {
       [scene]: { mp4: `/ambient/${scene}.0123456789.mp4`, poster: `/ambient/${scene}.0123456789.webp`, hash: "0123456789" },
@@ -209,7 +255,7 @@ describe("HomeHero ambient layer", () => {
     vi.spyOn(HTMLMediaElement.prototype, "pause").mockImplementation(() => {});
   });
 
-  it("plays the scene video under the panel when there is no cover and motion is allowed", async () => {
+  it("plays the scene video over the photo, under the panel, when there is no cover and motion is allowed", async () => {
     withClip();
     ambient.allowed = true;
     server.use(trips({ [CREW_ID]: [makeSummary()] }));
@@ -217,39 +263,58 @@ describe("HomeHero ambient layer", () => {
 
     await screen.findByRole("link", { name: hero.open });
     const media = container.querySelector(".landing-hero-media")!;
-    expect(media.querySelector("svg.trip-cover-art-live")).toBeInTheDocument();
+    expect(media.querySelector("img.trip-hero-photo")).toBeInTheDocument();
+    expect(media.querySelector("svg")).toBeNull();
     expect(media.querySelector(".ambient-media video.ambient-video")).toHaveAttribute("src", `/ambient/${scene}.0123456789.mp4`);
+    // The photo is the still: the footage brings no poster of its own over it.
+    expect(media.querySelector("img.ambient-poster")).toBeNull();
     expect(container.querySelector(".landing-hero-panel video")).toBeNull();
   });
 
-  it("shows only the poster under reduced motion or Save-Data", async () => {
+  it("shows only the photo, with no video and no second still, under reduced motion or Save-Data", async () => {
     withClip();
     ambient.allowed = false;
     server.use(trips({ [CREW_ID]: [makeSummary()] }));
     const { container } = setup();
 
     await screen.findByRole("link", { name: hero.open });
-    expect(container.querySelector(".landing-hero-media img.ambient-poster")).toHaveAttribute("alt", "");
+    expect(container.querySelector(".landing-hero-media img.trip-hero-photo")).toBeInTheDocument();
+    expect(container.querySelector("img.ambient-poster")).toBeNull();
     expect(container.querySelector("video")).toBeNull();
   });
 
-  it("shows only the illustration when the scene has no clip", async () => {
+  it("shows only the photo when the scene has no clip", async () => {
     server.use(trips({ [CREW_ID]: [makeSummary()] }));
     const { container } = setup();
 
     await screen.findByRole("link", { name: hero.open });
     expect(container.querySelector(".ambient-media")).toBeNull();
-    expect(container.querySelector(".landing-hero-media svg.trip-cover-art")).toBeInTheDocument();
+    expect(container.querySelector(".landing-hero-media img.trip-hero-photo")).toBeInTheDocument();
   });
 
-  it("lets the cover photo win over footage", async () => {
+  it("falls back to the illustration with the footage's own still when the photo cannot load", async () => {
+    withClip();
+    ambient.allowed = false;
+    server.use(trips({ [CREW_ID]: [makeSummary()] }));
+    const { container } = setup();
+    await screen.findByRole("link", { name: hero.open });
+
+    fireEvent.error(container.querySelector(".landing-hero-media img.trip-hero-photo")!);
+
+    expect(container.querySelector(".landing-hero-media svg.trip-cover-art-live")).toBeInTheDocument();
+    expect(container.querySelector(".landing-hero-media img.ambient-poster")).toBeInTheDocument();
+  });
+
+  it("lets the cover photo win over the scene photo and footage", async () => {
     withClip();
     ambient.allowed = true;
     server.use(trips({ [CREW_ID]: [makeSummary({ has_cover: true, cover_version: 1 })] }));
     const { container } = setup();
 
     await screen.findByRole("link", { name: hero.open });
-    expect(container.querySelector("img.trip-hero-photo")).toBeInTheDocument();
+    const photos = container.querySelectorAll("img.trip-hero-photo");
+    expect(photos).toHaveLength(1);
+    expect(photos[0]).toHaveAttribute("src", `/api/trips/${TRIP_ID}/cover?v=1`);
     expect(container.querySelector(".ambient-media")).toBeNull();
     expect(container.querySelector("video")).toBeNull();
   });

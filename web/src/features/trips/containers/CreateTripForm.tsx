@@ -6,11 +6,12 @@ import { useFormatter, useTranslations } from "next-intl";
 import { Button } from "@/ui/atoms/Button";
 import { Input } from "@/ui/atoms/Input";
 import { Select } from "@/ui/atoms/Select";
-import { ambientClip } from "@/ui/ambient/scenes";
+import { Photo } from "@/ui/atoms/Photo";
+import { pickScenePhoto } from "@/ui/photos/photos";
 import { CaretRightIcon } from "@/ui/icons";
 import type { TripCreate } from "../api/trips";
 import { useCreateTrip } from "../hooks/mutations";
-import { inferCoverScene } from "../lib/coverScene";
+import { inferTripKind } from "../lib/coverScene";
 import { tripPath } from "../lib/paths";
 import { suggestTripName } from "../lib/suggestTripName";
 
@@ -40,6 +41,7 @@ function validate(name: string, start: string, end: string, currency: string): E
  */
 export function CreateTripForm({ crewId }: { crewId: string }) {
   const t = useTranslations("trips");
+  const alt = useTranslations("photos.alt");
   const format = useFormatter();
   const router = useRouter();
   const create = useCreateTrip(crewId);
@@ -58,8 +60,8 @@ export function CreateTripForm({ crewId }: { crewId: string }) {
     ? format.dateTime(new Date(`${startOn}T00:00:00Z`), { month: "short", year: "numeric", timeZone: "UTC" })
     : null;
   const name = nameOverride ?? suggestTripName(destination, whenLabel);
-  const scene = destination.trim() ? inferCoverScene({ type, destination_label: destination }) : null;
-  const still = scene ? ambientClip(scene)?.poster : undefined;
+  const scene = destination.trim() ? inferTripKind({ type, destination_label: destination }) : null;
+  const preview = scene ? pickScenePhoto(scene, destination.trim().toLowerCase()) : null;
 
   function onSubmit(event: FormEvent) {
     event.preventDefault();
@@ -98,10 +100,7 @@ export function CreateTripForm({ crewId }: { crewId: string }) {
         />
         {scene && (
           <div className="create-trip-scene">
-            {still && (
-              // eslint-disable-next-line @next/next/no-img-element -- self-hosted static still, decorative
-              <img src={still} alt="" className="create-trip-scene-image" data-scene={scene} />
-            )}
+            {preview && <Photo photo={preview} small alt={alt(preview.id)} className="create-trip-scene-image" />}
             <p role="status" className="create-trip-scene-hint text-sm text-muted">
               {t("create.sceneHint", { scene: t(`create.scene.${scene}`) })}
             </p>

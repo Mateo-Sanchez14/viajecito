@@ -252,28 +252,88 @@ describe("TripList card media", () => {
     expect(link.querySelector(".trip-card-media svg")).toBeNull();
   });
 
-  it("without a cover shows the still of the scene the destination points to", async () => {
+  it("without a cover shows the photo of the scene the destination points to, lazy and decorative", async () => {
     server.use(trips(makeSummary({ has_cover: false, destination_label: "Mar del Plata", name: "Finde" })));
     renderWithProviders(<TripList crewId={CREW_ID} />);
 
     const link = await screen.findByRole("link", { name: /Finde/ });
-    const still = link.querySelector<HTMLImageElement>(".trip-card-media img")!;
-    expect(still.getAttribute("src")).toMatch(/^\/ambient\/beach\.[0-9a-f]+\.webp$/);
-    expect(still).toHaveAttribute("data-scene", "beach");
-    expect(still).toHaveAttribute("alt", "");
-    expect(still).toHaveAttribute("loading", "lazy");
+    const photo = link.querySelector<HTMLImageElement>(".trip-card-media img")!;
+    expect(photo.getAttribute("src")).toMatch(/^\/photos\/beach-(aerial|foam)\.[0-9a-f]{10}\.1280\.webp$/);
+    expect(photo.getAttribute("srcset")).toMatch(/\.640\.webp 640w, .+\.1280\.webp 1280w$/);
+    expect(photo).toHaveAttribute("alt", "");
+    expect(photo).toHaveAttribute("loading", "lazy");
+    expect(photo).toHaveAttribute("decoding", "async");
+    expect(photo).toHaveAttribute("width");
+    expect(photo).toHaveAttribute("height");
+    expect(photo).not.toHaveAttribute("fetchpriority");
   });
 
-  it("falls back to the illustration when the cover cannot load and then the still cannot either", async () => {
+  it.each([
+    ["Lago Puelo", "lake-patagonia"],
+    ["Mendoza", "vineyard"],
+    ["Salta", "desert"],
+    ["Ruta 40", "road"],
+  ])("gives %s its own photo (%s), not a borrowed scene", async (destination, id) => {
+    server.use(trips(makeSummary({ destination_label: destination, name: "Viaje" })));
+    renderWithProviders(<TripList crewId={CREW_ID} />);
+
+    const link = await screen.findByRole("link", { name: /Viaje/ });
+    expect(link.querySelector(".trip-card-media img")).toHaveAttribute("data-photo", id);
+  });
+
+  it("keeps a trip on the same photo every time and lets a two-photo scene use both", async () => {
+    const rows = Array.from({ length: 12 }, (_, index) =>
+      makeSummary({ id: `00000000-0000-4000-8000-${String(index).padStart(12, "0")}`, name: `Playa ${index}`, destination_label: "Pinamar" }),
+    );
+    server.use(trips(...rows));
+    const first = renderWithProviders(<TripList crewId={CREW_ID} />);
+    await screen.findByRole("link", { name: /Playa 0/ });
+    const pick = () => [...document.querySelectorAll<HTMLImageElement>(".trip-card-media img")].map((img) => img.dataset.photo);
+    const once = pick();
+    expect(new Set(once)).toEqual(new Set(["beach-aerial", "beach-foam"]));
+    first.unmount();
+
+    server.use(trips(...rows));
+    renderWithProviders(<TripList crewId={CREW_ID} />);
+    await screen.findByRole("link", { name: /Playa 0/ });
+    expect(pick()).toEqual(once);
+  });
+
+  it("puts the photo behind the user's cover: a cover always wins", async () => {
+    server.use(trips(makeSummary({ destination_label: "Mar del Plata", has_cover: true, cover_version: 2 })));
+    renderWithProviders(<TripList crewId={CREW_ID} />);
+
+    const link = await screen.findByRole("link", { name: /Bariloche 2027/ });
+    const imgs = link.querySelectorAll(".trip-card-media img");
+    expect(imgs).toHaveLength(1);
+    expect(imgs[0]).toHaveAttribute("src", `/api/trips/${TRIP_ID}/cover?v=2`);
+  });
+
+  it("uses only the small photo, with no srcset, when the person saves data", async () => {
+    vi.stubGlobal("navigator", { ...globalThis.navigator, connection: { saveData: true, addEventListener: () => {}, removeEventListener: () => {} } });
+    try {
+      server.use(trips(makeSummary({ destination_label: "Mar del Plata", name: "Finde" })));
+      renderWithProviders(<TripList crewId={CREW_ID} />);
+
+      const link = await screen.findByRole("link", { name: /Finde/ });
+      const photo = link.querySelector(".trip-card-media img")!;
+      expect(photo.getAttribute("src")).toMatch(/\.640\.webp$/);
+      expect(photo).not.toHaveAttribute("srcset");
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it("falls back to the illustration when the cover cannot load and then the photo cannot either", async () => {
     server.use(trips(makeSummary({ has_cover: true, cover_version: 1 })));
     renderWithProviders(<TripList crewId={CREW_ID} />);
     const link = await screen.findByRole("link", { name: /Bariloche 2027/ });
 
     fireEvent.error(link.querySelector(".trip-card-media img")!);
-    const still = link.querySelector(".trip-card-media img")!;
-    expect(still.getAttribute("src")).toMatch(/^\/ambient\//);
+    const photo = link.querySelector(".trip-card-media img")!;
+    expect(photo.getAttribute("src")).toMatch(/^\/photos\//);
 
-    fireEvent.error(still);
+    fireEvent.error(photo);
     expect(link.querySelector(".trip-card-media img")).toBeNull();
     expect(link.querySelector(".trip-card-media svg.trip-cover-art")).toHaveAttribute("aria-hidden", "true");
   });
@@ -291,7 +351,7 @@ describe("TripList card media", () => {
 
     fireEvent.error(first.querySelector(".trip-card-media img")!);
 
-    expect(first.querySelector(".trip-card-media img")!.getAttribute("src")).toMatch(/^\/ambient\//);
+    expect(first.querySelector(".trip-card-media img")!.getAttribute("src")).toMatch(/^\/photos\//);
     expect(second.querySelector(".trip-card-media img")).toHaveAttribute("src", `/api/trips/${OTHER_ID}/cover?v=1`);
   });
 

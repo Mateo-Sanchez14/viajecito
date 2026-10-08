@@ -1,10 +1,12 @@
 // @vitest-environment node
 import { renderToStaticMarkup } from "react-dom/server";
 import { chromium, type Browser, type Page } from "@playwright/test";
-import { afterAll, beforeAll, expect, it, vi } from "vitest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { compiledCss } from "@/test/compiledCss";
 import { textContrast } from "@/test/contrast";
+import { Photo } from "@/ui/atoms/Photo";
 import { TripCoverArt } from "@/ui/illustrations/TripCoverArt";
+import { scenePhotos } from "@/ui/photos/photos";
 import { TripCard, type TripCardPill } from "./TripCard";
 import { TripSection } from "./TripSection";
 
@@ -257,4 +259,61 @@ it("staggers the entrance through --i and does not animate under reduced motion"
   await page.emulateMedia({ reducedMotion: "reduce" });
   const names = await page.locator(".trip-card").first().evaluate((element) => getComputedStyle(element).animationName);
   expect(names).toBe("none");
+});
+
+
+
+describe("photos in the card frame", () => {
+  const portrait = scenePhotos("city")[0];
+  const landscape = scenePhotos("lake")[0];
+  const photoCards = renderToStaticMarkup(
+    <main className="app-canvas mx-auto">
+      <TripSection title="Próximos" level={3} layout="rail">
+        {[portrait, landscape].map((photo, index) => (
+          <li key={photo.id}>
+            <TripCard
+              index={index}
+              href="/crews/c/trips/t"
+              name={photo.id}
+              dates="1 jul 2027"
+              media={<Photo photo={photo} className="trip-card-photo" />}
+              pill={quiet}
+            />
+          </li>
+        ))}
+      </TripSection>
+    </main>,
+  );
+
+  it.each([390, 1280])("fills the 16:10 frame with a cropped portrait and a landscape photo, with no overflow, at %ipx", async (width) => {
+    await page.setViewportSize({ width, height: 900 });
+    await page.setContent(`<body>${photoCards}</body>`);
+    await page.addStyleTag({ content: css });
+
+    const frames = await page.locator(".trip-card-media").evaluateAll((elements) =>
+      elements.map((element) => {
+        const frame = element.getBoundingClientRect();
+        const img = element.querySelector("img")!;
+        const box = img.getBoundingClientRect();
+        const style = getComputedStyle(img);
+        return {
+          same: Math.abs(frame.width - box.width) < 1 && Math.abs(frame.height - box.height) < 1,
+          fit: style.objectFit,
+          position: style.objectPosition,
+          ratio: frame.width / frame.height,
+        };
+      }),
+    );
+
+    for (const frame of frames) {
+      expect(frame.same).toBe(true);
+      expect(frame.fit).toBe("cover");
+      expect(frame.ratio).toBeGreaterThan(1.4);
+      expect(frame.ratio).toBeLessThan(1.8);
+    }
+    // The portrait keeps its focal point (a crop of the middle band), the landscape stays centered.
+    expect(frames[0].position).toBe("50% 35%");
+    expect(frames[1].position).toBe("50% 50%");
+    expect(await pageWidth()).toBeLessThanOrEqual(width);
+  });
 });

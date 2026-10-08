@@ -2,20 +2,17 @@
 
 import { useTranslations } from "next-intl";
 import { BoardingPass } from "@/ui/organisms/BoardingPass";
-import { TripCoverArt } from "@/ui/illustrations/TripCoverArt";
 import { useAmbientAllowed } from "@/shared/lib/useAmbientAllowed";
 import { useClientNow } from "@/shared/lib/useClientNow";
-import { ambientClip } from "@/ui/ambient/scenes";
-import { AmbientVideo } from "@/ui/molecules/AmbientVideo";
 import { coverPath } from "../api/cover";
 import { type Countdown, tripCountdown } from "../lib/countdown";
-import { coverScene } from "../lib/coverScene";
 import { describeCountdown } from "../lib/describeCountdown";
 import { useCoverFallback } from "../hooks/useCoverFallback";
 import { sectionPath } from "../lib/paths";
 import { useDateRange } from "../lib/useDateRange";
 import { useTripContext } from "../TripProvider";
 import { CoverControl } from "./CoverControl";
+import { TripSceneMedia } from "./TripSceneMedia";
 
 /** Container: the trip hero. Picture, how long until we leave, and the dates, destination and currency. */
 export function TripHero() {
@@ -25,8 +22,6 @@ export function TripHero() {
   const now = useClientNow();
   const { trip, modules } = useTripContext();
   const cover = useCoverFallback(trip);
-  const scene = coverScene(trip);
-  const clip = ambientClip(scene);
   const allowMotion = useAmbientAllowed();
 
   // The server has no client clock: render the skeleton there so no day number can mismatch.
@@ -51,10 +46,7 @@ export function TripHero() {
             onError={cover.onError}
           />
         ) : (
-          <>
-            <TripCoverArt scene={scene} live />
-            {clip && <AmbientVideo src={clip.mp4} poster={clip.poster} play={allowMotion} />}
-          </>
+          <TripSceneMedia trip={trip} allowMotion={allowMotion} />
         )
       }
       mediaAction={<CoverControl />}
