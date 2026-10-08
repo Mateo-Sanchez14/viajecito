@@ -4,7 +4,11 @@ from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 
 from identity.adapters.crews_gateway import CrewsGateway
-from identity.adapters.django_repos import DjangoOtpChallengeRepository, DjangoPersonProvisioner
+from identity.adapters.django_repos import (
+    DjangoOtpChallengeRepository,
+    DjangoPersonProvisioner,
+    DjangoTourStateStore,
+)
 from identity.adapters.otp_sender import DeferredOtpSender, WhatsAppOtpSender
 from identity.domain import OtpConfig
 from shared.clock import Clock, SystemClock
@@ -30,6 +34,10 @@ def challenge_repo() -> DjangoOtpChallengeRepository:
 
 def person_provisioner() -> DjangoPersonProvisioner:
     return DjangoPersonProvisioner()
+
+
+def tour_store() -> DjangoTourStateStore:
+    return DjangoTourStateStore()
 
 
 def crews_gateway() -> CrewsGateway:

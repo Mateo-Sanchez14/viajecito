@@ -97,7 +97,18 @@ def person_data(person: Person) -> PersonData:
         phone=person.phone,
         display_name=person.display_name,
         locale=person.locale,
+        tour_seen_version=person.tour_seen_version,
     )
+
+
+class DjangoTourStateStore:
+    def raise_tour_seen_version(self, person_id: str, version: int) -> PersonData:
+        # One conditional UPDATE: concurrent or retried finishes can only raise the value, never
+        # lower it (no read-modify-write window).
+        Person.objects.filter(pk=person_id, tour_seen_version__lt=version).update(
+            tour_seen_version=version
+        )
+        return person_data(Person.objects.get(pk=person_id))
 
 
 class DjangoIdentityDirectory:

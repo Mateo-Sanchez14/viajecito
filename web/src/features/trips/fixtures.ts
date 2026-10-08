@@ -54,7 +54,7 @@ export function makeSummary(overrides: Partial<Schemas["TripSummaryOut"]> = {}):
 
 export function makeMe(overrides: Partial<Schemas["MeOut"]> = {}): Schemas["MeOut"] {
   return {
-    person: { id: PERSON_ID, phone: "+5491155551234", display_name: "Mateo", locale: "es-AR" },
+    person: { id: PERSON_ID, phone: "+5491155551234", display_name: "Mateo", locale: "es-AR", tour_seen_version: 0 },
     crews: [
       { id: CREW_ID, name: "Los Pibes", role: "admin", gastito_group_url: null, default_trip_id: null },
     ],

@@ -37,6 +37,8 @@ class Person(AbstractBaseUser, PermissionsMixin):
     phone = models.CharField(max_length=20, unique=True)
     display_name = models.CharField(max_length=120, blank=True)
     locale = models.CharField(max_length=10, default="es-AR")
+    # Highest onboarding tour version the person finished or skipped (0 = never); only ever raised.
+    tour_seen_version = models.PositiveSmallIntegerField(default=0)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)

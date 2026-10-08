@@ -2,8 +2,10 @@ from typing import Literal
 from uuid import UUID
 
 from ninja import Schema
+from pydantic import Field, StrictInt
 
 from crews.schemas import CrewSummaryOut
+from identity.domain import MAX_TOUR_VERSION
 
 
 class CsrfOut(Schema):
@@ -30,6 +32,16 @@ class PersonOut(Schema):
     phone: str
     display_name: str
     locale: str
+    tour_seen_version: int
+
+
+class TourSeenIn(Schema):
+    # Strict: booleans, numeric strings and floats are rejected instead of coerced.
+    version: StrictInt = Field(..., ge=1, le=MAX_TOUR_VERSION)
+
+
+class TourSeenOut(Schema):
+    person: PersonOut
 
 
 class OtpVerifyOut(Schema):

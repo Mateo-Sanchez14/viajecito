@@ -273,6 +273,74 @@
         ]
       }
     },
+    "/api/me/tour": {
+      "post": {
+        "operationId": "identity_api_mark_tour_seen",
+        "summary": "Mark Tour Seen",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TourSeenOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          }
+        },
+        "description": "Stores the highest onboarding tour version the person finished or skipped.\n\nMonotonic and idempotent: a lower or equal version leaves the stored value unchanged.\n400 codes: `invalid_request`. 403: `csrf_failed`.",
+        "tags": [
+          "auth"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TourSeenIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ]
+      }
+    },
     "/api/crews/{crew_id}/trips": {
       "get": {
         "operationId": "trips_api_list_trips",
@@ -6954,13 +7022,18 @@
           "locale": {
             "title": "Locale",
             "type": "string"
+          },
+          "tour_seen_version": {
+            "title": "Tour Seen Version",
+            "type": "integer"
           }
         },
         "required": [
           "id",
           "phone",
           "display_name",
-          "locale"
+          "locale",
+          "tour_seen_version"
         ],
         "title": "PersonOut",
         "type": "object"
@@ -7054,6 +7127,33 @@
           "crews"
         ],
         "title": "MeOut",
+        "type": "object"
+      },
+      "TourSeenOut": {
+        "properties": {
+          "person": {
+            "$ref": "#/components/schemas/PersonOut"
+          }
+        },
+        "required": [
+          "person"
+        ],
+        "title": "TourSeenOut",
+        "type": "object"
+      },
+      "TourSeenIn": {
+        "properties": {
+          "version": {
+            "maximum": 32767,
+            "minimum": 1,
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "version"
+        ],
+        "title": "TourSeenIn",
         "type": "object"
       },
       "TripSummaryOut": {

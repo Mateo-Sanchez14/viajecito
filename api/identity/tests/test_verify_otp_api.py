@@ -28,10 +28,21 @@ def test_correct_code_logs_in_and_returns_person(client, member, gowa):
             "phone": MEMBER_PHONE,
             "display_name": "Mateo",
             "locale": "es-AR",
+            "tour_seen_version": 0,
         }
     }
     assert "sessionid" in response.cookies
     assert client.get("/api/me").status_code == 200
+
+
+def test_verify_reports_the_tour_version_the_person_has_seen(client, member, gowa):
+    member.tour_seen_version = 2
+    member.save(update_fields=["tour_seen_version"])
+    code = login_code(client, gowa)
+
+    response = verify_otp(client, MEMBER_PHONE, code)
+
+    assert response.json()["person"]["tour_seen_version"] == 2
 
 
 def test_login_rotates_the_csrf_token(strict_client, member, gowa):

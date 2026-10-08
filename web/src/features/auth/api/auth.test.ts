@@ -17,6 +17,7 @@ const person = {
   phone: "+5491155551234",
   display_name: "Mateo",
   locale: "es-AR",
+  tour_seen_version: 0,
 };
 
 function csrfHandler(token = "tok-1") {

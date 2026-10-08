@@ -10,7 +10,12 @@ from ninja.security import django_auth
 
 from identity.adapters import wiring
 from identity.adapters.django_repos import person_data
-from identity.domain import InvalidPhoneError, OtpVerificationError, RateLimitedError
+from identity.domain import (
+    InvalidPhoneError,
+    InvalidTourVersionError,
+    OtpVerificationError,
+    RateLimitedError,
+)
 from identity.models import Person
 from identity.schemas import (
     CsrfOut,
@@ -19,8 +24,11 @@ from identity.schemas import (
     OtpRequestOut,
     OtpVerifyIn,
     OtpVerifyOut,
+    TourSeenIn,
+    TourSeenOut,
 )
 from identity.use_cases.logout import logout as logout_use_case
+from identity.use_cases.mark_tour_seen import mark_tour_seen as mark_tour_seen_use_case
 from identity.use_cases.me import me as me_use_case
 from identity.use_cases.request_otp import request_otp as request_otp_use_case
 from identity.use_cases.verify_otp import verify_otp as verify_otp_use_case
@@ -161,3 +169,27 @@ def logout(request):
 def me(request):
     result = me_use_case(person_data(request.auth), wiring.crews_gateway())
     return Status(HTTPStatus.OK, MeOut(person=result.person, crews=result.crews))
+
+
+@router.post(
+    "/me/tour",
+    response={
+        HTTPStatus.OK: TourSeenOut,
+        HTTPStatus.BAD_REQUEST: ErrorOut,
+        HTTPStatus.UNAUTHORIZED: ErrorOut,
+        HTTPStatus.FORBIDDEN: ErrorOut,
+    },
+    auth=django_auth,
+    summary="Mark Tour Seen",
+)
+def mark_tour_seen(request, payload: TourSeenIn):
+    """Stores the highest onboarding tour version the person finished or skipped.
+
+    Monotonic and idempotent: a lower or equal version leaves the stored value unchanged.
+    400 codes: `invalid_request`. 403: `csrf_failed`.
+    """
+    try:
+        person = mark_tour_seen_use_case(str(request.auth.pk), payload.version, wiring.tour_store())
+    except InvalidTourVersionError as exc:
+        raise ApiError(HTTPStatus.BAD_REQUEST, "invalid_request", "Invalid tour version") from exc
+    return Status(HTTPStatus.OK, TourSeenOut(person=person))

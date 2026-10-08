@@ -32,6 +32,7 @@ def test_me_returns_person_and_crews(logged_in, member, crew):
             "phone": MEMBER_PHONE,
             "display_name": "Mateo",
             "locale": "es-AR",
+            "tour_seen_version": 0,
         },
         "crews": [
             {
@@ -43,6 +44,13 @@ def test_me_returns_person_and_crews(logged_in, member, crew):
             }
         ],
     }
+
+
+def test_me_reports_the_tour_version_the_person_has_seen(logged_in, member):
+    member.tour_seen_version = 2
+    member.save(update_fields=["tour_seen_version"])
+
+    assert logged_in.get("/api/me").json()["person"]["tour_seen_version"] == 2
 
 
 def test_logout_returns_204_then_me_is_401(logged_in):

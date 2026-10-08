@@ -117,6 +117,29 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/me/tour": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Mark Tour Seen
+         * @description Stores the highest onboarding tour version the person finished or skipped.
+         *
+         *     Monotonic and idempotent: a lower or equal version leaves the stored value unchanged.
+         *     400 codes: `invalid_request`. 403: `csrf_failed`.
+         */
+        post: operations["identity_api_mark_tour_seen"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/crews/{crew_id}/trips": {
         parameters: {
             query?: never;
@@ -1196,6 +1219,8 @@ export interface components {
             display_name: string;
             /** Locale */
             locale: string;
+            /** Tour Seen Version */
+            tour_seen_version: number;
         };
         /** OtpVerifyIn */
         OtpVerifyIn: {
@@ -1228,6 +1253,15 @@ export interface components {
             person: components["schemas"]["PersonOut"];
             /** Crews */
             crews: components["schemas"]["CrewSummaryOut"][];
+        };
+        /** TourSeenOut */
+        TourSeenOut: {
+            person: components["schemas"]["PersonOut"];
+        };
+        /** TourSeenIn */
+        TourSeenIn: {
+            /** Version */
+            version: number;
         };
         /** TripSummaryOut */
         TripSummaryOut: {
@@ -3107,6 +3141,57 @@ export interface operations {
             };
             /** @description Unauthorized */
             401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    identity_api_mark_tour_seen: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TourSeenIn"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TourSeenOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };

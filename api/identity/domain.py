@@ -13,7 +13,9 @@ from shared.phone import InvalidPhoneError, normalize_phone, phone_to_jid
 __all__ = [
     "AttemptOutcome",
     "AttemptResult",
+    "MAX_TOUR_VERSION",
     "InvalidPhoneError",
+    "InvalidTourVersionError",
     "OtpState",
     "RateLimits",
     "check_attempt",
@@ -25,6 +27,7 @@ __all__ = [
 ]
 
 CODE_LENGTH = 6
+MAX_TOUR_VERSION = 32767  # PositiveSmallIntegerField upper bound on every backend
 _CODE_RE = re.compile(rf"\d{{{CODE_LENGTH}}}")
 
 
@@ -137,6 +140,13 @@ class PersonData:
     phone: str
     display_name: str
     locale: str
+    tour_seen_version: int = 0
+
+
+class InvalidTourVersionError(ValueError):
+    def __init__(self, version: int) -> None:
+        super().__init__(f"invalid tour version: {version}")
+        self.version = version
 
 
 class RateLimitedError(Exception):

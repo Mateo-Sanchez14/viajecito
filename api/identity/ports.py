@@ -62,6 +62,12 @@ class CrewLister(Protocol):
     def crews_for(self, person_id: str) -> list[CrewSummary]: ...
 
 
+class TourStateStore(Protocol):
+    def raise_tour_seen_version(self, person_id: str, version: int) -> PersonData:
+        """Store ``max(current, version)`` atomically and return the person."""
+        ...
+
+
 class IdentityDirectory(Protocol):
     def person_id_by_jid(self, jid: str) -> str | None: ...
 
