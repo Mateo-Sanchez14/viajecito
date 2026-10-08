@@ -13,12 +13,14 @@ export default defineConfig({
   },
   projects: [
     // Logs in once and saves the session; every other spec starts from it (never log in in a spec).
-    { name: "setup", testMatch: /auth\.setup\.ts/ },
+    // reducedMotion: view-transition groups are not hit-testable while they run, so e2e never animates
+    // (and never requests the ambient video).
+    { name: "setup", testMatch: /auth\.setup\.ts/, use: { reducedMotion: "reduce" } },
     {
       name: "chromium",
       testIgnore: /auth\.setup\.ts/,
       dependencies: ["setup"],
-      use: { ...devices["Desktop Chrome"], storageState: "e2e/.auth/user.json" },
+      use: { ...devices["Desktop Chrome"], storageState: "e2e/.auth/user.json", reducedMotion: "reduce" },
     },
   ],
 });

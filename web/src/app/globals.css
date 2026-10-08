@@ -2279,11 +2279,68 @@ body {
   outline-color: var(--background);
 }
 
+/* S1 - View transitions: the page under a trip changes, the chrome stays put. */
+::view-transition { pointer-events: none; }
+::view-transition-old(root) { animation-duration: var(--dur-fast); animation-timing-function: var(--ease-in-out); }
+::view-transition-new(root) { animation-duration: var(--dur-base); animation-timing-function: var(--ease-out); }
+::view-transition-old(.section-exit) { animation: vt-section-out var(--dur-fast) var(--ease-in-out) both; }
+::view-transition-new(.section-enter) { animation: vt-section-in var(--dur-base) var(--ease-out) var(--dur-press) both; }
+@keyframes vt-section-out { to { opacity: 0; transform: translateY(-4px); } }
+@keyframes vt-section-in { from { opacity: 0; transform: translateY(10px); } }
+
+/* Named so the chrome is excluded from the content transition and paints above it. */
+.app-header { view-transition-name: app-header; }
+.bottom-nav { view-transition-name: bottom-nav; }
+.quick-capture-fab { view-transition-name: capture-fab; }
+::view-transition-group(app-header),
+::view-transition-group(bottom-nav),
+::view-transition-group(capture-fab) { animation: none; z-index: var(--z-nav); }
+::view-transition-old(app-header),
+::view-transition-old(bottom-nav),
+::view-transition-old(capture-fab) { display: none; }
+::view-transition-new(app-header),
+::view-transition-new(bottom-nav),
+::view-transition-new(capture-fab) { animation: none; }
+
+/* The one box a section change snapshots; same rhythm as the shell (gap-7). */
+.trip-section { display: flex; min-width: 0; flex-direction: column; gap: 1.75rem; }
+
+/* S1 - Hero-only life: clouds drift, the way marches to the destination, the ring breathes. */
+.trip-cover-art-live .art-cloud { animation: art-drift 16s var(--ease-in-out) infinite alternate; }
+.trip-cover-art-live .art-cloud:nth-child(even) { animation-duration: 22s; animation-direction: alternate-reverse; }
+/* linear on purpose: a continuous march needs constant speed (one dash period per loop). */
+.trip-cover-art-live .art-route { animation: art-march 1.6s linear infinite; }
+.trip-cover-art-live .art-dash { animation: art-march-road 2.4s linear infinite; }
+.trip-cover-art-live .art-ring {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: art-breathe 2.4s var(--ease-in-out) infinite alternate;
+}
+@keyframes art-drift { to { transform: translateX(24px); } }
+@keyframes art-march { to { stroke-dashoffset: -10; } }      /* .art-route dasharray 1 9 */
+@keyframes art-march-road { to { stroke-dashoffset: -24; } } /* .art-dash dasharray 10 14 */
+@keyframes art-breathe { to { transform: scale(1.3); opacity: 0.55; } }
+
+/* S1 - Countdown figures flip in when they change (keyed remount). */
+.ui-flip {
+  display: inline-block;
+  transform-origin: 50% 85%;
+  animation: ui-flip var(--dur-slow) var(--ease-spring) both;
+}
+@keyframes ui-flip { from { opacity: 0; transform: perspective(400px) rotateX(-80deg) translateY(0.15em); } }
+
 /* Stays last: it must beat every transition and animation declared above. */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation: none !important;
     transition: none !important;
     scroll-behavior: auto !important;
+  }
+  /* The rule above does not reach view-transition pseudo-elements: swap instantly instead. */
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
   }
 }

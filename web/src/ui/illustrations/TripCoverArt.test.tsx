@@ -22,6 +22,19 @@ describe("TripCoverArt", () => {
     expect(svg.querySelectorAll("path, rect, circle").length).toBeGreaterThan(6);
   });
 
+  it("adds the live class only on request, without adding a single node", () => {
+    const still = render(<TripCoverArt scene="beach" />);
+    const live = render(<TripCoverArt scene="beach" live />);
+    const stillSvg = still.container.querySelector("svg")!;
+    const liveSvg = live.container.querySelector("svg")!;
+
+    expect(stillSvg).not.toHaveClass("trip-cover-art-live");
+    expect(liveSvg).toHaveClass("trip-cover-art", "trip-cover-art-live");
+    expect(liveSvg.querySelectorAll("*").length).toBe(stillSvg.querySelectorAll("*").length);
+    expect(liveSvg).toHaveAttribute("aria-hidden", "true");
+    expect(liveSvg.querySelectorAll("a, button, input, [tabindex]").length).toBe(0);
+  });
+
   it("renders four different scenes", () => {
     const markup = new Set(SCENES.map((scene) => renderToStaticMarkup(<TripCoverArt scene={scene} />)));
 

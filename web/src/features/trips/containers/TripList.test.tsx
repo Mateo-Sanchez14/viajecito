@@ -143,6 +143,14 @@ describe("TripList ticket media", () => {
     expect(link.querySelector(".trip-ticket-media svg.trip-cover-art")).toHaveAttribute("aria-hidden", "true");
   });
 
+  it("keeps the ticket illustration still: the live class belongs to the hero only", async () => {
+    server.use(trips(makeSummary({ has_cover: false })));
+    renderWithProviders(<TripList crewId={CREW_ID} />);
+
+    const link = await screen.findByRole("link", { name: /Bariloche 2027/ });
+    expect(link.querySelector(".trip-ticket-media svg.trip-cover-art")).not.toHaveClass("trip-cover-art-live");
+  });
+
   it("falls back to the illustration when the cover cannot load, per trip", async () => {
     server.use(
       trips(

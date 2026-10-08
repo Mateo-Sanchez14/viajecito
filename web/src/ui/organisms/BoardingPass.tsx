@@ -35,7 +35,9 @@ export function BoardingPass({ media, mediaAction, countdown, facts }: BoardingP
         {countdown ? (
           <div className="trip-pass-countdown">
             <p className="trip-pass-figure">
-              <span className="trip-pass-value ui-tabular">{countdown.value}</span>
+              <span key={countdown.value} className="trip-pass-value ui-tabular ui-flip">
+                {countdown.value}
+              </span>
               {countdown.unit && <span className="trip-pass-unit">{countdown.unit}</span>}
             </p>
             <p className="trip-pass-caption">{countdown.caption}</p>

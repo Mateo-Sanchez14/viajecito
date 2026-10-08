@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 import { BottomNav } from "@/ui/molecules/BottomNav";
 import { DotsThreeIcon } from "@/ui/icons";
+import { ViewTransition } from "@/ui/motion/ViewTransition";
 import { TripShell } from "@/ui/organisms/TripShell";
 import { moduleIcon } from "../lib/moduleIcons";
 import { splitNav } from "../lib/navigation";
@@ -71,7 +72,10 @@ export function TripShellContainer({ children }: { children: ReactNode }) {
         />
       }
     >
-      {children}
+      {/* Keyed by pathname: a section change is one exit + one enter; the chrome around it never remounts. */}
+      <ViewTransition key={pathname} enter="section-enter" exit="section-exit" default="none">
+        <div className="trip-section">{children}</div>
+      </ViewTransition>
     </TripShell>
   );
 }

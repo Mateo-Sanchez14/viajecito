@@ -1,4 +1,7 @@
-import { fireEvent, screen, within } from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { fireEvent, render, screen, within } from "@testing-library/react";
+import { NextIntlClientProvider } from "next-intl";
+import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { MeProvider } from "@/features/auth/MeProvider";
 import { renderWithProviders } from "@/test/render";
@@ -60,6 +63,48 @@ describe("TripShellContainer", () => {
       [messages.trips.modules.proposals, `${base}/proposals`],
       [messages.trips.modules.budget, `${base}/budget`],
     ]);
+  });
+
+  it("renders the children inside the keyed section box", () => {
+    setup();
+
+    expect(screen.getByText("contenido").closest(".trip-section")).toBeInTheDocument();
+    expect(screen.getAllByRole("navigation")).toHaveLength(2);
+  });
+
+  it("keeps the header, navigation and trip title nodes when the pathname changes", () => {
+    // A fresh element each time: re-rendering the very same element object would bail out.
+    const tree = () => (
+      <MeProvider me={makeMe()}>
+        <TripProvider trip={makeTrip({ modules: ["proposals", "budget"] })}>
+          <TripShellContainer>
+            <p>contenido</p>
+          </TripShellContainer>
+        </TripProvider>
+      </MeProvider>
+    );
+    // rerender() does not re-apply providers, so they go in as the wrapper.
+    const wrapper = ({ children }: { children: ReactNode }) => (
+      <NextIntlClientProvider locale="es-AR" messages={messages}>
+        <QueryClientProvider client={new QueryClient()}>{children}</QueryClientProvider>
+      </NextIntlClientProvider>
+    );
+    const view = render(tree(), { wrapper });
+    const title = screen.getByRole("heading", { level: 1 });
+    const wide = screen.getByRole("navigation", { name: messages.trips.nav.label });
+    const bottom = screen.getByRole("navigation", { name: messages.trips.nav.mobileLabel });
+    const section = view.container.querySelector(".trip-section");
+
+    pathname = `${base}/budget`;
+    view.rerender(tree());
+
+    expect(screen.getByRole("heading", { level: 1 })).toBe(title);
+    expect(screen.getByRole("navigation", { name: messages.trips.nav.label })).toBe(wide);
+    expect(screen.getByRole("navigation", { name: messages.trips.nav.mobileLabel })).toBe(bottom);
+    // The section box is keyed by pathname: it is the one thing that remounts.
+    expect(view.container.querySelector(".trip-section")).not.toBe(section);
+    expect(view.container.querySelectorAll(".trip-section")).toHaveLength(1);
+    expect(screen.getAllByRole("navigation")).toHaveLength(2);
   });
 
   it("highlights the overview on the trip root", () => {

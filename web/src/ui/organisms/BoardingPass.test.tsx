@@ -27,6 +27,23 @@ describe("BoardingPass", () => {
     expect(within(list).getByText("1 jul al 8 jul")).toBeInTheDocument();
   });
 
+  it("flips the figure in by remounting it when the value changes, without a live region", () => {
+    const props = { media: null, facts: [] };
+    const { container, rerender } = render(
+      <BoardingPass {...props} countdown={{ value: "10", unit: "días", caption: "para salir" }} />,
+    );
+    const first = screen.getByText("10");
+    expect(first).toHaveClass("trip-pass-value", "ui-tabular", "ui-flip");
+
+    rerender(<BoardingPass {...props} countdown={{ value: "9", unit: "días", caption: "para salir" }} />);
+
+    const next = screen.getByText("9");
+    expect(next).toHaveClass("ui-flip");
+    expect(next).not.toBe(first);
+    expect(first).not.toBeInTheDocument();
+    expect(container.querySelector("[aria-live='assertive']")).toBeNull();
+  });
+
   it("renders a fixed-size skeleton instead of a number when the countdown is unknown", () => {
     const { container } = render(<BoardingPass media={null} countdown={null} facts={facts} />);
 

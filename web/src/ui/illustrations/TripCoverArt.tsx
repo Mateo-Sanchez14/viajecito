@@ -5,6 +5,8 @@ export type TripCoverScene = "road" | "beach" | "snow" | "city";
 type TripCoverArtProps = {
   scene: TripCoverScene;
   className?: string;
+  /** Hero-only: clouds drift, the way marches and the ring breathes (CSS only, same nodes). */
+  live?: boolean;
 };
 
 /**
@@ -115,7 +117,7 @@ const SCENES: Record<TripCoverScene, () => ReactElement> = {
 };
 
 /** Decorative scene behind the trip hero and the trip tickets. Hidden from assistive tech. */
-export function TripCoverArt({ scene, className = "" }: TripCoverArtProps) {
+export function TripCoverArt({ scene, className = "", live = false }: TripCoverArtProps) {
   const Scene = SCENES[scene];
   return (
     <svg
@@ -124,7 +126,7 @@ export function TripCoverArt({ scene, className = "" }: TripCoverArtProps) {
       aria-hidden="true"
       focusable="false"
       data-scene={scene}
-      className={`trip-cover-art ${className}`}
+      className={`trip-cover-art ${live ? "trip-cover-art-live " : ""}${className}`}
     >
       <rect className="art-sky" width="480" height="270" />
       <Scene />

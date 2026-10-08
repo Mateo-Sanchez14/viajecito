@@ -156,6 +156,12 @@ describe("TripHero cover", () => {
     expect(screen.getByRole("img", { name: /Foto de/ }).getAttribute("src")).not.toBe(before);
   });
 
+  it("gives the hero illustration the live class", () => {
+    const { container } = setup(makeTrip({ has_cover: false }));
+
+    expect(container.querySelector(".trip-hero-media > svg.trip-cover-art")).toHaveClass("trip-cover-art-live");
+  });
+
   it("makes no cover request and shows the illustration when the trip has no cover", () => {
     const { container } = setup(makeTrip({ has_cover: false }));
 

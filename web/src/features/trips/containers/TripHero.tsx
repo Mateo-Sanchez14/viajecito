@@ -87,7 +87,7 @@ export function TripHero() {
             onError={() => setFailedVersion(trip.cover_version)}
           />
         ) : (
-          <TripCoverArt scene={coverScene(trip)} />
+          <TripCoverArt scene={coverScene(trip)} live />
         )
       }
       mediaAction={<CoverControl />}
