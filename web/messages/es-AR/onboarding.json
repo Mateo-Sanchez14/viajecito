@@ -1,0 +1,32 @@
+{
+  "onboarding": {
+    "replay": "Ver el recorrido",
+    "progress": "Paso {current} de {total}",
+    "skip": "Saltar",
+    "back": "Anterior",
+    "next": "Siguiente",
+    "done": "Listo",
+    "steps": {
+      "nav": {
+        "title": "Las secciones del viaje",
+        "body": "Desde acá saltás a propuestas, logística, itinerario y todo lo demás."
+      },
+      "cover": {
+        "title": "La foto del viaje",
+        "body": "Tocá la cámara para subir una foto. La ve todo el grupo."
+      },
+      "nextActions": {
+        "title": "Qué falta",
+        "body": "Acá aparece lo que queda por resolver, así nadie se cuelga."
+      },
+      "rsvp": {
+        "title": "¿Vas?",
+        "body": "Confirmá si vas para que el grupo sepa con quién cuenta."
+      },
+      "capture": {
+        "title": "Agregá rápido",
+        "body": "Con el + sumás un link, una idea con precio o una tarea sin buscar la sección."
+      }
+    }
+  }
+}

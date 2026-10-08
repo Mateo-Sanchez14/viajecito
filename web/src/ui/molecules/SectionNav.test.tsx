@@ -28,6 +28,14 @@ describe("SectionNav", () => {
     expect(nav.className).not.toMatch(/-mx-|px-/);
   });
 
+  it("carries a data-tour anchor only when asked, without changing the landmark", () => {
+    const { rerender } = render(<SectionNav label="Secciones" items={items} />);
+    expect(screen.getByRole("navigation", { name: "Secciones" })).not.toHaveAttribute("data-tour");
+
+    rerender(<SectionNav label="Secciones" items={items} tourAnchor="nav" />);
+    expect(screen.getByRole("navigation", { name: "Secciones" })).toHaveAttribute("data-tour", "nav");
+  });
+
   it("marks only the active item as the current page", () => {
     render(<SectionNav label="Secciones" items={items} />);
 

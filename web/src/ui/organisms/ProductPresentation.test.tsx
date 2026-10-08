@@ -26,6 +26,7 @@ beforeAll(async () => {
         logoutLabel="Log out"
         onLogout={() => {}}
         notifications={{ href: "/me/notifications", label: "Notifications" }}
+        help={{ label: "Tour", onClick() {} }}
       />
       <TripShell
         title="A very long trip title that still needs to wrap"
@@ -79,7 +80,7 @@ it("keeps the long-name header inside a 320px viewport and constrains it on desk
   expect((await page.locator("header").first().boundingBox())?.width).toBeLessThanOrEqual(1120);
 });
 
-it("keeps the wordmark link, the bell and logout on one header at 320px, each touch target at least 44px", async () => {
+it("keeps the wordmark link, the help button, the bell and logout on one header at 320px, each touch target at least 44px", async () => {
   await page.setViewportSize({ width: 320, height: 844 });
   const targets = await page.evaluate(() =>
     [...document.querySelectorAll<HTMLElement>("header:first-of-type a, header:first-of-type button")].map((element) => {
@@ -88,8 +89,9 @@ it("keeps the wordmark link, the bell and logout on one header at 320px, each to
     }),
   );
 
-  expect(targets.length).toBeGreaterThanOrEqual(3);
+  expect(targets.length).toBeGreaterThanOrEqual(4);
   expect(targets.some((target) => target.name?.includes("viajecito"))).toBe(true);
+  expect(targets.some((target) => target.name === "Tour")).toBe(true);
   for (const target of targets) {
     expect(target.height).toBeGreaterThanOrEqual(44);
     expect(target.width).toBeGreaterThanOrEqual(44);

@@ -13,12 +13,14 @@ type TripShellProps = {
   navItems: SectionNavItem[];
   /** Phone navigation. When given, the wide section nav only shows from md up. */
   mobileNav?: ReactNode;
+  /** `data-tour` value for the wide section nav (the phone nav takes its own through `mobileNav`). */
+  navTourAnchor?: string;
   children: ReactNode;
 };
 
 /** Presentational frame of every trip page: header, section navigation, then the page. */
-export function TripShell({ title, subtitle, backLink, navLabel, navItems, mobileNav, children }: TripShellProps) {
-  const sectionNav = <SectionNav label={navLabel} items={navItems} />;
+export function TripShell({ title, subtitle, backLink, navLabel, navItems, mobileNav, navTourAnchor, children }: TripShellProps) {
+  const sectionNav = <SectionNav label={navLabel} items={navItems} tourAnchor={navTourAnchor} />;
   return (
     <div className="trip-shell flex min-w-0 flex-col gap-7">
       {backLink && (

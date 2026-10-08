@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
+import { TOUR_ANCHOR } from "@/shared/lib/tourAnchors";
 import { BottomNav } from "@/ui/molecules/BottomNav";
 import { DotsThreeIcon } from "@/ui/icons";
 import { ViewTransition } from "@/ui/motion/ViewTransition";
@@ -55,10 +56,12 @@ export function TripShellContainer({ children }: { children: ReactNode }) {
       backLink={{ href: "/", label: t("nav.back") }}
       navLabel={t("nav.label")}
       navItems={navItems}
+      navTourAnchor={TOUR_ANCHOR.nav}
       mobileNav={
         <BottomNav
           label={t("nav.mobileLabel")}
           items={primary}
+          tourAnchor={TOUR_ANCHOR.nav}
           more={
             more.length > 0
               ? {

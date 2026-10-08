@@ -66,6 +66,7 @@
   --content-max: 1120px;
   --bottom-nav-height: 64px;
   --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --tour-dim: rgb(10 22 18 / 0.55); /* the page behind the onboarding tour */
 }
 
 @media (prefers-color-scheme: dark) {
@@ -99,6 +100,7 @@
     --elev-1: 0 1px 2px rgb(4 12 10 / 0.4), 0 4px 12px -6px rgb(4 12 10 / 0.5);
     --elev-2: 0 2px 4px rgb(4 12 10 / 0.4), 0 12px 28px -12px rgb(4 12 10 / 0.6);
     --elev-3: 0 4px 10px rgb(4 12 10 / 0.45), 0 28px 60px -20px rgb(4 12 10 / 0.7);
+    --tour-dim: rgb(4 12 10 / 0.72);
   }
 }
 
@@ -2502,6 +2504,55 @@ body:has(.app-atmosphere),
   animation: login-rise var(--dur-slow) var(--ease-out) 80ms both;
 }
 @keyframes login-rise { from { opacity: 0; transform: translateY(14px); } }
+
+/* S5 - Onboarding tour: a transparent full-screen modal holding the spotlight ring and the coach card. */
+.tour {
+  position: fixed; inset: 0; width: 100%; height: 100%; max-width: none; max-height: none;
+  margin: 0; padding: 0; border: 0; overflow: hidden; background: transparent; color: var(--foreground);
+}
+.tour[open] { animation: tour-fade var(--dur-slow) var(--ease-out) both; }
+@keyframes tour-fade { from { opacity: 0; } }
+.tour::backdrop { background: transparent; }
+.tour :where(a, button):focus-visible { outline-offset: 2px; }
+/* The ring is the hole in the dim: one fixed, childless box that glides from anchor to anchor. */
+.tour-spotlight {
+  position: fixed; top: 0; left: 0;
+  width: var(--spot-w, 0px); height: var(--spot-h, 0px);
+  transform: translate(var(--spot-x, 50vw), var(--spot-y, 50vh));
+  border-radius: var(--radius-card);
+  box-shadow: 0 0 0 2px var(--surface), 0 0 0 5px var(--accent), 0 0 0 200vmax var(--tour-dim);
+  pointer-events: none;
+  transition:
+    transform var(--dur-slow) var(--ease-out),
+    width var(--dur-slow) var(--ease-out),
+    height var(--dur-slow) var(--ease-out);
+}
+.tour-spotlight[data-empty] { box-shadow: 0 0 0 200vmax var(--tour-dim); }
+/* A slow halo leaving the ring: transform and opacity only, and a still, solid ring without motion. */
+.tour-spotlight::after {
+  content: ""; position: absolute; inset: -5px; border: 2px solid var(--accent); border-radius: inherit;
+  opacity: 0; animation: tour-halo 2800ms var(--ease-out) 600ms infinite;
+}
+.tour-spotlight[data-empty]::after { display: none; }
+@keyframes tour-halo { from { opacity: 0.55; transform: scale(1); } to { opacity: 0; transform: scale(1.1); } }
+.tour-card {
+  position: fixed; top: 0; left: 0; box-sizing: border-box;
+  width: min(22rem, calc(100vw - 32px));
+  transform: translate(var(--card-x, 16px), var(--card-y, 16px));
+  display: flex; flex-direction: column; gap: 12px; padding: 20px;
+  border-radius: var(--radius-panel); background: var(--surface); box-shadow: var(--elev-3);
+  transition: transform var(--dur-slow) var(--ease-out);
+}
+/* The first position is taken, not travelled to (the card gets `data-ready` one frame after opening). */
+.tour-card:not([data-ready]) { transition: none; }
+.tour-step { display: flex; flex-direction: column; gap: 8px; animation: ui-enter var(--dur-base) var(--ease-out) both; }
+.tour-progress { margin: 0; color: var(--accent); font-size: var(--type-xs); font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; }
+.tour-title { margin: 0; font-size: var(--type-lg); font-weight: 600; letter-spacing: var(--tracking-heading); }
+.tour-body { margin: 0; color: var(--muted); line-height: var(--leading-body); }
+.tour-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 4px; }
+.tour-actions-main { display: flex; gap: 8px; margin-left: auto; }
+/* After a tour the page's main landmark may take focus (programmatically): no ring on a container. */
+main[tabindex="-1"]:focus { outline: none; }
 
 /* Stays last: it must beat every transition and animation declared above. */
 @media (prefers-reduced-motion: reduce) {

@@ -2,6 +2,7 @@
 
 import { useId } from "react";
 import { useTranslations } from "next-intl";
+import { TOUR_ANCHOR } from "@/shared/lib/tourAnchors";
 import { tripActions, type TripAction } from "../actions";
 import { useTripContext } from "../TripProvider";
 
@@ -22,7 +23,7 @@ export function NextActions({ actions = tripActions }: { actions?: TripAction[] 
   if (entries.length === 0) return null;
 
   return (
-    <section aria-labelledby={headingId} className="next-actions ui-enter">
+    <section aria-labelledby={headingId} data-tour={TOUR_ANCHOR.nextActions} className="next-actions ui-enter">
       <h2 id={headingId} className="text-lg font-semibold">
         {t("title")}
       </h2>

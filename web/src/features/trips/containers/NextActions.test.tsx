@@ -44,6 +44,12 @@ describe("NextActions", () => {
     expect(within(section).getAllByRole("listitem").map((item) => item.textContent)).toEqual(["a", "b", "c"]);
   });
 
+  it("is the tour's next-actions anchor, on the labelled section", () => {
+    setup([rule("a", 10)]);
+
+    expect(screen.getByRole("region", { name: t.title })).toHaveAttribute("data-tour", "next-actions");
+  });
+
   it("does not render a rule whose module the trip does not have", () => {
     setup([rule("docs", 10, "documents"), rule("always", 20)], makeTrip({ modules: ["dates"] }));
 

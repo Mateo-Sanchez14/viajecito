@@ -35,6 +35,7 @@ export {
   MountainsIcon,
   PencilSimpleIcon,
   PlusIcon,
+  QuestionIcon,
   ShieldCheckIcon,
   SquaresFourIcon,
   SuitcaseRollingIcon,

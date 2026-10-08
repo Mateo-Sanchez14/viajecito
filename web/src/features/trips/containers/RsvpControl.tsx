@@ -1,6 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { TOUR_ANCHOR } from "@/shared/lib/tourAnchors";
 import type { Rsvp } from "../api/trips";
 import { useSetRsvp } from "../hooks/mutations";
 import { useTripContext } from "../TripProvider";
@@ -14,7 +15,7 @@ export function RsvpControl() {
   const setRsvp = useSetRsvp(trip.id, me.person.id);
 
   return (
-    <div className="flex flex-col gap-2">
+    <div data-tour={TOUR_ANCHOR.rsvp} className="flex flex-col gap-2">
       <p id={`rsvp-label-${trip.id}`} className="text-sm font-medium">{t("label")}</p>
       <div role="group" aria-labelledby={`rsvp-label-${trip.id}`} className="rsvp-control inline-flex w-full rounded-2xl border border-border p-1">
         {OPTIONS.map((option) => (

@@ -24,17 +24,19 @@ type BottomNavProps = {
     icon: ReactNode;
     items: BottomNavItem[];
   };
+  /** Value of `data-tour` for the onboarding tour; changes nothing visible. */
+  tourAnchor?: string;
 };
 
 /** Floating phone navigation: up to five slots, the last one optionally a "more" sheet. */
-export function BottomNav({ label, items, more }: BottomNavProps) {
+export function BottomNav({ label, items, more, tourAnchor }: BottomNavProps) {
   const [moreOpen, setMoreOpen] = useState(false);
   const slots = items.length + (more ? 1 : 0);
   const moreActive = more?.items.some((item) => item.active) ?? false;
 
   return (
     <>
-      <nav aria-label={label} className="bottom-nav">
+      <nav aria-label={label} data-tour={tourAnchor} className="bottom-nav">
         <ul style={{ "--items": slots } as CSSProperties}>
           {items.map((item) => (
             <li key={item.key}>

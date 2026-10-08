@@ -6,7 +6,8 @@ import type { paths } from "@/shared/api/schema";
 import { renderWithProviders } from "@/test/render";
 import { server } from "@/test/server";
 import messages from "../../../../messages/es-AR";
-import { MeProvider } from "../MeProvider";
+import { TourProvider } from "@/features/onboarding/TourProvider";
+import { MeProvider, type Me } from "../MeProvider";
 import { ShellHeader } from "./ShellHeader";
 
 const replace = vi.fn();
@@ -54,8 +55,28 @@ function stubPushSubscription() {
   return subscription;
 }
 
+const CREW_ID = "11111111-1111-4111-8111-111111111111";
+const TRIP_ID = "22222222-2222-4222-8222-222222222222";
+const withDefaultTrip: Me = {
+  ...me,
+  crews: [{ id: CREW_ID, name: "Los Pibes", role: "admin" as const, gastito_group_url: null, default_trip_id: TRIP_ID }],
+};
+
+function renderInTour(value: Me) {
+  return renderWithProviders(
+    <MeProvider me={value}>
+      <TourProvider>
+        <ShellHeader />
+      </TourProvider>
+    </MeProvider>,
+  );
+}
+
 describe("ShellHeader", () => {
-  beforeEach(() => replace.mockReset());
+  beforeEach(() => {
+    replace.mockReset();
+    push.mockReset();
+  });
   afterEach(() => {
     resetCsrfToken();
     vi.unstubAllGlobals();
@@ -134,6 +155,37 @@ describe("ShellHeader", () => {
     fireEvent.click(screen.getByRole("button", { name: messages.auth.logout }));
 
     await vi.waitFor(() => expect(replace).toHaveBeenCalledWith("/login"));
+  });
+
+  it("offers the tour replay right before the bell when a trip can be toured, keeping bell then logout in order", () => {
+    renderInTour(withDefaultTrip);
+
+    const help = screen.getByRole("button", { name: messages.onboarding.replay });
+    const bell = screen.getByRole("link", { name: messages.push.nav });
+    expect(help).toHaveAttribute("aria-haspopup", "dialog");
+    expect(help.closest("header")).toBe(screen.getByRole("banner"));
+    expect(help.nextElementSibling).toBe(bell);
+    expect(bell.nextElementSibling).toBe(screen.getByRole("button", { name: messages.auth.logout }));
+  });
+
+  it("routes the replay from home to the default trip overview and leaves a pending start", () => {
+    renderInTour(withDefaultTrip);
+
+    fireEvent.click(screen.getByRole("button", { name: messages.onboarding.replay }));
+
+    expect(push).toHaveBeenCalledWith(`/crews/${CREW_ID}/trips/${TRIP_ID}`);
+  });
+
+  it("hides the replay when there is no trip to tour", () => {
+    renderInTour(me);
+
+    expect(screen.queryByRole("button", { name: messages.onboarding.replay })).not.toBeInTheDocument();
+  });
+
+  it("hides the replay outside a tour provider", () => {
+    renderHeader();
+
+    expect(screen.queryByRole("button", { name: messages.onboarding.replay })).not.toBeInTheDocument();
   });
 
   it("links the wordmark home", () => {

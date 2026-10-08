@@ -65,6 +65,14 @@ describe("TripShellContainer", () => {
     ]);
   });
 
+  it("marks both navigations as the tour's nav anchor (only the visible one is used)", () => {
+    setup();
+
+    expect(wideNav().getByRole("link", { name: messages.trips.modules.overview }).closest("nav")).toHaveAttribute("data-tour", "nav");
+    expect(screen.getByRole("navigation", { name: messages.trips.nav.mobileLabel })).toHaveAttribute("data-tour", "nav");
+    expect(document.querySelectorAll('[data-tour="nav"]')).toHaveLength(2);
+  });
+
   it("renders the children inside the keyed section box", () => {
     setup();
 

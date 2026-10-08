@@ -114,6 +114,13 @@ describe("TripOverview", () => {
     expect(items.find((li) => li.textContent === "full card")).toBeDefined();
   });
 
+  it("marks the RSVP control as the tour's rsvp anchor", () => {
+    setup();
+
+    const group = screen.getByRole("group", { name: messages.trips.rsvp.label });
+    expect(group.parentElement).toHaveAttribute("data-tour", "rsvp");
+  });
+
   it("includes the RSVP control", () => {
     setup();
 

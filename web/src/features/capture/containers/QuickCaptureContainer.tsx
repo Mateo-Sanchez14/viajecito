@@ -4,6 +4,7 @@ import { useCallback, useMemo, useState } from "react";
 import { useParams, usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useMe } from "@/features/auth/MeProvider";
+import { TOUR_ANCHOR } from "@/shared/lib/tourAnchors";
 import { PlusIcon } from "@/ui/icons";
 import { Sheet } from "@/ui/molecules/Sheet";
 import { CaptureToast, type CaptureToastData } from "../components/CaptureToast";
@@ -45,6 +46,7 @@ export function QuickCaptureContainer() {
           <button
             type="button"
             className="quick-capture-fab"
+            data-tour={TOUR_ANCHOR.capture}
             aria-haspopup="dialog"
             onClick={() => setOpenedOn(pathname)}
           >

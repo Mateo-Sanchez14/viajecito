@@ -11,8 +11,8 @@ import { ProposalsOverviewCard } from "@/features/proposals/containers/Proposals
 import { ProposalFilters } from "@/features/proposals/components/ProposalFilters";
 import { DEFAULT_FILTERS } from "@/features/proposals/api/proposals";
 
-vi.mock("next/navigation", () => ({ useRouter: () => ({}) }));
-vi.mock("@/features/auth/MeProvider", () => ({ useMe: () => ({ person: { display_name: "Mateo" } }) }));
+vi.mock("next/navigation", () => ({ useRouter: () => ({}), usePathname: () => "/", useParams: () => ({}) }));
+vi.mock("@/features/auth/MeProvider", () => ({ useMe: () => ({ person: { display_name: "Mateo" }, crews: [] }) }));
 vi.mock("@/features/push/containers/PushSubscriptionSync", () => ({ PushSubscriptionSync: () => null }));
 vi.mock("@/features/proposals/hooks/queries", () => ({
   useProposalsSummary: () => ({

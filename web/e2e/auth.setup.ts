@@ -1,5 +1,6 @@
 import { expect, test as setup } from "@playwright/test";
 import messages from "../messages/es-AR";
+import { TOUR_VERSION } from "../src/features/onboarding/lib/version";
 
 export const authFile = "e2e/.auth/user.json";
 
@@ -42,6 +43,15 @@ setup("sign in once and save the storage state", async ({ page, request }) => {
   await page.getByLabel(messages.auth.code.label).fill(code as string);
   await page.getByRole("button", { name: messages.auth.code.submit }).click();
   await expect(page.getByRole("button", { name: messages.auth.logout, exact: true })).toBeVisible();
+
+  // Mark the onboarding tour as seen, so its modal never gets in the way of another spec.
+  // tour.spec.ts opens it on purpose through the replay button.
+  const csrf = (await (await page.request.get("/api/auth/csrf")).json()) as { csrf_token: string };
+  const seen = await page.request.post("/api/me/tour", {
+    headers: { "X-CSRFToken": csrf.csrf_token },
+    data: { version: TOUR_VERSION },
+  });
+  expect(seen.status()).toBe(200);
 
   await page.context().storageState({ path: authFile });
 });

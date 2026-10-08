@@ -73,6 +73,13 @@ describe("CoverControl without a cover", () => {
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 
+  it("is the tour's cover anchor without changing its role or name", () => {
+    setup();
+
+    const button = screen.getByRole("button", { name: t.add });
+    expect(button).toHaveAttribute("data-tour", "cover");
+  });
+
   it("only accepts images and opens the file picker from the button", () => {
     const { input } = setup();
     const click = vi.spyOn(input, "click");

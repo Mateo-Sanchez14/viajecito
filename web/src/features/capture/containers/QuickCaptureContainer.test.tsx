@@ -94,6 +94,12 @@ describe("QuickCaptureContainer", () => {
   });
 
   describe("trigger and sheet", () => {
+    it("is the tour's capture anchor without changing its role or name", () => {
+      setup();
+
+      expect(trigger()).toHaveAttribute("data-tour", "capture");
+    });
+
     it("shows an icon button named 'Agregar rápido' that is not a navigation link", () => {
       setup();
 

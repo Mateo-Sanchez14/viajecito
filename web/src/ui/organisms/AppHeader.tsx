@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Button } from "@/ui/atoms/Button";
-import { BellIcon } from "@/ui/icons";
+import { BellIcon, QuestionIcon } from "@/ui/icons";
 
 type AppHeaderProps = {
   appName: string;
@@ -13,6 +13,8 @@ type AppHeaderProps = {
   notifications?: { href: string; label: string };
   /** Where the wordmark leads. Without it the wordmark is plain text. */
   homeHref?: string;
+  /** Icon-only button before the bell (replays the onboarding tour); `label` is its accessible name. */
+  help?: { label: string; onClick: () => void };
 };
 
 /** Presentational: app name, greeting, notifications shortcut and the logout control of the authenticated shell. */
@@ -25,6 +27,7 @@ export function AppHeader({
   errorMessage,
   notifications,
   homeHref,
+  help,
 }: AppHeaderProps) {
   return (
     <header className="app-header border border-border bg-surface">
@@ -40,6 +43,18 @@ export function AppHeader({
         )}
         <div className="app-account flex min-w-0 items-center gap-3">
           <span className="app-greeting text-sm text-muted">{greeting}</span>
+          {help && (
+            <Button
+              variant="icon"
+              aria-label={help.label}
+              title={help.label}
+              aria-haspopup="dialog"
+              className="app-header-help"
+              onClick={help.onClick}
+            >
+              <QuestionIcon size={22} aria-hidden="true" />
+            </Button>
+          )}
           {notifications && (
             <Link
               href={notifications.href}

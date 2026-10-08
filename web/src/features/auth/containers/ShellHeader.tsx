@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
+import { useTourReplay } from "@/features/onboarding/hooks/useTourReplay";
 import { PushSubscriptionSync } from "@/features/push/containers/PushSubscriptionSync";
 import { dropThisDeviceSubscription } from "@/features/push/lib/device";
 import { AppHeader } from "@/ui/organisms/AppHeader";
@@ -14,6 +15,7 @@ export function ShellHeader() {
   const t = useTranslations();
   const router = useRouter();
   const { person } = useMe();
+  const replay = useTourReplay();
   const [pending, setPending] = useState(false);
   const [failed, setFailed] = useState(false);
 
@@ -41,6 +43,7 @@ export function ShellHeader() {
         appName={t("app.name")}
         homeHref="/"
         greeting={name ? t("home.greeting", { name }) : t("home.greetingAnonymous")}
+        help={replay.available ? { label: t("onboarding.replay"), onClick: replay.replay } : undefined}
         notifications={{ href: "/me/notifications", label: t("push.nav") }}
         logoutLabel={t("auth.logout")}
         onLogout={handleLogout}

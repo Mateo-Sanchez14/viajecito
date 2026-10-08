@@ -3,6 +3,7 @@
 import { useRef, useState, type ChangeEvent } from "react";
 import { useTranslations } from "next-intl";
 import { ApiError } from "@/shared/api/errors";
+import { TOUR_ANCHOR } from "@/shared/lib/tourAnchors";
 import { Button } from "@/ui/atoms/Button";
 import { CameraIcon, TrashIcon } from "@/ui/icons";
 import { ConfirmDialog } from "@/ui/molecules/ConfirmDialog";
@@ -69,6 +70,7 @@ export function CoverControl() {
         variant="icon"
         aria-label={trip.has_cover ? t("change") : t("add")}
         aria-busy={busy}
+        data-tour={TOUR_ANCHOR.cover}
         disabled={busy}
         onClick={() => (trip.has_cover ? setSheetOpen(true) : openPicker())}
       >

@@ -14,12 +14,14 @@ type SectionNavProps = {
   label: string;
   items: SectionNavItem[];
   className?: string;
+  /** Value of `data-tour` for the onboarding tour; changes nothing visible. */
+  tourAnchor?: string;
 };
 
 /** Horizontal tab-like navigation; scrolls sideways on narrow screens. */
-export function SectionNav({ label, items, className = "" }: SectionNavProps) {
+export function SectionNav({ label, items, className = "", tourAnchor }: SectionNavProps) {
   return (
-    <nav aria-label={label} className={`ui-section-nav w-full overflow-x-auto ${className}`}>
+    <nav aria-label={label} data-tour={tourAnchor} className={`ui-section-nav w-full overflow-x-auto ${className}`}>
       <ul className="flex w-max min-w-full gap-1">
         {items.map((item) => (
           <li key={item.key}>

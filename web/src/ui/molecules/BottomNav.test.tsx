@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { BottomNav, type BottomNavItem } from "./BottomNav";
 
@@ -40,6 +40,14 @@ describe("BottomNav", () => {
     const links = within(nav).getAllByRole("link");
     expect(links.map((link) => link.textContent)).toEqual(["Resumen", "Propuestas", "Logística"]);
     expect(links[1]).toHaveAttribute("href", "/t/proposals");
+  });
+
+  it("carries a data-tour anchor only when asked, without changing the landmark", () => {
+    expect(setup()).not.toHaveAttribute("data-tour");
+    cleanup();
+
+    render(<BottomNav label="Menú del viaje" items={primary} tourAnchor="nav" />);
+    expect(screen.getByRole("navigation", { name: "Menú del viaje" })).toHaveAttribute("data-tour", "nav");
   });
 
   it("marks only the active item as the current page", () => {
