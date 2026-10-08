@@ -53,3 +53,6 @@ next-env.d.ts
 /public/swe-worker-*.js
 /public/workbox-*.js
 /e2e/.auth/
+
+# ambient video sources: user-approved downloads, never committed (see scripts/ambient/build.mjs)
+/scripts/ambient/sources/

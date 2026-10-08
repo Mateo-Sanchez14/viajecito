@@ -102,6 +102,23 @@ describe("static assets", () => {
   });
 });
 
+describe("ambient media", () => {
+  it("never routes a video request to a caching rule, so Range requests reach the network untouched", () => {
+    const video = match("/ambient/city.0123456789.mp4", { destination: "video" });
+
+    expect(isStaticAsset(video)).toBe(false);
+    expect(isNetworkOnly(video)).toBe(false);
+    expect(isTodayApi(video)).toBe(false);
+    expect(isDocumentsList(video)).toBe(false);
+    expect(isDocumentFile(video)).toBe(false);
+    expect(isMe(video)).toBe(false);
+  });
+
+  it("lets the poster follow the existing image rule", () => {
+    expect(isStaticAsset(match("/ambient/city.0123456789.webp", { destination: "image" }))).toBe(true);
+  });
+});
+
 describe("cache names", () => {
   it("purges every private cache on logout", () => {
     expect(PURGE_CACHE_NAMES).toEqual([

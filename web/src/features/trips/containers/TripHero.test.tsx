@@ -4,11 +4,23 @@ import { MeProvider } from "@/features/auth/MeProvider";
 import { renderWithProviders } from "@/test/render";
 import messages from "../../../../messages/es-AR";
 import { CREW_ID, TRIP_ID, formatDay, makeMe, makeTrip } from "../fixtures";
+import { coverScene } from "../lib/coverScene";
 import { TripProvider } from "../TripProvider";
 import { TripHero } from "./TripHero";
 
 const clock = vi.hoisted(() => ({ now: null as Date | null }));
 vi.mock("@/shared/lib/useClientNow", () => ({ useClientNow: () => clock.now }));
+
+// Ambient footage: no clip by default (as shipped with an empty manifest); tests opt in per scene.
+const ambient = vi.hoisted(() => ({
+  clips: {} as Record<string, { mp4: string; poster: string; hash: string }>,
+  allowed: false,
+}));
+vi.mock("@/ui/ambient/scenes", () => ({
+  AMBIENT_VIDEO_ENABLED: true,
+  ambientClip: (scene: string) => ambient.clips[scene] ?? null,
+}));
+vi.mock("@/shared/lib/useAmbientAllowed", () => ({ useAmbientAllowed: () => ambient.allowed }));
 
 const t = messages.trips.hero.countdown;
 // Noon in Buenos Aires.
@@ -26,6 +38,8 @@ function setup(trip = makeTrip()) {
 
 beforeEach(() => {
   clock.now = at("2027-06-21");
+  ambient.clips = {};
+  ambient.allowed = false;
 });
 
 describe("TripHero countdown", () => {
@@ -191,5 +205,102 @@ describe("TripHero cover", () => {
     setup(makeTrip({ has_cover: true, cover_version: 1 }));
 
     expect(screen.getByRole("button", { name: messages.trips.cover.change })).toBeInTheDocument();
+  });
+});
+
+describe("TripHero ambient layer", () => {
+  // makeTrip() is a generic trip: pick the scene it maps to so the clip applies.
+  const sceneOf = (trip: ReturnType<typeof makeTrip>) => coverScene(trip);
+  const withClip = (trip: ReturnType<typeof makeTrip>) => {
+    const scene = sceneOf(trip);
+    ambient.clips = {
+      [scene]: { mp4: `/ambient/${scene}.0123456789.mp4`, poster: `/ambient/${scene}.0123456789.webp`, hash: "0123456789" },
+    };
+    return scene;
+  };
+
+  beforeEach(() => {
+    vi.spyOn(HTMLMediaElement.prototype, "play").mockResolvedValue(undefined);
+    vi.spyOn(HTMLMediaElement.prototype, "pause").mockImplementation(() => {});
+  });
+
+  it("shows only the illustration when the scene has no clip", () => {
+    const { container } = setup();
+
+    expect(container.querySelector(".ambient-media")).toBeNull();
+    expect(container.querySelector("video")).toBeNull();
+    expect(container.querySelector("svg.trip-cover-art")).toBeInTheDocument();
+  });
+
+  it("shows the poster, and no video, over the illustration when motion is not allowed", () => {
+    const trip = makeTrip();
+    const scene = withClip(trip);
+    ambient.allowed = false;
+    const { container } = setup(trip);
+
+    const poster = container.querySelector(".ambient-media img.ambient-poster")!;
+    expect(poster).toHaveAttribute("alt", "");
+    expect(poster).toHaveAttribute("src", `/ambient/${scene}.0123456789.webp`);
+    expect(container.querySelector("video")).toBeNull();
+    expect(container.querySelector("svg.trip-cover-art")).toBeInTheDocument();
+  });
+
+  it("plays the clip over the illustration when motion is allowed", () => {
+    const trip = makeTrip();
+    const scene = withClip(trip);
+    ambient.allowed = true;
+    const { container } = setup(trip);
+
+    const video = container.querySelector("video.ambient-video")!;
+    expect(video).toHaveAttribute("src", `/ambient/${scene}.0123456789.mp4`);
+    expect(video.closest(".ambient-media")).toHaveAttribute("aria-hidden", "true");
+  });
+
+  it("layers illustration, then footage, then the cover control as direct children of the media frame", () => {
+    const trip = makeTrip();
+    withClip(trip);
+    ambient.allowed = true;
+    const { container } = setup(trip);
+
+    const frame = container.querySelector(".trip-hero-media")!;
+    const children = [...frame.children].map((child) => (child.tagName === "svg" ? "svg" : child.className.trim()));
+    expect(children).toEqual(["svg", "ambient-media", "trip-hero-media-action"]);
+  });
+
+  it("lets the cover photo replace both the footage and the illustration", () => {
+    const trip = makeTrip({ has_cover: true, cover_version: 2 });
+    withClip(trip);
+    ambient.allowed = true;
+    const { container } = setup(trip);
+
+    expect(container.querySelector("img.trip-hero-photo")).toBeInTheDocument();
+    expect(container.querySelector(".ambient-media")).toBeNull();
+    expect(container.querySelector("video")).toBeNull();
+    expect(container.querySelector("svg.trip-cover-art")).toBeNull();
+  });
+
+  it("falls through to the footage when the cover photo cannot load", () => {
+    const trip = makeTrip({ has_cover: true, cover_version: 2 });
+    withClip(trip);
+    ambient.allowed = true;
+    const { container } = setup(trip);
+
+    fireEvent.error(screen.getByRole("img", { name: /Foto de/ }));
+
+    expect(container.querySelector("video.ambient-video")).toBeInTheDocument();
+    expect(container.querySelector("img.trip-hero-photo")).toBeNull();
+  });
+
+  it("keeps the hero box when footage is added or removed", () => {
+    const trip = makeTrip();
+    const without = setup(trip);
+    const frame = without.container.querySelector(".trip-hero-media")!;
+    expect(frame.classList.contains("trip-hero-media")).toBe(true);
+    without.unmount();
+
+    withClip(trip);
+    const withFootage = setup(trip);
+
+    expect(withFootage.container.querySelector(".trip-hero-media")?.className).toBe(frame.className);
   });
 });

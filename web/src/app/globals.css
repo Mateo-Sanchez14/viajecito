@@ -2389,6 +2389,21 @@ a.app-wordmark:active { transform: scale(0.98); }
   .landing-hero-panel { justify-content: center; margin: 0; padding: 32px; box-shadow: var(--elev-1); }
 }
 
+/* S3 - Ambient destination loop over the illustration: poster first, then the muted video. */
+.ambient-media { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+.ambient-poster,
+.ambient-video {
+  position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: cover;
+  opacity: 0; transition: opacity var(--dur-slow) var(--ease-out);
+}
+.ambient-media[data-poster] > .ambient-poster,
+.ambient-media[data-playing] > .ambient-video { opacity: 1; }
+/* A soft top scrim keeps the floating cover control legible over bright footage. */
+.ambient-media::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgb(10 22 18 / 0.22), transparent 45%); }
+/* While the footage covers the illustration there is no point animating it. */
+.trip-hero-media:has(> .ambient-media[data-playing]) > .trip-cover-art-live *,
+.landing-hero-media:has(> .ambient-media[data-playing]) > .trip-cover-art-live * { animation-play-state: paused; }
+
 /* Stays last: it must beat every transition and animation declared above. */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

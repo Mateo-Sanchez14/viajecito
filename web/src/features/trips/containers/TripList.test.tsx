@@ -143,6 +143,16 @@ describe("TripList ticket media", () => {
     expect(link.querySelector(".trip-ticket-media svg.trip-cover-art")).toHaveAttribute("aria-hidden", "true");
   });
 
+  it("never renders a video in a ticket, with or without footage elsewhere", async () => {
+    server.use(trips(makeSummary({ has_cover: false }), makeSummary({ id: OTHER_ID, name: "Mendoza", has_cover: true, cover_version: 1 })));
+    const { container } = renderWithProviders(<TripList crewId={CREW_ID} />);
+
+    await screen.findByRole("link", { name: /Bariloche 2027/ });
+    expect(container.querySelectorAll(".trip-ticket-media").length).toBe(2);
+    expect(container.querySelector(".trip-ticket-media video, .trip-ticket-media .ambient-media")).toBeNull();
+    expect(container.querySelector("video")).toBeNull();
+  });
+
   it("keeps the ticket illustration still: the live class belongs to the hero only", async () => {
     server.use(trips(makeSummary({ has_cover: false })));
     renderWithProviders(<TripList crewId={CREW_ID} />);

@@ -21,6 +21,18 @@ const nextConfig: NextConfig = {
   experimental: {
     optimizePackageImports: ["@phosphor-icons/react"],
   },
+  async headers() {
+    return [
+      {
+        // Content-hashed names from scripts/ambient/build.mjs: a changed clip is a new URL.
+        source: "/ambient/:path*",
+        headers: [
+          { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
+          { key: "X-Content-Type-Options", value: "nosniff" },
+        ],
+      },
+    ];
+  },
   // Dev convenience only. Production relies on the tunnel splitting /api/* to the api,
   // so the rewrite (baked at build time) is not registered there.
   async rewrites() {

@@ -13,7 +13,9 @@
     "test:e2e": "playwright test",
     "api:types": "openapi-typescript ../contracts/openapi.json --default-non-nullable false -o src/shared/api/schema.d.ts",
     "api:types:check": "openapi-typescript ../contracts/openapi.json --default-non-nullable false -o \"${TMPDIR:-/tmp}/viajecito-schema.d.ts\" && diff -u src/shared/api/schema.d.ts \"${TMPDIR:-/tmp}/viajecito-schema.d.ts\"",
-    "icons:generate": "node scripts/generate-icons.mjs"
+    "icons:generate": "node scripts/generate-icons.mjs",
+    "ambient:build": "node scripts/ambient/build.mjs",
+    "ambient:test": "node --test \"scripts/ambient/*.test.mjs\""
   },
   "dependencies": {
     "@phosphor-icons/react": "^2.1.10",

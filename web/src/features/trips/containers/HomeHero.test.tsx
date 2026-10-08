@@ -8,11 +8,23 @@ import { server } from "@/test/server";
 import messages from "../../../../messages/es-AR";
 import { CREW_ID, TRIP_ID, formatDay, makeMe, makeSummary } from "../fixtures";
 import { tripCountdown } from "../lib/countdown";
+import { coverScene } from "../lib/coverScene";
 import { HomeHero } from "./HomeHero";
 import { TripList } from "./TripList";
 
 const clock = vi.hoisted(() => ({ now: null as Date | null }));
 vi.mock("@/shared/lib/useClientNow", () => ({ useClientNow: () => clock.now }));
+
+// Ambient footage: no clip by default (an empty manifest); tests opt in per scene.
+const ambient = vi.hoisted(() => ({
+  clips: {} as Record<string, { mp4: string; poster: string; hash: string }>,
+  allowed: false,
+}));
+vi.mock("@/ui/ambient/scenes", () => ({
+  AMBIENT_VIDEO_ENABLED: true,
+  ambientClip: (scene: string) => ambient.clips[scene] ?? null,
+}));
+vi.mock("@/shared/lib/useAmbientAllowed", () => ({ useAmbientAllowed: () => ambient.allowed }));
 
 const http = createOpenApiHttp<paths>({ baseUrl: globalThis.location.origin });
 const OTHER_CREW = "55555555-5555-4555-8555-555555555555";
@@ -47,6 +59,8 @@ function setup(me = makeMe(), extra?: React.ReactNode) {
 beforeEach(() => {
   // Noon in Buenos Aires.
   clock.now = new Date("2027-06-21T15:00:00Z");
+  ambient.clips = {};
+  ambient.allowed = false;
 });
 
 describe("HomeHero greeting", () => {
@@ -178,6 +192,77 @@ describe("HomeHero next trip", () => {
     expect(frame.querySelector("img")).toBeNull();
     expect(frame.querySelector("svg.trip-cover-art-live")).toBeInTheDocument();
     expect(container.querySelector(".landing-hero-media")).toBe(frame);
+  });
+});
+
+describe("HomeHero ambient layer", () => {
+  const scene = coverScene(makeSummary());
+  const withClip = () => {
+    ambient.clips = {
+      [scene]: { mp4: `/ambient/${scene}.0123456789.mp4`, poster: `/ambient/${scene}.0123456789.webp`, hash: "0123456789" },
+    };
+  };
+
+  beforeEach(() => {
+    vi.spyOn(HTMLMediaElement.prototype, "play").mockResolvedValue(undefined);
+    vi.spyOn(HTMLMediaElement.prototype, "pause").mockImplementation(() => {});
+  });
+
+  it("plays the scene video under the panel when there is no cover and motion is allowed", async () => {
+    withClip();
+    ambient.allowed = true;
+    server.use(trips({ [CREW_ID]: [makeSummary()] }));
+    const { container } = setup();
+
+    await screen.findByRole("link", { name: hero.open });
+    const media = container.querySelector(".landing-hero-media")!;
+    expect(media.querySelector("svg.trip-cover-art-live")).toBeInTheDocument();
+    expect(media.querySelector(".ambient-media video.ambient-video")).toHaveAttribute("src", `/ambient/${scene}.0123456789.mp4`);
+    expect(container.querySelector(".landing-hero-panel video")).toBeNull();
+  });
+
+  it("shows only the poster under reduced motion or Save-Data", async () => {
+    withClip();
+    ambient.allowed = false;
+    server.use(trips({ [CREW_ID]: [makeSummary()] }));
+    const { container } = setup();
+
+    await screen.findByRole("link", { name: hero.open });
+    expect(container.querySelector(".landing-hero-media img.ambient-poster")).toHaveAttribute("alt", "");
+    expect(container.querySelector("video")).toBeNull();
+  });
+
+  it("shows only the illustration when the scene has no clip", async () => {
+    server.use(trips({ [CREW_ID]: [makeSummary()] }));
+    const { container } = setup();
+
+    await screen.findByRole("link", { name: hero.open });
+    expect(container.querySelector(".ambient-media")).toBeNull();
+    expect(container.querySelector(".landing-hero-media svg.trip-cover-art")).toBeInTheDocument();
+  });
+
+  it("lets the cover photo win over footage", async () => {
+    withClip();
+    ambient.allowed = true;
+    server.use(trips({ [CREW_ID]: [makeSummary({ has_cover: true, cover_version: 1 })] }));
+    const { container } = setup();
+
+    await screen.findByRole("link", { name: hero.open });
+    expect(container.querySelector("img.trip-hero-photo")).toBeInTheDocument();
+    expect(container.querySelector(".ambient-media")).toBeNull();
+    expect(container.querySelector("video")).toBeNull();
+  });
+
+  it("keeps footage out of the empty and loading states", async () => {
+    withClip();
+    ambient.allowed = true;
+    server.use(trips({}));
+    const { container } = setup();
+
+    expect(container.querySelector(".ambient-media")).toBeNull();
+    await screen.findByRole("heading", { level: 2, name: hero.empty.title });
+    expect(container.querySelector(".ambient-media")).toBeNull();
+    expect(container.querySelector("video")).toBeNull();
   });
 });
 

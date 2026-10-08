@@ -3,8 +3,11 @@
 import { useQueries } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { useMe } from "@/features/auth/MeProvider";
+import { useAmbientAllowed } from "@/shared/lib/useAmbientAllowed";
 import { useClientNow } from "@/shared/lib/useClientNow";
+import { ambientClip } from "@/ui/ambient/scenes";
 import { TripCoverArt } from "@/ui/illustrations/TripCoverArt";
+import { AmbientVideo } from "@/ui/molecules/AmbientVideo";
 import { LandingHero, type LandingNext } from "@/ui/organisms/LandingHero";
 import { coverPath } from "../api/cover";
 import { listTrips, tripKeys } from "../api/trips";
@@ -22,6 +25,7 @@ export function HomeHero() {
   const dateRange = useDateRange();
   const { person, crews } = useMe();
   const now = useClientNow();
+  const allowMotion = useAmbientAllowed();
   // Same keys and fetcher as TripList: the two share one request per crew.
   const results = useQueries({
     queries: crews.map((crew) => ({ queryKey: tripKeys.crew(crew.id), queryFn: () => listTrips(crew.id) })),
@@ -77,12 +81,17 @@ export function HomeHero() {
   }
 
   const scene = featured ? coverScene(featured.trip) : "road";
+  // Footage only for a featured trip: loading, error and empty states keep the plain illustration.
+  const clip = featured ? ambientClip(scene) : null;
   const media =
     featured && cover.showPhoto ? (
       // eslint-disable-next-line @next/next/no-img-element -- same-origin, cookie-authorized endpoint: next/image cannot forward the session
       <img src={coverPath(featured.trip)} alt="" decoding="async" className="trip-hero-photo" onError={cover.onError} />
     ) : (
-      <TripCoverArt scene={scene} live />
+      <>
+        <TripCoverArt scene={scene} live />
+        {clip && <AmbientVideo src={clip.mp4} poster={clip.poster} play={allowMotion} />}
+      </>
     );
 
   return <LandingHero media={media} greeting={greeting} tagline={t("app.tagline")} next={next} />;
