@@ -1,20 +1,17 @@
 "use client";
 
-import { useQueries } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { useMe } from "@/features/auth/MeProvider";
 import { useAmbientAllowed } from "@/shared/lib/useAmbientAllowed";
-import { useClientNow } from "@/shared/lib/useClientNow";
 import { ambientClip } from "@/ui/ambient/scenes";
 import { TripCoverArt } from "@/ui/illustrations/TripCoverArt";
 import { AmbientVideo } from "@/ui/molecules/AmbientVideo";
 import { LandingHero, type LandingNext } from "@/ui/organisms/LandingHero";
 import { coverPath } from "../api/cover";
-import { listTrips, tripKeys } from "../api/trips";
 import { useCoverFallback } from "../hooks/useCoverFallback";
+import { useHomeTrips } from "../hooks/useHomeTrips";
 import { coverScene } from "../lib/coverScene";
 import { describeCountdown } from "../lib/describeCountdown";
-import { pickNextTrip } from "../lib/nextTrip";
 import { tripPath } from "../lib/paths";
 import { useDateRange } from "../lib/useDateRange";
 
@@ -23,27 +20,9 @@ export function HomeHero() {
   const t = useTranslations();
   const countdownCopy = useTranslations("trips.hero.countdown");
   const dateRange = useDateRange();
-  const { person, crews } = useMe();
-  const now = useClientNow();
+  const { person } = useMe();
   const allowMotion = useAmbientAllowed();
-  // Same keys and fetcher as TripList: the two share one request per crew.
-  const results = useQueries({
-    queries: crews.map((crew) => ({ queryKey: tripKeys.crew(crew.id), queryFn: () => listTrips(crew.id) })),
-  });
-  const pending = results.some((result) => result.isPending);
-  const failed = results.some((result) => result.isError);
-
-  const defaults = new Set(crews.flatMap((crew) => (crew.default_trip_id ? [crew.default_trip_id] : [])));
-  const ready = crews.length > 0 && !pending && !failed && now !== null;
-  // undefined = still working it out, null = nothing to feature.
-  const picked = ready
-    ? pickNextTrip(
-        crews.map((crew, index) => ({ crewId: crew.id, trips: results[index].data ?? [] })),
-        defaults,
-        Intl.DateTimeFormat().resolvedOptions().timeZone,
-        now,
-      )
-    : undefined;
+  const { crews, results, failed, picked } = useHomeTrips();
   const featured = picked ?? null;
   const cover = useCoverFallback(featured?.trip ?? null);
 

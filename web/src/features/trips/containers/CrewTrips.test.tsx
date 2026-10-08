@@ -20,7 +20,7 @@ describe("CrewTrips", () => {
     server.use(
       http.get("/api/crews/{crew_id}/trips", ({ params, response }) => {
         calls.push(params.crew_id);
-        return response(200).json(params.crew_id === CREW_ID ? [makeSummary()] : []);
+        return response(200).json(params.crew_id === CREW_ID ? [makeSummary(), makeSummary({ id: "44444444-4444-4444-8444-444444444444", name: "Mendoza", start_on: "2027-09-01", end_on: "2027-09-03" })] : []);
       }),
     );
     const me = makeMe({
@@ -37,10 +37,13 @@ describe("CrewTrips", () => {
     );
 
     expect(screen.getByRole("heading", { level: 2, name: messages.trips.title })).toBeInTheDocument();
+    // Two crews: each gets its own heading, the groups nest one level lower.
     expect(screen.getByRole("heading", { level: 3, name: "Los Pibes" })).toBeInTheDocument();
     expect(screen.queryByRole("heading", { level: 1 })).not.toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Familia" })).toBeInTheDocument();
-    expect(await screen.findByRole("link", { name: /Bariloche 2027/ })).toBeInTheDocument();
+    // Bariloche is the featured trip (the hero shows it), so the list leaves it out.
+    expect(await screen.findByRole("link", { name: /Mendoza/ })).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /Bariloche 2027/ })).not.toBeInTheDocument();
     expect(await screen.findByText(messages.trips.list.empty)).toBeInTheDocument();
     expect(screen.getAllByRole("button", { name: messages.trips.create.submit })).toHaveLength(2);
     expect(calls.sort()).toEqual([CREW_ID, OTHER_CREW].sort());

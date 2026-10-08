@@ -1,21 +1,21 @@
 "use client";
 
-import Link from "next/link";
-import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { Badge, type BadgeVariant } from "@/ui/atoms/Badge";
 import { Skeleton } from "@/ui/atoms/Skeleton";
-import { CalendarBlankIcon, CaretRightIcon } from "@/ui/icons";
+import type { BadgeVariant } from "@/ui/atoms/Badge";
 import { EmptyArt } from "@/ui/illustrations/EmptyArt";
-import { TripCoverArt } from "@/ui/illustrations/TripCoverArt";
 import { EmptyState } from "@/ui/molecules/EmptyState";
 import { InlineError } from "@/ui/molecules/InlineError";
-import { coverPath } from "../api/cover";
+import { TripCard } from "@/ui/organisms/TripCard";
+import { TripSection } from "@/ui/organisms/TripSection";
+import { useClientNow } from "@/shared/lib/useClientNow";
 import type { TripStatus, TripSummary } from "../api/trips";
 import { useTrips } from "../hooks/useTrips";
-import { coverScene } from "../lib/coverScene";
-import { useDateRange } from "../lib/useDateRange";
 import { tripPath } from "../lib/paths";
+import { groupTrips, type SectionEntry } from "../lib/tripSections";
+import { useDateRange } from "../lib/useDateRange";
+import { useTripPill } from "../lib/useTripPill";
+import { TripCardMedia } from "./TripCardMedia";
 
 const STATUS_VARIANT: Record<TripStatus, BadgeVariant> = {
   idea: "neutral",
@@ -25,40 +25,31 @@ const STATUS_VARIANT: Record<TripStatus, BadgeVariant> = {
   done: "neutral",
 };
 
-/** The ticket picture: the cover when there is one and it loads, the trip's illustration otherwise. */
-function TicketMedia({ trip }: { trip: TripSummary }) {
-  const [failedVersion, setFailedVersion] = useState<number | null>(null);
-  const showPhoto = trip.has_cover && failedVersion !== trip.cover_version;
-  return (
-    <span className="trip-ticket-media" aria-hidden="true">
-      {showPhoto ? (
-        // eslint-disable-next-line @next/next/no-img-element -- same-origin, cookie-authorized endpoint: next/image cannot forward the session
-        <img
-          src={coverPath(trip)}
-          alt=""
-          loading="lazy"
-          decoding="async"
-          onError={() => setFailedVersion(trip.cover_version)}
-        />
-      ) : (
-        <TripCoverArt scene={coverScene(trip)} />
-      )}
-    </span>
-  );
-}
+/** How many avatars a card draws; the rest of the group becomes "+N". */
+const MAX_FACES = 4;
 
-/** Container: the trips of one crew, each linking to its trip page. */
-export function TripList({ crewId }: { crewId: string }) {
+type TripListProps = {
+  crewId: string;
+  /** Heading level of the group titles (3 under a lone "Mis viajes", 4 under a crew heading). */
+  level?: 3 | 4;
+  /** The trip the hero already features: it is not repeated below. */
+  featuredTripId?: string;
+};
+
+/** Container: one crew's trips grouped as upcoming, undated and past cards, each linking to its page. */
+export function TripList({ crewId, level = 3, featuredTripId }: TripListProps) {
   const t = useTranslations("trips");
   const ui = useTranslations("ui");
   const dateRange = useDateRange();
+  const pillFor = useTripPill();
+  const now = useClientNow();
   const { data, isPending, isError, refetch } = useTrips(crewId);
 
   if (isPending) {
     return (
-      <div role="status" aria-label={t("list.loading")} className="trip-list flex flex-col gap-3">
-        <Skeleton className="h-16" />
-        <Skeleton className="h-16" />
+      <div key="loading" role="status" aria-label={t("list.loading")} className="trip-list-loading">
+        <Skeleton className="trip-card-skeleton" />
+        <Skeleton className="trip-card-skeleton" />
       </div>
     );
   }
@@ -67,28 +58,59 @@ export function TripList({ crewId }: { crewId: string }) {
   }
   if (data.length === 0) return <EmptyState art={<EmptyArt scene="map" />} title={t("list.empty")} />;
 
-  return (
-    <ul className="trip-list flex flex-col gap-3">
-      {data.map((trip) => (
-        <li key={trip.id}>
-          <Link href={tripPath(crewId, trip.id)} className="trip-ticket border border-border bg-surface">
-            <span className="trip-ticket-main">
-              <TicketMedia trip={trip} />
-              <span className="trip-ticket-text">
-                <span className="trip-ticket-title font-semibold">{trip.name}</span>
-                <span className="trip-ticket-dates text-sm text-muted">
-                  <CalendarBlankIcon size={16} aria-hidden="true" />
-                  {dateRange(trip.start_on, trip.end_on)}
-                </span>
-              </span>
-            </span>
-            <span className="trip-ticket-stub">
-              <Badge variant={STATUS_VARIANT[trip.status]}>{t(`status.${trip.status}`)}</Badge>
-              <CaretRightIcon size={18} aria-hidden="true" />
-            </span>
-          </Link>
-        </li>
-      ))}
-    </ul>
+  const visible = data.filter((trip) => trip.id !== featuredTripId);
+  if (visible.length === 0) return <p className="trip-list-note text-sm text-muted">{t("list.onlyFeatured")}</p>;
+
+  const sections = groupTrips(visible, now, Intl.DateTimeFormat().resolvedOptions().timeZone);
+  // One entrance sequence across the groups: each card starts after the ones above it.
+  const offsets = {
+    upcoming: 0,
+    undated: sections.upcoming.length,
+    past: sections.upcoming.length + sections.undated.length,
+  };
+  const card = ({ trip, countdown }: SectionEntry, index: number, variant: "card" | "compact") => (
+    <li key={trip.id}>
+      <TripCard
+        index={index}
+        variant={variant}
+        href={tripPath(crewId, trip.id)}
+        name={trip.name}
+        destination={trip.destination_label || undefined}
+        dates={dateRange(trip.start_on, trip.end_on)}
+        media={<TripCardMedia trip={trip} />}
+        pill={pillFor(countdown)}
+        status={{ label: t(`status.${trip.status}`), variant: STATUS_VARIANT[trip.status] }}
+        people={peopleOf(trip, t("card.people", { count: trip.member_count }))}
+      />
+    </li>
   );
+
+  return (
+    <div key="groups" className="trip-groups">
+      {sections.upcoming.length > 0 && (
+        <TripSection title={t("sections.upcoming")} level={level} layout="rail">
+          {sections.upcoming.map((entry, i) => card(entry, offsets.upcoming + i, "card"))}
+        </TripSection>
+      )}
+      {sections.undated.length > 0 && (
+        <TripSection title={t("sections.undated")} level={level} layout="rail">
+          {sections.undated.map((entry, i) => card(entry, offsets.undated + i, "card"))}
+        </TripSection>
+      )}
+      {sections.past.length > 0 && (
+        <TripSection title={t("sections.past")} level={level} layout="list" muted>
+          {sections.past.map((entry, i) => card(entry, offsets.past + i, "compact"))}
+        </TripSection>
+      )}
+    </div>
+  );
+}
+
+function peopleOf(trip: TripSummary, label: string) {
+  if (trip.member_count === 0) return undefined;
+  return {
+    names: trip.members_preview.slice(0, MAX_FACES).map((member) => member.display_name),
+    total: trip.member_count,
+    label,
+  };
 }

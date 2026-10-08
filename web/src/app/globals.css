@@ -604,116 +604,278 @@ html:has(dialog[open]) {
   background: var(--border);
 }
 
-.trip-list {
-  list-style: none;
-}
-
-/* A boarding-pass ticket: the trip on the left, a perforated stub with its status on the right. */
-.trip-ticket {
-  position: relative;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 11rem;
-  align-items: stretch;
-  border-radius: var(--radius-card);
-  box-shadow: var(--elev-1);
-  text-decoration: none;
-  transition: border-color var(--dur-fast) var(--ease-out), transform var(--dur-fast) var(--ease-out);
-}
-
-.trip-ticket::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 22px;
-  bottom: 22px;
-  width: 4px;
-  border-radius: 0 4px 4px 0;
-  background: var(--accent);
-}
-
-.trip-ticket:hover {
-  transform: translateY(-2px);
-  border-color: var(--muted);
-}
-
-.trip-ticket-main {
-  display: flex;
-  min-width: 0;
-  align-items: center;
-  gap: 16px;
-  padding: 16px 20px 16px 24px;
-}
-
-.trip-ticket-text {
+/* Home v2 - trips as cards: picture on top, caption on an opaque panel below, a pill for "when". */
+.trip-groups {
   display: flex;
   min-width: 0;
   flex-direction: column;
-  gap: 4px;
+  gap: 28px;
 }
 
-/* The ticket picture: a cover photo or the trip's illustration, cropped to a rounded square. */
-.trip-ticket-media {
-  flex: none;
-  width: 64px;
-  height: 64px;
+.trip-section-group {
+  min-width: 0;
+}
+
+.trip-section-title {
+  margin: 0 0 12px;
+  color: var(--muted);
+  font-size: var(--type-xs);
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.trip-list-note {
+  margin: 0;
+}
+
+.trip-card {
+  --card-media-ratio: 16 / 10;
+  position: relative;
+  display: flex;
+  height: 100%;
+  min-width: 0;
+  flex-direction: column;
   overflow: hidden;
-  border-radius: var(--radius-control);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  background: var(--surface);
+  box-shadow: var(--elev-1);
+  color: var(--foreground);
+  text-decoration: none;
+  transition: transform var(--dur-base) var(--ease-out), box-shadow var(--dur-base) var(--ease-out);
+  /* Entrance: each card rises in after the ones before it (the eighth and later share a delay). */
+  animation: ui-enter var(--dur-slow) var(--ease-out) both;
+  animation-delay: calc(min(var(--i, 0), 8) * var(--stagger-step));
+}
+
+.trip-card-media {
+  position: relative;
+  display: block;
+  flex: none;
+  aspect-ratio: var(--card-media-ratio);
+  overflow: hidden;
   background: var(--art-sky);
 }
 
-.trip-ticket-media > img {
+.trip-card-media > * {
+  position: absolute;
+  inset: 0;
   display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transition: transform var(--dur-slow) var(--ease-out);
 }
 
-.trip-ticket-title {
-  font-size: 1.125rem;
-  overflow-wrap: anywhere;
+/* The pill carries its own opaque surface: nothing here is text over a picture. */
+.trip-card-pill {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: var(--z-raised);
+  padding: 4px 12px;
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  box-shadow: var(--elev-1);
+  color: var(--foreground);
+  font-size: var(--type-sm);
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
   line-height: 1.4;
-  letter-spacing: var(--tracking-heading);
+  white-space: nowrap;
 }
 
-.trip-ticket-dates {
+.trip-card-pill[data-tone="live"] {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.trip-card-body {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 6px;
+  padding: 14px 16px 16px;
+  background: var(--surface);
+}
+
+.trip-card-title {
+  font-size: var(--type-lg);
+  font-weight: 600;
+  letter-spacing: var(--tracking-heading);
+  line-height: var(--leading-snug);
+  overflow-wrap: anywhere;
+}
+
+.trip-card-meta {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+  color: var(--muted);
+  font-size: var(--type-sm);
+}
+
+.trip-card-destination {
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+.trip-card-dates {
   display: inline-flex;
   align-items: center;
   gap: 6px;
 }
 
-.trip-ticket-stub {
-  position: relative;
+.trip-card-foot {
   display: flex;
-  min-width: 8.5rem;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
-  padding: 0 16px 0 20px;
-  border-left: 2px dashed var(--border);
+  gap: 8px 12px;
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 2px dashed var(--border);
+}
+
+@media (hover: hover) {
+  .trip-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--elev-2);
+  }
+  .trip-card:hover .trip-card-media > * {
+    transform: scale(1.04);
+  }
+}
+
+/* Past trips: one quiet row, picture on the left, the colour turned down. */
+.trip-card[data-variant="compact"] {
+  height: auto;
+  flex-direction: row;
+  box-shadow: none;
+}
+.trip-card[data-variant="compact"] .trip-card-media {
+  width: 5.5rem;
+  aspect-ratio: auto;
+  min-height: 5.5rem;
+  filter: grayscale(0.6);
+}
+.trip-card[data-variant="compact"] .trip-card-body {
+  justify-content: center;
+  padding: 12px 14px;
+}
+.trip-card[data-variant="compact"] .trip-card-title {
+  font-size: var(--type-base);
+}
+.trip-card[data-variant="compact"] .trip-card-pill {
+  position: static;
+  align-self: flex-start;
+  padding: 2px 10px;
+  background: var(--surface-sunken);
+  box-shadow: none;
   color: var(--muted);
+  font-size: var(--type-xs);
 }
 
-.trip-ticket-stub::before,
-.trip-ticket-stub::after {
-  content: "";
-  position: absolute;
-  left: -8px;
-  width: 14px;
-  height: 14px;
+/* Avatars overlap into a stack; the group size is always spelled out beside it. */
+.avatar-stack {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: 10px;
+}
+.avatar-stack-faces {
+  display: inline-flex;
+  padding-left: 8px;
+}
+.avatar-stack-face,
+.avatar-stack-more {
+  width: 28px;
+  height: 28px;
+  margin-left: -8px;
+  border: 2px solid var(--surface);
   border-radius: 50%;
-  background: var(--background);
+  font-size: 0.6875rem;
+  line-height: 1;
+}
+.avatar-stack-more {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface-sunken);
+  color: var(--foreground);
+  font-weight: 600;
+}
+.avatar-stack-label {
+  color: var(--muted);
+  font-size: var(--type-sm);
 }
 
-.trip-ticket-stub::before {
-  top: -8px;
+/* Phones: a rail that bleeds to the screen edges and snaps card by card, with the next one peeking. */
+.trip-rail,
+.trip-compact-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.trip-rail {
+  --rail-inset: 24px;
+  display: flex;
+  gap: 12px;
+  margin: -8px calc(-1 * var(--rail-inset)) -24px;
+  padding: 8px var(--rail-inset) 24px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-padding-inline: var(--rail-inset);
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+.trip-rail::-webkit-scrollbar {
+  display: none;
+}
+.trip-rail > li {
+  flex: 0 0 min(78%, 19rem);
+  min-width: 0;
+  scroll-snap-align: start;
+}
+.trip-compact-list {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
+}
+.trip-compact-list > li {
+  min-width: 0;
 }
 
-.trip-ticket-stub::after {
-  bottom: -8px;
+/* From 768px there is room for a grid: as many 280px-plus columns as fit. */
+@media (min-width: 768px) {
+  .trip-rail,
+  .trip-compact-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+  }
+  .trip-rail {
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+    scroll-snap-type: none;
+  }
+  .trip-rail > li {
+    flex: none;
+  }
 }
 
-.trip-ticket-stub > .ui-badge {
-  flex-shrink: 0;
+.trip-list-loading {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
+  gap: 16px;
+}
+.trip-card-skeleton {
+  height: 14rem;
+  border-radius: var(--radius-card);
 }
 
 .create-trip-disclosure {
@@ -1753,6 +1915,9 @@ a.next-action:active {
 }
 
 @media (max-width: 480px) {
+  .trip-rail {
+    --rail-inset: 20px;
+  }
   .app-header-inner {
     gap: 12px;
     padding: 10px 14px;
@@ -1767,41 +1932,6 @@ a.next-action:active {
   }
   .app-canvas {
     padding: 28px 20px calc(96px + var(--safe-bottom));
-  }
-  .trip-ticket-main {
-    padding: 16px 12px 16px 20px;
-  }
-  .trip-ticket-stub {
-    gap: 4px;
-    padding: 0 12px;
-  }
-}
-
-/* Phones: the stub drops below the trip, so the name and dates keep the whole width beside the picture. */
-@media (max-width: 559px) {
-  .trip-ticket {
-    grid-template-columns: minmax(0, 1fr);
-  }
-  .trip-ticket-main {
-    padding: 16px 16px 14px 20px;
-  }
-  .trip-ticket-stub {
-    min-width: 0;
-    padding: 10px 16px 10px 20px;
-    border-left: 0;
-    border-top: 2px dashed var(--border);
-  }
-  .trip-ticket-stub::before,
-  .trip-ticket-stub::after {
-    top: -8px;
-    bottom: auto;
-  }
-  .trip-ticket-stub::before {
-    left: -8px;
-  }
-  .trip-ticket-stub::after {
-    right: -8px;
-    left: auto;
   }
 }
 

@@ -1,6 +1,6 @@
 {
   "trips": {
-    "title": "Viajes",
+    "title": "Mis viajes",
     "status": {
       "idea": "Idea",
       "planning": "Planificando",
@@ -16,7 +16,23 @@
       "empty": "Todavía no hay viajes en este grupo, creá el primero",
       "open": "Abrir viaje",
       "loading": "Cargando viajes…",
-      "error": "No pudimos cargar los viajes, probá de nuevo"
+      "error": "No pudimos cargar los viajes, probá de nuevo",
+      "onlyFeatured": "Es el único viaje del grupo por ahora."
+    },
+    "sections": {
+      "upcoming": "Próximos",
+      "undated": "Sin fecha",
+      "past": "Pasados"
+    },
+    "card": {
+      "people": "{count, plural, one {# persona} other {# personas}}",
+      "pill": {
+        "upcoming": "{days, plural, one {en # día} other {en # días}}",
+        "tomorrow": "Mañana",
+        "today": "Hoy",
+        "ongoing": "En curso",
+        "done": "Terminado"
+      }
     },
     "create": {
       "title": "Nuevo viaje",
