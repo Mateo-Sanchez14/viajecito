@@ -46,7 +46,7 @@ Delegated direct (one writer): 2+ non-trivial files across api and web (writer t
       (cover > scene photo/video > illustration; lake/vineyard/desert get their own photo), section
       banners (packing → logistics, map → itinerary/map, planner → dates; money keeps an illustration).
       Route: same delegated writer. Then rerun T7 gate.
-- [ ] T8 Push, fast-forward main, verify Pi autodeploy (user-authorized 2026-10-08).
+- [x] T8 Push, fast-forward main, verify Pi autodeploy (user-authorized 2026-10-08).
 
 ## Acceptance
 Home shows destination-aware imagery, grouped date-sorted trip cards with avatars and countdown
@@ -57,10 +57,13 @@ pills, a one-tap create-trip sheet, no duplicated greeting or health card; all s
   Gate: api pytest 2115, ruff/format/lint-imports clean; web vitest 1572, lint/typecheck/build,
   ambient:test 42/42, api:types:check clean; fresh-stack e2e 27 passed / 2 known dev skips.
   Note: currency default stays USD (api `DEFAULT_CURRENCY` is a product decision, not changed).
-
-## Next step
-T1–T6 via one delegated writer.
 - T9 (delegated writer): commits f66c466, 85e86cf, 14e5b30, 0c1786d, b77ab86; orchestrator 85a84d0
   (full Pexels URLs in provenance). 13 photos → 26 WebP, 1.43 MB, max 137 KB. Gate: api pytest 2115;
   web vitest 1665, lint/typecheck/build, ambient:test 76, api:types:check clean; fresh-stack e2e
   29 passed / 2 known dev skips. City trips use Buenos Aires photos (the city clip is Sydney, unused).
+- T8: main fast-forwarded e5c11c0 → e1e2ca5; all 5 workflows green; Pi autodeploy deployed e1e2ca5 at
+  2026-10-08T04:36Z, smoke passed; public `/photos/*.webp` served 200 image/webp.
+
+## Next step
+Done. Optional follow-ups: switch the default trip currency to ARS (product decision), tablet-width
+capture button overlap (768–1263px), real-device check of video and photos.
