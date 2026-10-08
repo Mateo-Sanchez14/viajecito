@@ -404,6 +404,35 @@ This supersedes the Gowa go-live steps (droplet webhook, gastito change); the Go
 - **Navigation**: `SectionNav` from 768px up; below it `BottomNav` (Resumen, Propuestas, Logística,
   Itinerario + "Más" sheet). Both navs carry distinct accessible names; tests scope queries by landmark.
 
+## Alive UI contract (2026-10-07, SDD change `alive-ui`)
+
+- **Onboarding tour (api, `identity`)**: `Person.tour_seen_version` (small int, default 0); `PersonOut`
+  gains `tour_seen_version: int`. `POST /api/me/tour {version: int}` (strict int, `1..MAX_TOUR_VERSION`,
+  `django_auth`, cookie CSRF) → `200 {"person": PersonOut}`; monotonic and idempotent (a lower or equal
+  version leaves the stored value unchanged). Errors: `400 invalid_request`, `401 unauthenticated`,
+  `403 csrf_failed`. The web bumps `TOUR_VERSION` (`features/onboarding/lib/version.ts`) to re-show the tour.
+- **Tour (web)**: native modal `<dialog>` coach marks anchored by `data-tour` attributes
+  (`shared/lib/tourAnchors.ts`); missing or hidden anchors are skipped; auto-start only on the trip
+  overview; replay via the header "?" button (placed before the bell, so bell → logout order holds).
+  e2e `auth.setup.ts` marks the tour seen, because an open modal tour makes the page inert.
+- **Motion**: CSS on the existing tokens plus React `ViewTransition` through `src/ui/motion/ViewTransition.tsx`
+  (passthrough when the runtime lacks it, e.g. vitest); `::view-transition-*` has its own reduced-motion
+  rule. Header, bottom nav and capture button carry `view-transition-name`. Playwright runs with
+  `reducedMotion: "reduce"`.
+- **Ambient video**: self-hosted under `web/public/ambient/<scene>.<hash>.{mp4,webp}` (never `/media/` or
+  `/static/`, which the tunnel routes to the api), immutable cache headers from `next.config.ts`, not
+  precached by the service worker, Range/206 served. Manifest `src/ui/ambient/`; priority user cover
+  photo > video > illustration; poster only under reduced motion or Save-Data. Assets are built by
+  `pnpm ambient:build` (`web/scripts/ambient/`, ffmpeg; per-clip `start`/`duration`/`crf`/`crop`) from
+  approved sources in the gitignored `scripts/ambient/sources/`; caps: MP4 ≤ 2.5 MB, poster ≤ 100 KB,
+  total < 10 MB. Every new stock asset needs explicit owner approval and a `PROVENANCE.md` entry
+  (source, author, license, approval date, content check). No Pinterest or unlicensed media.
+- **Premium atmosphere**: `.app-atmosphere` (fixed, `aria-hidden`, `pointer-events: none`, frozen under
+  reduced motion) behind the `(app)` shell; the login renders a cinematic ambient backdrop with an
+  opaque-enough card (text contrast verified against white and black frames).
+- **Way home**: the header wordmark links to `/`; trip pages show a "← Mis viajes" back link (not a
+  `<nav>`); home's landing hero owns the page h1.
+
 ## Session handoff
 
 Resuming work in a new session (any tool): read `odd/HANDOFF.md` first (state, ordered next steps, merge
