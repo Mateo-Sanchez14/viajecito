@@ -15,6 +15,7 @@ from trips.adapters.django_store import DjangoTripStore
 from trips.api_auth import member_of_trip
 from trips.domain import InvalidCoverError, InvalidTripInputError, TripData, TripDetail
 from trips.schemas import (
+    MemberPreviewOut,
     ParticipantIn,
     ParticipantOut,
     TripCreateIn,
@@ -74,8 +75,19 @@ def detail_of(trip: TripData, person_id: str) -> TripDetail:
 )
 def list_trips(request, crew_id: UUID):
     member_of_crew(request, crew_id)
-    trips = list_trips_use_case(str(crew_id), store())
-    return Status(HTTPStatus.OK, [TripSummaryOut(**vars(t)) for t in trips])
+    listing = list_trips_use_case(str(crew_id), store())
+    members_preview = [MemberPreviewOut(**vars(m)) for m in listing.members_preview]
+    return Status(
+        HTTPStatus.OK,
+        [
+            TripSummaryOut(
+                **{k: v for k, v in vars(t).items() if k in TripSummaryOut.model_fields},
+                member_count=listing.member_count,
+                members_preview=members_preview,
+            )
+            for t in listing.trips
+        ],
+    )
 
 
 @router.post(

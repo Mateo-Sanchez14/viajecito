@@ -2,7 +2,7 @@ from collections.abc import Callable
 from datetime import date
 from typing import Any, Protocol
 
-from trips.domain import ParticipantData, TripData
+from trips.domain import MemberPreview, ParticipantData, TripData
 
 # Untrusted image bytes -> the WebP to store; raises ``domain.InvalidCoverError``.
 CoverProcessor = Callable[[bytes], bytes]
@@ -26,6 +26,11 @@ class TripStore(Protocol):
         ...
 
     def list_for_crew(self, crew_id: str) -> list[TripData]: ...
+
+    def member_summary(self, crew_id: str, limit: int) -> tuple[int, list[MemberPreview]]:
+        """The crew's ACTIVE member count and its first ``limit`` members (oldest first);
+        ``display_name`` falls back to the phone, like ``ParticipantData``."""
+        ...
 
     def list_active(self) -> list[TripData]:
         """Trips of every crew whose status is in ``ACTIVE_STATUSES``."""

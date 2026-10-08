@@ -48,6 +48,11 @@ export function makeSummary(overrides: Partial<Schemas["TripSummaryOut"]> = {}):
     destination_label,
     has_cover,
     cover_version,
+    member_count: 2,
+    members_preview: [
+      { person_id: PERSON_ID, display_name: "Mateo" },
+      { person_id: "33333333-3333-4333-8333-333333333333", display_name: "Lucia Gomez" },
+    ],
     ...overrides,
   };
 }

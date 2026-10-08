@@ -59,6 +59,25 @@ class ParticipantData:
     rsvp: str
 
 
+MEMBERS_PREVIEW_LIMIT = 4
+
+
+@dataclass(frozen=True)
+class MemberPreview:
+    person_id: str
+    display_name: str
+
+
+@dataclass(frozen=True)
+class TripListing:
+    """A crew's trips plus its roster summary: every trip of a crew shares its active members,
+    so the summary is computed once per listing instead of once per trip."""
+
+    trips: list[TripData]
+    member_count: int
+    members_preview: list[MemberPreview]
+
+
 def validate_name(name: str) -> str:
     cleaned = name.strip()
     if not cleaned:

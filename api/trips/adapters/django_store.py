@@ -6,7 +6,7 @@ from django.core.files.base import ContentFile
 from django.db import transaction
 
 from crews.models import Crew, CrewMembership
-from trips.domain import ACTIVE_STATUSES, ParticipantData, TripData
+from trips.domain import ACTIVE_STATUSES, MemberPreview, ParticipantData, TripData
 from trips.models import Participation, Trip
 
 
@@ -65,6 +65,19 @@ class DjangoTripStore:
 
     def list_for_crew(self, crew_id: str) -> list[TripData]:
         return [trip_data(t) for t in Trip.objects.filter(crew_id=crew_id)]
+
+    def member_summary(self, crew_id: str, limit: int) -> tuple[int, list[MemberPreview]]:
+        members = CrewMembership.objects.filter(
+            crew_id=crew_id, status=CrewMembership.Status.ACTIVE
+        )
+        count = members.count()
+        first = members.select_related("person").order_by("created_at", "pk")[:limit]
+        return count, [
+            MemberPreview(
+                person_id=str(m.person_id), display_name=m.person.display_name or m.person.phone
+            )
+            for m in first
+        ]
 
     def list_active(self) -> list[TripData]:
         trips = Trip.objects.filter(status__in=ACTIVE_STATUSES).order_by("created_at", "pk")

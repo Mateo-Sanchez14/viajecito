@@ -2,8 +2,11 @@ import uuid
 from datetime import date
 
 import pytest
+from django.db import connection
+from django.test.utils import CaptureQueriesContext
 
 from crews.models import Crew
+from identity.models import Person
 from trips.models import Participation, Trip
 from trips.tests.conftest import join, send
 
@@ -45,8 +48,42 @@ def test_list_returns_summaries_of_the_crew_trips_only(as_person, crew, other_cr
             "destination_label": "",
             "has_cover": False,
             "cover_version": 0,
+            "member_count": 1,
+            "members_preview": [{"person_id": str(ana.pk), "display_name": "Ana"}],
         }
     ]
+
+
+def test_list_previews_at_most_four_active_members_and_counts_them_all(as_person, crew, ana, trip):
+    for index in range(5):
+        join(crew, Person.objects.create_user(f"+54911555500{index:02d}", display_name=f"P{index}"))
+    removed = Person.objects.create_user("+5491155550099", display_name="Gone")
+    join(crew, removed, status="removed")
+    body = as_person(ana).get(trips_url(crew)).json()[0]
+    assert body["member_count"] == 6
+    assert [m["display_name"] for m in body["members_preview"]] == ["Ana", "P0", "P1", "P2"]
+
+
+def test_list_preview_falls_back_to_the_phone_without_a_display_name(as_person, crew, ana, trip):
+    nameless = Person.objects.create_user("+5491155557777")
+    join(crew, nameless)
+    preview = as_person(ana).get(trips_url(crew)).json()[0]["members_preview"]
+    assert preview[-1] == {"person_id": str(nameless.pk), "display_name": "+5491155557777"}
+
+
+def test_list_query_count_does_not_grow_with_the_number_of_trips(as_person, crew, ana, trip):
+    client = as_person(ana)
+    client.get(trips_url(crew))  # warm session/auth lookups
+
+    def count_queries() -> int:
+        with CaptureQueriesContext(connection) as queries:
+            assert client.get(trips_url(crew)).status_code == 200
+        return len(queries)
+
+    baseline = count_queries()
+    for index in range(5):
+        Trip.objects.create(crew=crew, name=f"Trip {index}")
+    assert count_queries() == baseline
 
 
 def test_list_is_404_for_a_non_member(as_person, crew, stranger):

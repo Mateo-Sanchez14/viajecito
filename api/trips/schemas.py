@@ -41,6 +41,11 @@ class ParticipantOut(Schema):
     rsvp: Rsvp
 
 
+class MemberPreviewOut(Schema):
+    person_id: UUID
+    display_name: str
+
+
 class TripSummaryOut(Schema):
     id: UUID
     name: str
@@ -51,6 +56,8 @@ class TripSummaryOut(Schema):
     destination_label: str
     has_cover: bool
     cover_version: int
+    member_count: int
+    members_preview: list[MemberPreviewOut]
 
 
 class TripOut(Schema):

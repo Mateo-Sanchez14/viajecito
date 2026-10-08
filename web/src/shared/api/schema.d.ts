@@ -1263,6 +1263,16 @@ export interface components {
             /** Version */
             version: number;
         };
+        /** MemberPreviewOut */
+        MemberPreviewOut: {
+            /**
+             * Person Id
+             * Format: uuid
+             */
+            person_id: string;
+            /** Display Name */
+            display_name: string;
+        };
         /** TripSummaryOut */
         TripSummaryOut: {
             /**
@@ -1289,6 +1299,10 @@ export interface components {
             has_cover: boolean;
             /** Cover Version */
             cover_version: number;
+            /** Member Count */
+            member_count: number;
+            /** Members Preview */
+            members_preview: components["schemas"]["MemberPreviewOut"][];
         };
         /** ParticipantOut */
         ParticipantOut: {

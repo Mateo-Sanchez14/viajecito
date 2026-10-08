@@ -7156,6 +7156,25 @@
         "title": "TourSeenIn",
         "type": "object"
       },
+      "MemberPreviewOut": {
+        "properties": {
+          "person_id": {
+            "format": "uuid",
+            "title": "Person Id",
+            "type": "string"
+          },
+          "display_name": {
+            "title": "Display Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "person_id",
+          "display_name"
+        ],
+        "title": "MemberPreviewOut",
+        "type": "object"
+      },
       "TripSummaryOut": {
         "properties": {
           "id": {
@@ -7217,6 +7236,17 @@
           "cover_version": {
             "title": "Cover Version",
             "type": "integer"
+          },
+          "member_count": {
+            "title": "Member Count",
+            "type": "integer"
+          },
+          "members_preview": {
+            "items": {
+              "$ref": "#/components/schemas/MemberPreviewOut"
+            },
+            "title": "Members Preview",
+            "type": "array"
           }
         },
         "required": [
@@ -7228,7 +7258,9 @@
           "end_on",
           "destination_label",
           "has_cover",
-          "cover_version"
+          "cover_version",
+          "member_count",
+          "members_preview"
         ],
         "title": "TripSummaryOut",
         "type": "object"
