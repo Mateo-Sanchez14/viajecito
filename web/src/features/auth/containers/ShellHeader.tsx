@@ -39,6 +39,7 @@ export function ShellHeader() {
       <PushSubscriptionSync />
       <AppHeader
         appName={t("app.name")}
+        homeHref="/"
         greeting={name ? t("home.greeting", { name }) : t("home.greetingAnonymous")}
         notifications={{ href: "/me/notifications", label: t("push.nav") }}
         logoutLabel={t("auth.logout")}

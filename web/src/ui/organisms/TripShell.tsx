@@ -1,10 +1,14 @@
+import Link from "next/link";
 import type { ReactNode } from "react";
+import { CaretLeftIcon } from "@/ui/icons";
 import { PageHeader } from "@/ui/molecules/PageHeader";
 import { SectionNav, type SectionNavItem } from "@/ui/molecules/SectionNav";
 
 type TripShellProps = {
   title: string;
   subtitle?: string;
+  /** A quiet way up, above the title. A plain link on purpose: a second navigation landmark would be noise. */
+  backLink?: { href: string; label: string };
   navLabel: string;
   navItems: SectionNavItem[];
   /** Phone navigation. When given, the wide section nav only shows from md up. */
@@ -13,10 +17,16 @@ type TripShellProps = {
 };
 
 /** Presentational frame of every trip page: header, section navigation, then the page. */
-export function TripShell({ title, subtitle, navLabel, navItems, mobileNav, children }: TripShellProps) {
+export function TripShell({ title, subtitle, backLink, navLabel, navItems, mobileNav, children }: TripShellProps) {
   const sectionNav = <SectionNav label={navLabel} items={navItems} />;
   return (
     <div className="trip-shell flex min-w-0 flex-col gap-7">
+      {backLink && (
+        <Link href={backLink.href} className="trip-back-link">
+          <CaretLeftIcon size={18} aria-hidden="true" />
+          <span>{backLink.label}</span>
+        </Link>
+      )}
       <PageHeader title={title} subtitle={subtitle} />
       {mobileNav ? <div className="trip-nav-wide">{sectionNav}</div> : sectionNav}
       {mobileNav}

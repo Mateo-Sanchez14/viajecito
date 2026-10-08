@@ -21,6 +21,41 @@ describe("TripShell", () => {
     expect(screen.getByText("contenido")).toBeInTheDocument();
   });
 
+  it("renders the back link first, as a plain link and never a navigation", () => {
+    render(
+      <TripShell
+        title="Bariloche"
+        backLink={{ href: "/", label: "Mis viajes" }}
+        navLabel="Secciones"
+        navItems={[{ key: "overview", label: "Resumen", href: "/t", active: true }]}
+      >
+        <p>contenido</p>
+      </TripShell>,
+    );
+
+    const back = screen.getByRole("link", { name: "Mis viajes" });
+    expect(back).toHaveAttribute("href", "/");
+    expect(back.closest("nav")).toBeNull();
+    expect(back.querySelector("svg")).toHaveAttribute("aria-hidden", "true");
+    expect(screen.getAllByRole("navigation")).toHaveLength(1);
+    expect(back.compareDocumentPosition(screen.getByRole("heading", { name: "Bariloche" })) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it("renders no back link and no gap when none is given", () => {
+    const { container } = render(
+      <TripShell
+        title="Bariloche"
+        navLabel="Secciones"
+        navItems={[{ key: "overview", label: "Resumen", href: "/t", active: true }]}
+      >
+        <p>contenido</p>
+      </TripShell>,
+    );
+
+    expect(screen.queryByRole("link", { name: "Mis viajes" })).not.toBeInTheDocument();
+    expect(container.querySelector(".trip-back-link")).toBeNull();
+  });
+
   it("does not wrap the section nav when there is no mobile nav", () => {
     render(
       <TripShell

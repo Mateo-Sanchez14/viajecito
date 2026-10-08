@@ -10,7 +10,12 @@ import { MeProvider } from "../MeProvider";
 import { ShellHeader } from "./ShellHeader";
 
 const replace = vi.fn();
-vi.mock("next/navigation", () => ({ useRouter: () => ({ replace }) }));
+const push = vi.fn();
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ replace, push }),
+  usePathname: () => "/",
+  useParams: () => ({}),
+}));
 
 const http = createOpenApiHttp<paths>({ baseUrl: globalThis.location.origin });
 const me = {
@@ -128,6 +133,14 @@ describe("ShellHeader", () => {
     fireEvent.click(screen.getByRole("button", { name: messages.auth.logout }));
 
     await vi.waitFor(() => expect(replace).toHaveBeenCalledWith("/login"));
+  });
+
+  it("links the wordmark home", () => {
+    renderHeader();
+
+    const link = screen.getByRole("link", { name: messages.app.name });
+    expect(link).toHaveAttribute("href", "/");
+    expect(link.closest("header")).toBe(screen.getByRole("banner"));
   });
 
   it("greets the person by display name", () => {

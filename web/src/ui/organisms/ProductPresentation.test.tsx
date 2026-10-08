@@ -21,6 +21,7 @@ beforeAll(async () => {
     <>
       <AppHeader
         appName="viajecito"
+        homeHref="/"
         greeting="Hello, Alexandria Cassandra Montgomery"
         logoutLabel="Log out"
         onLogout={() => {}}
@@ -43,7 +44,7 @@ afterAll(async () => {
   await browser?.close();
 });
 
-it("frames the product header without losing greeting or logout on small screens", async () => {
+it("frames the product header without losing logout on small screens", async () => {
   const radius = await page.locator("header").first().evaluate((element) =>
     parseFloat(getComputedStyle(element).borderRadius),
   );
@@ -51,6 +52,17 @@ it("frames the product header without losing greeting or logout on small screens
   expect(await page.getByRole("button", { name: "Log out" }).isVisible()).toBe(true);
   expect(await page.getByRole("link", { name: "Notifications" }).isVisible()).toBe(true);
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
+});
+
+it("hides the greeting below 560px and shows it at 1440px", async () => {
+  const greeting = page.getByText("Hello, Alexandria Cassandra Montgomery");
+  for (const width of [320, 390, 559]) {
+    await page.setViewportSize({ width, height: 844 });
+    expect(await greeting.isVisible(), `${width}px`).toBe(false);
+  }
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  expect(await greeting.isVisible()).toBe(true);
+  await page.setViewportSize({ width: 390, height: 844 });
 });
 
 it("allows a long trip heading to wrap without pushing navigation outside the phone", async () => {
@@ -67,7 +79,7 @@ it("keeps the long-name header inside a 320px viewport and constrains it on desk
   expect((await page.locator("header").first().boundingBox())?.width).toBeLessThanOrEqual(1120);
 });
 
-it("keeps the greeting, the bell and logout on one header at 320px, each touch target at least 44px", async () => {
+it("keeps the wordmark link, the bell and logout on one header at 320px, each touch target at least 44px", async () => {
   await page.setViewportSize({ width: 320, height: 844 });
   const targets = await page.evaluate(() =>
     [...document.querySelectorAll<HTMLElement>("header:first-of-type a, header:first-of-type button")].map((element) => {
@@ -76,7 +88,8 @@ it("keeps the greeting, the bell and logout on one header at 320px, each touch t
     }),
   );
 
-  expect(targets.length).toBeGreaterThanOrEqual(2);
+  expect(targets.length).toBeGreaterThanOrEqual(3);
+  expect(targets.some((target) => target.name?.includes("viajecito"))).toBe(true);
   for (const target of targets) {
     expect(target.height).toBeGreaterThanOrEqual(44);
     expect(target.width).toBeGreaterThanOrEqual(44);

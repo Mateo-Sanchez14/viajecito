@@ -4,6 +4,15 @@
     "greetingAnonymous": "Hola",
     "crews": {
       "empty": "Todavía no estás en ningún grupo"
+    },
+    "hero": {
+      "next": "Próximo viaje",
+      "open": "Ver el viaje",
+      "loading": "Buscando tu próximo viaje",
+      "empty": {
+        "title": "Todavía no hay un viaje a la vista",
+        "body": "Armá uno acá abajo y empiecen a tirar ideas."
+      }
     }
   }
 }

@@ -61,7 +61,8 @@
       "label": "Secciones del viaje",
       "mobileLabel": "Menú del viaje",
       "more": "Más",
-      "moreTitle": "Más secciones"
+      "moreTitle": "Más secciones",
+      "back": "Mis viajes"
     },
     "comingSoon": {
       "title": "Próximamente",

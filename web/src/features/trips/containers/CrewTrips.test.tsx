@@ -36,8 +36,9 @@ describe("CrewTrips", () => {
       </MeProvider>,
     );
 
-    expect(screen.getByRole("heading", { level: 1, name: messages.trips.title })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Los Pibes" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 2, name: messages.trips.title })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 3, name: "Los Pibes" })).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { level: 1 })).not.toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Familia" })).toBeInTheDocument();
     expect(await screen.findByRole("link", { name: /Bariloche 2027/ })).toBeInTheDocument();
     expect(await screen.findByText(messages.trips.list.empty)).toBeInTheDocument();
@@ -52,7 +53,7 @@ describe("CrewTrips", () => {
       </MeProvider>,
     );
 
-    expect(screen.getByRole("heading", { level: 1, name: messages.trips.title })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 2, name: messages.trips.title })).toBeInTheDocument();
     expect(screen.getByText(messages.home.crews.empty)).toBeInTheDocument();
   });
 });

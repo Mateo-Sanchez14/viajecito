@@ -583,7 +583,7 @@ html:has(dialog[open]) {
 }
 
 .home-title {
-  font-size: clamp(2.25rem, 5vw, 3.5rem);
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
   line-height: 1.1;
   letter-spacing: -0.06em;
   margin-bottom: 4px;
@@ -2328,6 +2328,66 @@ body {
   animation: ui-flip var(--dur-slow) var(--ease-spring) both;
 }
 @keyframes ui-flip { from { opacity: 0; transform: perspective(400px) rotateX(-80deg) translateY(0.15em); } }
+
+/* S2 - Way home: the wordmark is the home link; a quiet back link tops every trip page. */
+.app-wordmark { min-width: 44px; min-height: 44px; color: inherit; text-decoration: none; border-radius: var(--radius-pill); }
+.app-wordmark::before { transition: transform var(--dur-fast) var(--ease-spring); }
+a.app-wordmark:hover::before { transform: scale(1.18); }
+a.app-wordmark:active { transform: scale(0.98); }
+/* Phones need the room for help, bell and logout; the home hero greets instead. */
+@media (max-width: 559px) { .app-greeting { display: none; } }
+@media (max-width: 359px) {
+  .app-wordmark { justify-content: center; }
+  .app-wordmark-text { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+}
+.trip-back-link {
+  display: inline-flex; align-self: flex-start; align-items: center; gap: 6px;
+  min-height: 44px; margin: -12px 0 -16px -10px; padding: 0 14px 0 10px;
+  border-radius: var(--radius-pill); color: var(--muted);
+  font-size: var(--type-sm); font-weight: 500; text-decoration: none;
+  transition: color var(--dur-fast) var(--ease-out), background-color var(--dur-fast) var(--ease-out);
+}
+.trip-back-link:hover { color: var(--foreground); background: color-mix(in srgb, var(--foreground) 6%, transparent); }
+.trip-back-link > svg { transition: transform var(--dur-fast) var(--ease-out); }
+.trip-back-link:hover > svg { transform: translateX(-2px); }
+
+/* S2 - Home landing hero: the same tray-and-pass construction as the trip hero. */
+.landing-hero {
+  --media-radius: calc(var(--radius-panel) - 8px);
+  display: grid; grid-template-columns: minmax(0, 1fr); padding: 8px;
+  border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+  border-radius: var(--radius-panel); background: var(--surface-sunken); box-shadow: var(--elev-1);
+}
+.landing-hero-media {
+  position: relative; aspect-ratio: 16 / 9; max-height: 260px; overflow: hidden;
+  border-radius: var(--media-radius) var(--media-radius) 0 0; background: var(--art-sky);
+}
+.landing-hero-media > .trip-cover-art { height: calc(100% + 40px); }
+.landing-hero-panel {
+  position: relative; z-index: var(--z-raised); display: flex; min-width: 0; flex-direction: column; gap: 16px;
+  margin-top: -24px; padding: 20px; border-radius: var(--radius-card); background: var(--surface); box-shadow: var(--elev-2);
+}
+.landing-hero-greeting {
+  margin: 0; font-size: var(--type-2xl); font-weight: 600; line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-display); overflow-wrap: anywhere;
+}
+.landing-hero-tagline { margin: -8px 0 0; max-width: 34ch; color: var(--muted); }
+.landing-next { display: flex; min-width: 0; flex-direction: column; align-items: flex-start; gap: 6px; padding-top: 16px; border-top: 2px dashed var(--border); }
+.landing-next-label { margin: 0; color: var(--accent); font-size: var(--type-xs); font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; }
+.landing-next-name { margin: 0; font-size: var(--type-xl); font-weight: 600; letter-spacing: var(--tracking-heading); overflow-wrap: anywhere; }
+.landing-next-meta { display: flex; flex-wrap: wrap; gap: 0 12px; margin: 0; color: var(--muted); font-size: var(--type-sm); }
+.landing-next-figure { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 8px; margin: 0; }
+.landing-next-value { font-size: clamp(2.5rem, 10vw, 3.5rem); font-weight: 600; line-height: var(--leading-tight); letter-spacing: var(--tracking-display); }
+.landing-next-unit { font-size: var(--type-lg); font-weight: 500; }
+.landing-next-caption { margin: 0; color: var(--muted); }
+.landing-next .ui-button { margin-top: 8px; }
+.landing-next-skeleton { width: 100%; height: 9.5rem; }
+@media (min-width: 900px) {
+  .landing-hero { grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 8px; }
+  .landing-hero-media { aspect-ratio: auto; max-height: none; min-height: 320px; border-radius: var(--media-radius); }
+  .landing-hero-media > .trip-cover-art { height: 100%; }
+  .landing-hero-panel { justify-content: center; margin: 0; padding: 32px; box-shadow: var(--elev-1); }
+}
 
 /* Stays last: it must beat every transition and animation declared above. */
 @media (prefers-reduced-motion: reduce) {

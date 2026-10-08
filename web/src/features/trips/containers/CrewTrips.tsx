@@ -14,11 +14,11 @@ export function CrewTrips() {
 
   return (
     <>
-      <h1 className="home-title font-semibold">{t("title")}</h1>
+      <h2 className="home-title font-semibold">{t("title")}</h2>
       {crews.length === 0 && <p className="text-sm text-muted">{empty}</p>}
       {crews.map((crew) => (
         <section key={crew.id} className="crew-section flex w-full min-w-0 flex-col gap-4">
-          <h2 className="crew-title text-lg font-semibold">{crew.name}</h2>
+          <h3 className="crew-title text-lg font-semibold">{crew.name}</h3>
           <TripList crewId={crew.id} />
           <details className="create-trip-disclosure border border-border bg-surface p-4">
             <summary className="flex min-h-11 cursor-pointer items-center gap-2 text-sm font-medium">

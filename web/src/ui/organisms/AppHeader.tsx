@@ -11,6 +11,8 @@ type AppHeaderProps = {
   errorMessage?: string;
   /** Icon-only link in the account cluster; `label` is its accessible name. */
   notifications?: { href: string; label: string };
+  /** Where the wordmark leads. Without it the wordmark is plain text. */
+  homeHref?: string;
 };
 
 /** Presentational: app name, greeting, notifications shortcut and the logout control of the authenticated shell. */
@@ -22,11 +24,20 @@ export function AppHeader({
   logoutPending = false,
   errorMessage,
   notifications,
+  homeHref,
 }: AppHeaderProps) {
   return (
     <header className="app-header border border-border bg-surface">
       <div className="app-header-inner flex w-full items-center justify-between gap-4 px-5 py-3">
-        <span className="app-wordmark text-xl font-semibold tracking-tight">{appName}</span>
+        {homeHref ? (
+          <Link href={homeHref} className="app-wordmark text-xl font-semibold tracking-tight">
+            <span className="app-wordmark-text">{appName}</span>
+          </Link>
+        ) : (
+          <span className="app-wordmark text-xl font-semibold tracking-tight">
+            <span className="app-wordmark-text">{appName}</span>
+          </span>
+        )}
         <div className="app-account flex min-w-0 items-center gap-3">
           <span className="app-greeting text-sm text-muted">{greeting}</span>
           {notifications && (

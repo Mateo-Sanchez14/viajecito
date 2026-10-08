@@ -72,6 +72,19 @@ describe("TripShellContainer", () => {
     expect(screen.getAllByRole("navigation")).toHaveLength(2);
   });
 
+  it("links back to my trips with a plain link, still two navigations", () => {
+    pathname = `${base}/budget`;
+    setup();
+
+    const back = screen.getByRole("link", { name: messages.trips.nav.back });
+    expect(back).toHaveAttribute("href", "/");
+    expect(screen.getAllByRole("link", { name: messages.trips.nav.back })).toHaveLength(1);
+    expect(back.closest("nav")).toBeNull();
+    expect(screen.getAllByRole("navigation")).toHaveLength(2);
+    // The back link is not a second "Resumen": the exact-name query still finds the two nav entries only.
+    expect(screen.getAllByRole("link", { name: messages.trips.modules.overview }).every((link) => link.closest("nav"))).toBe(true);
+  });
+
   it("keeps the header, navigation and trip title nodes when the pathname changes", () => {
     // A fresh element each time: re-rendering the very same element object would bail out.
     const tree = () => (

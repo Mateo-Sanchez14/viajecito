@@ -52,6 +52,7 @@ export function TripShellContainer({ children }: { children: ReactNode }) {
     <TripShell
       title={trip.name}
       subtitle={onOverview ? undefined : dateRange(trip.start_on, trip.end_on)}
+      backLink={{ href: "/", label: t("nav.back") }}
       navLabel={t("nav.label")}
       navItems={navItems}
       mobileNav={
