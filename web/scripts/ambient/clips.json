@@ -1,1 +1,29 @@
-[]
+[
+  {
+    "scene": "city",
+    "file": "city-1654210.mp4",
+    "start": 1,
+    "duration": 8,
+    "author": "Amit",
+    "source": "https://www.pexels.com/video/city-view-in-timelapse-mode-1654210/",
+    "license": "Pexels License https://www.pexels.com/license/"
+  },
+  {
+    "scene": "snow",
+    "file": "snow-2110771.mp4",
+    "start": 1.5,
+    "duration": 8,
+    "author": "Wietse van den Hout",
+    "source": "https://www.pexels.com/video/aerial-footage-of-a-snow-covered-mountain-and-its-peaks-2110771/",
+    "license": "Pexels License https://www.pexels.com/license/"
+  },
+  {
+    "scene": "beach",
+    "file": "beach-39108740.mp4",
+    "start": 2,
+    "duration": 8,
+    "author": "Alef Morais",
+    "source": "https://www.pexels.com/video/aerial-drone-view-of-tropical-beach-coastline-39108740/",
+    "license": "Pexels License https://www.pexels.com/license/"
+  }
+]

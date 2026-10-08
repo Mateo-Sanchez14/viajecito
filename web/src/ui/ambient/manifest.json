@@ -1,3 +1,34 @@
 {
-  "clips": {}
+  "clips": {
+    "beach": {
+      "credit": {
+        "author": "Alef Morais",
+        "license": "Pexels License https://www.pexels.com/license/",
+        "source": "https://www.pexels.com/video/aerial-drone-view-of-tropical-beach-coastline-39108740/"
+      },
+      "hash": "8c8f4a9aee",
+      "mp4": "/ambient/beach.8c8f4a9aee.mp4",
+      "poster": "/ambient/beach.8c8f4a9aee.webp"
+    },
+    "city": {
+      "credit": {
+        "author": "Amit",
+        "license": "Pexels License https://www.pexels.com/license/",
+        "source": "https://www.pexels.com/video/city-view-in-timelapse-mode-1654210/"
+      },
+      "hash": "88fd55d09f",
+      "mp4": "/ambient/city.88fd55d09f.mp4",
+      "poster": "/ambient/city.88fd55d09f.webp"
+    },
+    "snow": {
+      "credit": {
+        "author": "Wietse van den Hout",
+        "license": "Pexels License https://www.pexels.com/license/",
+        "source": "https://www.pexels.com/video/aerial-footage-of-a-snow-covered-mountain-and-its-peaks-2110771/"
+      },
+      "hash": "f1859c8f16",
+      "mp4": "/ambient/snow.f1859c8f16.mp4",
+      "poster": "/ambient/snow.f1859c8f16.webp"
+    }
+  }
 }
