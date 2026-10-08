@@ -35,8 +35,11 @@ test("the home groups trips into cards with a destination picture, a countdown a
 
   const beach = page.getByRole("link", { name: new RegExp(`Playa ${tag}`) });
   await expect(beach).toBeVisible();
-  // The destination points to the beach still, never a random scene.
-  await expect(beach.locator("img[data-scene='beach']")).toHaveAttribute("src", /\/ambient\/beach\..+\.webp$/);
+  // The destination points to a beach photo, never a random scene, and it really loads.
+  const photo = beach.locator("img[data-photo^='beach-']");
+  await expect(photo).toHaveAttribute("src", /\/photos\/beach-.+\.1280\.webp$/);
+  await expect(photo).toHaveAttribute("loading", "lazy");
+  await expect.poll(() => photo.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0)).toBe(true);
   await expect(beach.locator(".trip-card-pill")).toHaveText(/^en [\d.]+ días$/);
   await expect(beach.locator(".avatar-stack-label")).toHaveText(/\d+ personas?/);
 
@@ -59,8 +62,33 @@ test("the new-trip sheet suggests a name from the destination and shows its pict
 
   await sheet.getByLabel(messages.trips.create.destination).fill("Bariloche");
   await expect(sheet.getByLabel(messages.trips.create.name)).toHaveValue("Bariloche");
-  await expect(sheet.locator("img[data-scene='snow']")).toBeVisible();
+  await expect(sheet.locator("img[data-photo^='snow-']")).toBeVisible();
 
   await sheet.getByRole("button", { name: messages.trips.create.close }).click();
   await expect(sheet).toBeHidden();
+});
+
+test("a section opens with its photo banner and the title on an opaque panel", async ({ page, request }) => {
+  const me = (await (await request.get("/api/me")).json()) as { crews: { id: string }[] };
+  const { csrf_token } = (await (await request.get("/api/auth/csrf")).json()) as { csrf_token: string };
+  const created = await request.post(`/api/crews/${me.crews[0].id}/trips`, {
+    headers: { "X-CSRFToken": csrf_token },
+    data: { name: `Banner ${randomUUID().slice(0, 8)}`, currency: "ARS" },
+  });
+  expect(created.status()).toBe(201);
+  const trip = (await created.json()) as { id: string; crew_id: string };
+  const base = `/crews/${trip.crew_id}/trips/${trip.id}`;
+
+  for (const [section, photoId] of [
+    ["logistics", "packing"],
+    ["dates", "planner"],
+    ["itinerary", "map"],
+    ["map", "map"],
+  ] as const) {
+    await page.goto(`${base}/${section}`);
+    const photo = page.locator(`.section-banner-media img[data-photo='${photoId}']`);
+    await expect(photo).toHaveAttribute("src", /\/photos\/.+\.webp$/);
+    await expect.poll(() => photo.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0), { message: section }).toBe(true);
+    await expect(page.locator(".section-banner-panel h2")).toBeVisible();
+  }
 });
