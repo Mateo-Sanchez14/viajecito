@@ -5,6 +5,8 @@ export type BoardingPassCountdown = {
   /** The big figure: a number, or a word such as "Hoy". */
   value: string;
   unit?: string;
+  /** The figure as a number, when it is one: the home hero counts up to it, other screens ignore it. */
+  count?: number;
   caption: string;
   /** Optional call to action under the caption, e.g. "set the dates". */
   action?: ReactNode;

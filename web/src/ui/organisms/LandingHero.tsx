@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { ButtonLink } from "@/ui/atoms/ButtonLink";
+import { CountUp } from "@/ui/atoms/CountUp";
 import { Skeleton } from "@/ui/atoms/Skeleton";
 import { CaretRightIcon } from "@/ui/icons";
 import { InlineError } from "@/ui/molecules/InlineError";
@@ -74,7 +75,7 @@ export function LandingHero({ media, greeting, tagline, next }: LandingHeroProps
               <>
                 <p className="landing-next-figure">
                   <span key={next.countdown.value} className="landing-next-value ui-tabular ui-flip">
-                    {next.countdown.value}
+                    {next.countdown.count !== undefined ? <CountUp value={next.countdown.count} /> : next.countdown.value}
                   </span>
                   {next.countdown.unit && <span className="landing-next-unit">{next.countdown.unit}</span>}
                 </p>

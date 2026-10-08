@@ -19,6 +19,7 @@ export function describeCountdown(
         ? { value: t("tomorrow"), caption: t("tomorrowCaption") }
         : {
             value: String(state.days),
+            count: state.days,
             unit: t("upcomingUnit", { days: state.days }),
             caption: t("upcomingCaption"),
           };

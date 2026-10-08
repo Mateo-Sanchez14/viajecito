@@ -8,6 +8,7 @@ describe("describeCountdown", () => {
   it("counts days with the plural unit for a trip 10 days away", () => {
     expect(describeCountdown({ kind: "upcoming", days: 10 }, t, null)).toEqual({
       value: "10",
+      count: 10,
       unit: 'upcomingUnit:{"days":10}',
       caption: "upcomingCaption",
     });

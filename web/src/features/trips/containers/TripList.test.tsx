@@ -1,4 +1,4 @@
-import { fireEvent, screen, waitForElementToBeRemoved, within } from "@testing-library/react";
+import { act, fireEvent, screen, waitForElementToBeRemoved, within } from "@testing-library/react";
 import { createOpenApiHttp } from "openapi-msw";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { paths } from "@/shared/api/schema";
@@ -302,5 +302,31 @@ describe("TripList card media", () => {
     await screen.findByRole("link", { name: /Bariloche 2027/ });
     expect(container.querySelectorAll(".trip-card-media").length).toBe(2);
     expect(container.querySelector("video, .ambient-media")).toBeNull();
+  });
+});
+
+describe("TripList pill count-up", () => {
+  it("counts the days up with motion allowed, and says the final text at once without it", async () => {
+    today("2027-06-15");
+    server.use(trips(makeSummary({ start_on: "2027-06-25", end_on: "2027-06-27" })));
+    const { unmount } = renderWithProviders(<TripList crewId={CREW_ID} />);
+    // No matchMedia in jsdom: motion cannot be confirmed, so the final value shows immediately.
+    const link = await screen.findByRole("link", { name: /Bariloche 2027/ });
+    expect(link.querySelector(".trip-card-pill")).toHaveTextContent("en 10 días");
+    unmount();
+
+    vi.useRealTimers();
+    vi.useFakeTimers({ toFake: ["Date", "performance", "requestAnimationFrame", "cancelAnimationFrame"] });
+    vi.setSystemTime(new Date("2027-06-15T15:00:00Z"));
+    vi.stubGlobal("matchMedia", () => ({ matches: false, addEventListener: () => {}, removeEventListener: () => {} }));
+    renderWithProviders(<TripList crewId={CREW_ID} />);
+    const animated = await screen.findByRole("link", { name: /Bariloche 2027/ });
+    expect(animated.querySelector(".trip-card-pill")).toHaveTextContent(/^en 0 días$/);
+
+    act(() => {
+      vi.advanceTimersByTime(1200);
+    });
+    expect(animated.querySelector(".trip-card-pill")).toHaveTextContent("en 10 días");
+    vi.unstubAllGlobals();
   });
 });

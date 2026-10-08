@@ -1,8 +1,15 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { useCountUp } from "@/shared/lib/useCountUp";
 import type { TripCardPill } from "@/ui/organisms/TripCard";
 import type { Countdown } from "./countdown";
+
+/** "en 12 días" with the number counting up on mount (the final text at once under reduced motion). */
+function UpcomingText({ days }: { days: number }) {
+  const t = useTranslations("trips.card.pill");
+  return <>{t("upcoming", { days: useCountUp(days) })}</>;
+}
 
 /** Returns the card pill for where a trip stands in time; `undefined` while unknown or without dates. */
 export function useTripPill() {
@@ -12,7 +19,7 @@ export function useTripPill() {
       case "upcoming":
         return {
           tone: "quiet",
-          content: countdown.days === 1 ? t("tomorrow") : t("upcoming", { days: countdown.days }),
+          content: countdown.days === 1 ? t("tomorrow") : <UpcomingText days={countdown.days} />,
         };
       case "today":
         return { tone: "live", content: t("today") };

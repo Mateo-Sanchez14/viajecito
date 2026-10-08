@@ -1,6 +1,6 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { LandingHero, type LandingNext } from "./LandingHero";
 
 const trip: Extract<LandingNext, { status: "trip" }> = {
@@ -118,5 +118,48 @@ describe("LandingHero", () => {
     expect(screen.getByRole("alert")).toHaveTextContent("No pudimos cargar");
     fireEvent.click(screen.getByRole("button", { name: "Reintentar" }));
     expect(onRetry).toHaveBeenCalledOnce();
+  });
+});
+
+describe("LandingHero countdown count-up", () => {
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
+  });
+
+  const counted: LandingNext = { ...trip, countdown: { value: "10", count: 10, unit: "días", caption: "para salir" } };
+
+  it("shows the final figure at once when motion is reduced or unknown", () => {
+    setup(counted);
+
+    expect(screen.getByText("10")).toHaveClass("landing-next-value");
+  });
+
+  it("counts up to the figure when motion is allowed, and lands on it", () => {
+    vi.useFakeTimers({ toFake: ["performance", "requestAnimationFrame", "cancelAnimationFrame"] });
+    vi.stubGlobal("matchMedia", () => ({ matches: false, addEventListener: () => {}, removeEventListener: () => {} }));
+    const { container } = setup(counted);
+    const value = container.querySelector(".landing-next-value")!;
+    expect(value).toHaveTextContent("0");
+
+    act(() => {
+      vi.advanceTimersByTime(1000);
+    });
+
+    expect(value).toHaveTextContent("10");
+  });
+
+  it("leaves words such as 'Hoy' alone: only a numeric count animates", () => {
+    setup({ ...trip, countdown: { value: "Hoy", caption: "salimos" } });
+
+    expect(screen.getByText("Hoy")).toBeInTheDocument();
+  });
+});
+
+describe("LandingHero empty state action", () => {
+  it("renders the action under the body", () => {
+    setup({ status: "empty", title: "Sin viaje", body: "Sumá uno", action: <button type="button">Armar</button> });
+
+    expect(screen.getByRole("button", { name: "Armar" })).toBeInTheDocument();
   });
 });
