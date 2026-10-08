@@ -41,7 +41,7 @@ Delegated direct (one writer): 2+ non-trivial files across api and web (writer t
       crew heading only with ≥ 2 crews.
 - [x] T6 Web: entrance stagger + countdown count-up (reduced motion → final values); layout tests.
 - [x] T7 Full checks + fresh-stack e2e (update `home.spec.ts` order expectations).
-- [ ] T9 Photos (user: "not optional", 13 Pexels photos approved + downloaded 2026-10-08, Engram
+- [x] T9 Photos (user: "not optional", 13 Pexels photos approved + downloaded 2026-10-08, Engram
       `odd/home-alive/photos`): WebP ≤ 150 KB each with PROVENANCE, scene photos for cards/hero
       (cover > scene photo/video > illustration; lake/vineyard/desert get their own photo), section
       banners (packing → logistics, map → itinerary/map, planner → dates; money keeps an illustration).
@@ -60,3 +60,7 @@ pills, a one-tap create-trip sheet, no duplicated greeting or health card; all s
 
 ## Next step
 T1–T6 via one delegated writer.
+- T9 (delegated writer): commits f66c466, 85e86cf, 14e5b30, 0c1786d, b77ab86; orchestrator 85a84d0
+  (full Pexels URLs in provenance). 13 photos → 26 WebP, 1.43 MB, max 137 KB. Gate: api pytest 2115;
+  web vitest 1665, lint/typecheck/build, ambient:test 76, api:types:check clean; fresh-stack e2e
+  29 passed / 2 known dev skips. City trips use Buenos Aires photos (the city clip is Sydney, unused).
