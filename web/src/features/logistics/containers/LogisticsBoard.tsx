@@ -2,13 +2,15 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { TaskList } from "./TaskList";
+import { SectionBanner } from "@/ui/molecules/SectionBanner";
+import { bannerPhoto } from "@/ui/photos/photos";
 import { PackingList } from "./PackingList";
 export function LogisticsBoard({ tripId }: { tripId: string }) {
   const t = useTranslations("logistics");
   const [tab, setTab] = useState<"tasks" | "packing">("tasks");
   return (
     <div className="ui-stack">
-      <h2 className="text-2xl font-semibold">{t("title")}</h2>
+      <SectionBanner photo={bannerPhoto("logistics")} title={t("title")} />
       <div className="ui-segmented" role="tablist" aria-label={t("title")}>
         {(["tasks", "packing"] as const).map((key) => (
           <button

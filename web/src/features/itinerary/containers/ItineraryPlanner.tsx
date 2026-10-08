@@ -4,6 +4,8 @@ import { useTranslations } from "next-intl";
 import { ApiError } from "@/shared/api/errors";
 import { EmptyArt } from "@/ui/illustrations/EmptyArt";
 import { EmptyState } from "@/ui/molecules/EmptyState";
+import { SectionBanner } from "@/ui/molecules/SectionBanner";
+import { bannerPhoto } from "@/ui/photos/photos";
 import type { Entry } from "../api/itinerary";
 import { EntryRow } from "../components/EntryRow";
 import { DayColumn } from "../components/DayColumn";
@@ -55,16 +57,19 @@ export function ItineraryPlanner({ tripId }: { tripId: string }) {
   }
   return (
     <div className="min-w-0 space-y-5">
-      <header className="flex items-center justify-between gap-3">
-        <h2 className="text-2xl font-semibold">{t("title")}</h2>
-        <button
-          className="min-h-11 rounded border border-border px-4"
-          onClick={() => setEditing("new")}
-          disabled={!data}
-        >
-          {t("entry.add")}
-        </button>
-      </header>
+      <SectionBanner
+        photo={bannerPhoto("map")}
+        title={t("title")}
+        actions={
+          <button
+            className="min-h-11 rounded border border-border px-4"
+            onClick={() => setEditing("new")}
+            disabled={!data}
+          >
+            {t("entry.add")}
+          </button>
+        }
+      />
       {isPending && <p role="status">{t("loading")}</p>}
       {isError && <p role="alert">{errors("load")}</p>}
       {error && <p role="alert">{errors(error)}</p>}

@@ -259,3 +259,14 @@ describe("DatesPlanner with a closed decision", () => {
     expect(screen.getByRole("heading", { name: m.open.title })).toBeInTheDocument();
   });
 });
+
+describe("DatesPlanner banner", () => {
+  it("opens with the planner photo banner and the section title as its heading", async () => {
+    server.use(listDecisions([]));
+    const { container } = setup(makeTrip({ start_on: null, end_on: null }));
+
+    await screen.findByText(m.empty.title);
+    expect(screen.getByRole("heading", { level: 2, name: m.title })).toBeInTheDocument();
+    expect(container.querySelector(".section-banner-media img")).toHaveAttribute("data-photo", "planner");
+  });
+});

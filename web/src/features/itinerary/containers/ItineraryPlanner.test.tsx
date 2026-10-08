@@ -207,3 +207,14 @@ it("shows an illustrated empty state when there is nothing planned at all", asyn
   ).toBeVisible();
   expect(container.querySelector("svg[data-scene='map']")).toHaveAttribute("aria-hidden", "true");
 });
+
+it("opens with the map photo banner, the title as its heading and the add button beside it", async () => {
+  server.use(itineraryHandler(makeItinerary()));
+  const { container } = renderWithProviders(<ItineraryPlanner tripId="trip" />);
+
+  await screen.findByText("Try the cafe");
+  const banner = container.querySelector(".section-banner")!;
+  expect(banner.querySelector(".section-banner-media img")).toHaveAttribute("data-photo", "map");
+  expect(within(banner as HTMLElement).getByRole("heading", { level: 2 })).toBeVisible();
+  expect(banner.querySelector(".section-banner-actions button")).toBeInTheDocument();
+});

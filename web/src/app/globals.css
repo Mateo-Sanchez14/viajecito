@@ -2715,6 +2715,78 @@ body:has(.app-atmosphere),
 /* After a tour the page's main landmark may take focus (programmatically): no ring on a container. */
 main[tabindex="-1"]:focus { outline: none; }
 
+/* Photo banners: a slim strip of photo with the section title on an opaque panel over its bottom edge. */
+.section-banner {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+}
+.section-banner-media {
+  height: clamp(84px, 24vw, 120px);
+  overflow: hidden;
+  border-radius: var(--radius-card) var(--radius-card) 0 0;
+  background: var(--art-sky);
+}
+.section-banner-media > img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.section-banner-panel {
+  position: relative;
+  z-index: var(--z-raised);
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  background: var(--surface);
+  box-shadow: var(--elev-1);
+}
+.section-banner[data-photo] > .section-banner-panel {
+  margin: -14px 12px 0;
+}
+.section-banner-text {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+}
+.section-banner-eyebrow {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--type-xs);
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.section-banner-title {
+  margin: 0;
+  font-size: var(--type-xl);
+  font-weight: 600;
+  letter-spacing: var(--tracking-heading);
+  line-height: var(--leading-tight);
+  overflow-wrap: anywhere;
+}
+.section-banner-subtitle {
+  margin: 0;
+  max-width: 46ch;
+  color: var(--muted);
+  font-size: var(--type-sm);
+}
+.section-banner-actions {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 8px;
+}
+
 /* Stays last: it must beat every transition and animation declared above. */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

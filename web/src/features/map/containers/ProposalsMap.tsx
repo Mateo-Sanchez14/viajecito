@@ -4,6 +4,8 @@ import { useId } from "react";
 import { useTranslations } from "next-intl";
 import { Card } from "@/ui/atoms/Card";
 import { Skeleton } from "@/ui/atoms/Skeleton";
+import { SectionBanner } from "@/ui/molecules/SectionBanner";
+import { bannerPhoto } from "@/ui/photos/photos";
 import { mapPlaces } from "../lib/places";
 import { useMapProposals } from "../hooks/useMapProposals";
 import { MapLegend } from "../components/MapLegend";
@@ -30,15 +32,7 @@ export function ProposalsMap({
   ];
   return (
     <div className="min-w-0 space-y-7">
-      <header className="space-y-2">
-        <p className="text-xs font-medium tracking-[0.14em] text-muted uppercase">
-          {t("eyebrow")}
-        </p>
-        <h2 className="text-3xl font-semibold tracking-tight">{t("title")}</h2>
-        <p className="max-w-lg text-sm leading-relaxed text-muted">
-          {t("body")}
-        </p>
-      </header>
+      <SectionBanner photo={bannerPhoto("map")} eyebrow={t("eyebrow")} title={t("title")} subtitle={t("body")} />
       {isPending && (
         <div role="status" aria-label={t("loading")}>
           <Skeleton className="h-96 w-full" />

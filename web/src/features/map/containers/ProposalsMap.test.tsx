@@ -196,3 +196,15 @@ it("fits the trip shell without duplicating the page landmark or primary heading
   expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
   expect(screen.getByRole("heading", { name: "Mapa", level: 2 })).toBeVisible();
 });
+
+it("opens with the map photo banner carrying the eyebrow, title and intro on its panel", async () => {
+  server.use(mapProposalsHandler([]));
+  const { container } = renderWithProviders(<ProposalsMap tripId={TRIP_ID} crewId={CREW_ID} />);
+
+  await screen.findByText("Los lugares que propongan van a aparecer acá");
+  const banner = container.querySelector(".section-banner")!;
+  expect(banner.querySelector(".section-banner-media img")).toHaveAttribute("data-photo", "map");
+  expect(banner.querySelector(".section-banner-panel .section-banner-eyebrow")).toBeInTheDocument();
+  expect(banner.querySelector(".section-banner-panel h2")).toHaveTextContent("Mapa");
+  expect(banner.querySelector(".section-banner-panel .section-banner-subtitle")).toBeInTheDocument();
+});

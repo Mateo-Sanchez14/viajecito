@@ -8,6 +8,8 @@ import { Button } from "@/ui/atoms/Button";
 import { Card } from "@/ui/atoms/Card";
 import { ConfirmDialog } from "@/ui/molecules/ConfirmDialog";
 import { EmptyState } from "@/ui/molecules/EmptyState";
+import { SectionBanner } from "@/ui/molecules/SectionBanner";
+import { bannerPhoto } from "@/ui/photos/photos";
 import type { BestWindow, Decision } from "../api/dates";
 import { DecisionOutcome } from "../components/DecisionOutcome";
 import { useCloseDecision, useReopenDecision } from "../hooks/mutations";
@@ -26,7 +28,7 @@ export function DatesPlanner({ tripId }: { tripId: string }) {
 
   return (
     <div className="flex flex-col gap-6">
-      <h2 className="text-xl font-semibold">{t("title")}</h2>
+      <SectionBanner photo={bannerPhoto("planner")} title={t("title")} />
       {isPending ? (
         <DatesLoading />
       ) : isError ? (

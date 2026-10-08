@@ -35,3 +35,21 @@ it("switches between tasks and packing with an accessible segmented tab control"
   expect(screen.getByRole("tabpanel")).toHaveAttribute("aria-labelledby", "tab-packing");
   await screen.findByText("Arrancá con una lista armada");
 });
+
+it("opens with the packing photo banner and the section title as its heading", async () => {
+  server.use(
+    http.get("*/api/trips/:id/tasks", () => HttpResponse.json([])),
+  );
+  const { container } = renderWithProviders(
+    <MeProvider me={makeMe()}>
+      <TripProvider trip={makeTrip()}>
+        <LogisticsBoard tripId="t1" />
+      </TripProvider>
+    </MeProvider>,
+  );
+
+  expect(screen.getByRole("heading", { level: 2, name: "Logística" })).toBeInTheDocument();
+  expect(container.querySelector(".section-banner-media img")).toHaveAttribute("data-photo", "packing");
+  expect(container.querySelector(".section-banner-media img")).toHaveAttribute("alt", "");
+  expect(container.querySelector(".section-banner-media")).toHaveAttribute("aria-hidden", "true");
+});
