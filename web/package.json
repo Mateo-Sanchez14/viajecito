@@ -15,7 +15,8 @@
     "api:types:check": "openapi-typescript ../contracts/openapi.json --default-non-nullable false -o \"${TMPDIR:-/tmp}/viajecito-schema.d.ts\" && diff -u src/shared/api/schema.d.ts \"${TMPDIR:-/tmp}/viajecito-schema.d.ts\"",
     "icons:generate": "node scripts/generate-icons.mjs",
     "ambient:build": "node scripts/ambient/build.mjs",
-    "ambient:test": "node --test \"scripts/ambient/*.test.mjs\""
+    "ambient:test": "node --test \"scripts/ambient/*.test.mjs\" \"scripts/photos/*.test.mjs\"",
+    "photos:build": "node scripts/photos/build.mjs"
   },
   "dependencies": {
     "@phosphor-icons/react": "^2.1.10",

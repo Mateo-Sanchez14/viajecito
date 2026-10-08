@@ -15,6 +15,18 @@ describe("next.config headers for /ambient", () => {
     expect(headers["cache-control"]).toBe("public, max-age=31536000, immutable");
     expect(headers["x-content-type-options"]).toBe("nosniff");
     // Nothing broader may change caching for the rest of the app.
-    expect(rules.every((rule) => rule.source.startsWith("/ambient"))).toBe(true);
+    expect(rules.every((rule) => rule.source.startsWith("/ambient") || rule.source.startsWith("/photos"))).toBe(true);
+  });
+
+  it("serves hashed photos with the same immutable policy, under /photos and never /media or /static", async () => {
+    const rules = (await nextConfig.headers?.()) as Rule[];
+
+    const photos = rules.filter((rule) => rule.source.startsWith("/photos"));
+    expect(photos).toHaveLength(1);
+    expect(photos[0].source).toBe("/photos/:path*");
+    const headers = Object.fromEntries(photos[0].headers.map(({ key, value }) => [key.toLowerCase(), value]));
+    expect(headers["cache-control"]).toBe("public, max-age=31536000, immutable");
+    expect(headers["x-content-type-options"]).toBe("nosniff");
+    expect(rules.some((rule) => /^\/(media|static)/.test(rule.source))).toBe(false);
   });
 });

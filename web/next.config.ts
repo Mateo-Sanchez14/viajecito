@@ -31,6 +31,14 @@ const nextConfig: NextConfig = {
           { key: "X-Content-Type-Options", value: "nosniff" },
         ],
       },
+      {
+        // Content-hashed names from scripts/photos/build.mjs, same policy as the clips.
+        source: "/photos/:path*",
+        headers: [
+          { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
+          { key: "X-Content-Type-Options", value: "nosniff" },
+        ],
+      },
     ];
   },
   // Dev convenience only. Production relies on the tunnel splitting /api/* to the api,

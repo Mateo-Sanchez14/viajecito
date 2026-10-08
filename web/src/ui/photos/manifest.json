@@ -1,0 +1,279 @@
+{
+  "photos": {
+    "beach-aerial": {
+      "credit": {
+        "author": "Caleb Oquendo",
+        "license": "Pexels License https://www.pexels.com/license/",
+        "source": "https://www.pexels.com/photo/2927021/"
+      },
+      "orientation": "landscape",
+      "scene": "beach",
+      "variants": [
+        {
+          "height": 380,
+          "src": "/photos/beach-aerial.4980be55d6.640.webp",
+          "width": 640
+        },
+        {
+          "height": 758,
+          "src": "/photos/beach-aerial.4980be55d6.1280.webp",
+          "width": 1280
+        }
+      ]
+    },
+    "beach-foam": {
+      "credit": {
+        "author": "Asad Photo Maldives",
+        "license": "Pexels License https://www.pexels.com/license/",
+        "source": "https://www.pexels.com/photo/28408402/"
+      },
+      "orientation": "landscape",
+      "scene": "beach",
+      "variants": [
+        {
+          "height": 428,
+          "src": "/photos/beach-foam.cb761bdad9.640.webp",
+          "width": 640
+        },
+        {
+          "height": 854,
+          "src": "/photos/beach-foam.cb761bdad9.1280.webp",
+          "width": 1280
+        }
+      ]
+    },
+    "city-madero": {
+      "credit": {
+        "author": "Andres Idda Bianchi",
+        "license": "Pexels License https://www.pexels.com/license/",
+        "source": "https://www.pexels.com/photo/20985696/"
+      },
+      "orientation": "portrait",
+      "position": "50% 35%",
+      "scene": "city",
+      "variants": [
+        {
+          "height": 600,
+          "src": "/photos/city-madero.87776c3dcc.400.webp",
+          "width": 400
+        },
+        {
+          "height": 1200,
+          "src": "/photos/city-madero.87776c3dcc.800.webp",
+          "width": 800
+        }
+      ]
+    },
+    "city-obelisco": {
+      "credit": {
+        "author": "Andres Idda Bianchi",
+        "license": "Pexels License https://www.pexels.com/license/",
+        "source": "https://www.pexels.com/photo/22690629/"
+      },
+      "orientation": "portrait",
+      "position": "50% 35%",
+      "scene": "city",
+      "variants": [
+        {
+          "height": 600,
+          "src": "/photos/city-obelisco.3add2e099c.400.webp",
+          "width": 400
+        },
+        {
+          "height": 1200,
+          "src": "/photos/city-obelisco.3add2e099c.800.webp",
+          "width": 800
+        }
+      ]
+    },
+    "desert": {
+      "credit": {
+        "author": "Stephen Leonardi",
+        "license": "Pexels License https://www.pexels.com/license/",
+        "source": "https://www.pexels.com/photo/28639363/"
+      },
+      "orientation": "landscape",
+      "scene": "desert",
+      "variants": [
+        {
+          "height": 426,
+          "src": "/photos/desert.aae40bf791.640.webp",
+          "width": 640
+        },
+        {
+          "height": 854,
+          "src": "/photos/desert.aae40bf791.1280.webp",
+          "width": 1280
+        }
+      ]
+    },
+    "lake-patagonia": {
+      "credit": {
+        "author": "Belén Montero",
+        "license": "Pexels License https://www.pexels.com/license/",
+        "source": "https://www.pexels.com/photo/35747415/"
+      },
+      "orientation": "landscape",
+      "scene": "lake",
+      "variants": [
+        {
+          "height": 426,
+          "src": "/photos/lake-patagonia.1b614cdd2f.640.webp",
+          "width": 640
+        },
+        {
+          "height": 854,
+          "src": "/photos/lake-patagonia.1b614cdd2f.1280.webp",
+          "width": 1280
+        }
+      ]
+    },
+    "map": {
+      "banner": "map",
+      "credit": {
+        "author": "Lara Jameson",
+        "license": "Pexels License https://www.pexels.com/license/",
+        "source": "https://www.pexels.com/photo/8828439/"
+      },
+      "orientation": "landscape",
+      "variants": [
+        {
+          "height": 426,
+          "src": "/photos/map.0c542a0785.640.webp",
+          "width": 640
+        },
+        {
+          "height": 854,
+          "src": "/photos/map.0c542a0785.1280.webp",
+          "width": 1280
+        }
+      ]
+    },
+    "packing": {
+      "banner": "logistics",
+      "credit": {
+        "author": "Kindel Media",
+        "license": "Pexels License https://www.pexels.com/license/",
+        "source": "https://www.pexels.com/photo/8212231/"
+      },
+      "orientation": "landscape",
+      "variants": [
+        {
+          "height": 480,
+          "src": "/photos/packing.a415d6acc4.640.webp",
+          "width": 640
+        },
+        {
+          "height": 960,
+          "src": "/photos/packing.a415d6acc4.1280.webp",
+          "width": 1280
+        }
+      ]
+    },
+    "planner": {
+      "banner": "planner",
+      "credit": {
+        "author": "Karola G",
+        "license": "Pexels License https://www.pexels.com/license/",
+        "source": "https://www.pexels.com/photo/5706225/"
+      },
+      "orientation": "landscape",
+      "variants": [
+        {
+          "height": 426,
+          "src": "/photos/planner.1301af117b.640.webp",
+          "width": 640
+        },
+        {
+          "height": 854,
+          "src": "/photos/planner.1301af117b.1280.webp",
+          "width": 1280
+        }
+      ]
+    },
+    "road": {
+      "credit": {
+        "author": "Stephen Leonardi",
+        "license": "Pexels License https://www.pexels.com/license/",
+        "source": "https://www.pexels.com/photo/28134859/"
+      },
+      "orientation": "landscape",
+      "scene": "road",
+      "variants": [
+        {
+          "height": 426,
+          "src": "/photos/road.1678d44a59.640.webp",
+          "width": 640
+        },
+        {
+          "height": 852,
+          "src": "/photos/road.1678d44a59.1280.webp",
+          "width": 1280
+        }
+      ]
+    },
+    "snow-lake": {
+      "credit": {
+        "author": "Eberhard Grossgasteiger",
+        "license": "Pexels License https://www.pexels.com/license/",
+        "source": "https://www.pexels.com/photo/790545/"
+      },
+      "orientation": "landscape",
+      "scene": "snow",
+      "variants": [
+        {
+          "height": 428,
+          "src": "/photos/snow-lake.a16c23249a.640.webp",
+          "width": 640
+        },
+        {
+          "height": 854,
+          "src": "/photos/snow-lake.a16c23249a.1280.webp",
+          "width": 1280
+        }
+      ]
+    },
+    "snow-peaks": {
+      "credit": {
+        "author": "Eberhard Grossgasteiger",
+        "license": "Pexels License https://www.pexels.com/license/",
+        "source": "https://www.pexels.com/photo/691668/"
+      },
+      "orientation": "landscape",
+      "scene": "snow",
+      "variants": [
+        {
+          "height": 426,
+          "src": "/photos/snow-peaks.ca18be1e1b.640.webp",
+          "width": 640
+        },
+        {
+          "height": 854,
+          "src": "/photos/snow-peaks.ca18be1e1b.1280.webp",
+          "width": 1280
+        }
+      ]
+    },
+    "vineyard": {
+      "credit": {
+        "author": "Mariana La Regina",
+        "license": "Pexels License https://www.pexels.com/license/",
+        "source": "https://www.pexels.com/photo/31025236/"
+      },
+      "orientation": "landscape",
+      "scene": "vineyard",
+      "variants": [
+        {
+          "height": 428,
+          "src": "/photos/vineyard.197159c410.640.webp",
+          "width": 640
+        },
+        {
+          "height": 854,
+          "src": "/photos/vineyard.197159c410.1280.webp",
+          "width": 1280
+        }
+      ]
+    }
+  }
+}

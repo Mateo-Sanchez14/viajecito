@@ -56,3 +56,6 @@ next-env.d.ts
 
 # ambient video sources: user-approved downloads, never committed (see scripts/ambient/build.mjs)
 /scripts/ambient/sources/
+
+# destination photo sources: user-approved downloads, never committed (see scripts/photos/build.mjs)
+/scripts/photos/sources/
